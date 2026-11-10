@@ -1,0 +1,36 @@
+# Slim 4 Internal Architecture Guide (Unofficial)
+
+> Source-level internal architecture guide to Slim Framework v4.15.3: 5-tier PSR package topology, AppFactory & PSR-17 auto-discovery, LIFO MiddlewareDispatcher & CallableResolver, FastRoute compilation & RouteRunner, and ErrorMiddleware…
+
+## Overview
+
+- [Architecture Overview](https://slim.drawlib.com/architecture/en/): Slim Framework (v4.15.3 · 72 PHP source files · 3,149 LOC · 17 contract interfaces · 100% declare(strict_types=1)) is a standards-pure PHP HTTP micro-kernel…
+
+## 1. Package Topology & Layers
+
+- [5-Tier Module Hierarchy & Coupling](https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html): Slim Framework v4.15.3 implements an entire PSR-7 / PSR-15 / PSR-11 HTTP micro-framework across 72 PHP source files (3,149 LOC, 72 classes/interfaces, 311…
+
+## 2. Bootstrap & PSR-17 Auto-Discovery
+
+- [AppFactory & Psr17FactoryProvider Internals](https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html): Slim 4 intentionally decouples its core routing and middleware kernel from any concrete PSR-7 HTTP message library. Instead of hardcoding new…
+
+## 3. Middleware Onion & CallableResolver
+
+- [MiddlewareDispatcher & CallableResolver Internals](https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html): At the heart of Slim 4's PSR-15 request execution model sit two tightly cooperating classes: Slim\MiddlewareDispatcher (Slim/MiddlewareDispatcher.php, 290…
+
+## 4. FastRoute & RouteRunner Engine
+
+- [FastRouteDispatcher, RouteRunner & Strategies](https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html): Slim 4's routing engine spans 15 source files (953 LOC) across Slim\Routing\ (11 classes), Slim\Middleware\RoutingMiddleware (1 class), and…
+
+## 5. Error Subsystem & Renderers
+
+- [ErrorMiddleware, ErrorHandler & Renderers](https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html): Slim 4 treats exception handling as a first-class, content-negotiated PSR-15 subsystem spanning 7 source files (416 LOC): Slim\Middleware\ErrorMiddleware…
+
+## 6. SAPI Response Emission
+
+- [ResponseEmitter & OutputBuffering Internals](https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html): At the end of every HTTP lifecycle in Slim\App::run() (Slim/App.php:186-196), Slim must bridge two fundamentally different worlds: the immutable, stateless…
+
+## Locales
+
+- [English (en)](https://slim.drawlib.com/architecture/en/): Source-level internal architecture guide to Slim Framework v4.15.3: 5-tier PSR package topology, AppFactory & PSR-17 auto-discovery, LIFO…
+- [日本語 (ja)](https://slim.drawlib.com/architecture/ja/): Slim Framework v4.15.3 の内部アーキテクチャ解説（非公式）：PSR 5層パッケージ構造、AppFactory と PSR-17 自動検出、MiddlewareDispatcher と CallableResolver、FastRoute 統合、ErrorMiddleware と…

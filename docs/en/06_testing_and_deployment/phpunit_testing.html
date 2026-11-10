@@ -1,0 +1,814 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Memory HTTP Testing with PHPUnit — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/06_testing_and_deployment/phpunit_testing.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html">
+    
+    
+    
+    <meta name="description" content="Because Slim\App implements PSR-15 RequestHandlerInterface (public function handle(ServerRequestInterface $request): ResponseInterface), you can test your…">
+    <link rel="canonical" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="In-Memory HTTP Testing with PHPUnit — Slim 4 User Guide">
+    <meta property="og:description" content="Because Slim\App implements PSR-15 RequestHandlerInterface (public function handle(ServerRequestInterface $request): ResponseInterface), you can test your…">
+    <meta property="og:url" content="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html">
+    <meta property="og:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="In-Memory HTTP Testing with PHPUnit — Slim 4 User Guide">
+    <meta name="twitter:description" content="Because Slim\App implements PSR-15 RequestHandlerInterface (public function handle(ServerRequestInterface $request): ResponseInterface), you can test your…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">UNOFFICIAL GUIDE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Community User Guide for <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">In-Memory HTTP Testing with PHPUnit</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="phpunit_testing.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/06_testing_and_deployment/phpunit_testing.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>In-Memory HTTP Testing with PHPUnit</h1>
+<p>Because <code>Slim\App</code> implements <strong>PSR-15</strong> <code>RequestHandlerInterface</code> (<code>public function handle(ServerRequestInterface $request): ResponseInterface</code>), you can test your entire HTTP pipeline—including <code>ErrorMiddleware</code>, <code>BodyParsingMiddleware</code>, <code>RoutingMiddleware</code>, <code>JwtAuthenticationMiddleware</code>, FastRoute parameter extraction, and Single-Action Controllers—<strong>entirely in memory inside PHPUnit</strong> without opening a TCP socket or booting a web server.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/06_testing_and_deployment/phpunit_testing/phpunit_inmemory_testing.png" alt="phpunit_testing_1" />
+  <figcaption class="drawlib-caption">Slim 4 In-Memory HTTP Testing Pipeline — PSR-17 Request Construction, PSR-11 Container Overrides, and $app->handle($request) Assertions</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Sub-Millisecond In-Memory HTTP Testing via $app-&gt;handle(ServerRequestInterface)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">flask</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. Boot Fresh App"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"DI Container + Routes"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. Override Mocks"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"$container-&gt;set(...)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. PSR-17 Request"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Headers + JSON Stream"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. $app-&gt;handle()"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Full PSR-15 Pipeline"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. Assert Response"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Status, Headers, JSON"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">41.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">19.5</span><span class="p">)</span>
+
+<span class="n">cards</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Zero Network I/O"</span><span class="p">,</span>
+    <span class="s2">"Bypasses ServerRequestCreator</span><span class="se">\n</span><span class="s2">&amp; ResponseEmitter sockets"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"1ms"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Real Middleware Onion"</span><span class="p">,</span>
+    <span class="s2">"Tests Auth, RBAC, FastRoute,</span><span class="se">\n</span><span class="s2">BodyParsing &amp; ErrorHandler"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"PSR"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Isolated Domain Mocks"</span><span class="p">,</span>
+    <span class="s2">"Swap DB / external APIs via</span><span class="se">\n</span><span class="s2">PSR-11 Container-&gt;set()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"DI"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plugs_connected</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">29.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>Why Slim 4 Excels at Sub-Millisecond In-Memory HTTP Testing</h2>
+<p>In legacy frameworks that read directly from <code>$_SERVER</code>, <code>$_POST</code>, <code>php://input</code>, or emit <code>header()</code> and <code>echo</code> calls inside controllers, testing an HTTP endpoint requires either heavy process isolation or a live web server. Slim 4 cleanly separates <strong>I/O boundary adapters</strong> (<code>$app-&gt;run()</code>) from <strong>pure PSR-7/PSR-15 request handling</strong> (<code>$app-&gt;handle($request)</code>):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Execution Method</th>
+<th style="text-align:left">Input Source</th>
+<th style="text-align:left">Pipeline Executed</th>
+<th style="text-align:left">Output Destination</th>
+<th style="text-align:left">Primary Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$app-&gt;run()</code></td>
+<td style="text-align:left"><code>ServerRequestCreatorFactory</code> reads <code>$_SERVER</code>, <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code>, <code>$_FILES</code></td>
+<td style="text-align:left"><code>MiddlewareDispatcher</code> -&gt; <code>RouteRunner</code> -&gt; <code>Route</code></td>
+<td style="text-align:left"><code>ResponseEmitter::emit()</code> calls <code>header()</code> and <code>echo</code></td>
+<td style="text-align:left">Production PHP-FPM front controller (<code>public/index.php</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$app-&gt;handle($request)</code></td>
+<td style="text-align:left">Synthetic PSR-7 <code>ServerRequestInterface</code> built via PSR-17 factory</td>
+<td style="text-align:left">Exact same <code>MiddlewareDispatcher</code> -&gt; <code>RouteRunner</code> -&gt; <code>Route</code></td>
+<td style="text-align:left">Returns immutable PSR-7 <code>ResponseInterface</code> directly to caller</td>
+<td style="text-align:left">PHPUnit integration tests &amp; worker runtimes (RoadRunner, FrankenPHP)</td>
+</tr>
+</tbody>
+</table>
+<h2>The Slim 4 Testing Pyramid</h2>
+<p>A well-tested Slim 4 codebase combines three complementary testing tiers so business rules, HTTP middleware wiring, and external infrastructure adapters are verified without brittle end-to-end browser overhead:</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/06_testing_and_deployment/phpunit_testing/test_pyramid_slim.png" alt="phpunit_testing_2" />
+  <figcaption class="drawlib-caption">Slim 4 Testing Pyramid — Pure Domain Unit Tests, In-Memory $app->handle($request) Pipeline Tests, and Infrastructure Contract Tests</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span><span class="p">,</span> <span class="n">Pyramid</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim 4 Testing Pyramid &amp; Verification Scope"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">chart_bar</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+
+<span class="n">pyr</span> <span class="o">=</span> <span class="n">Pyramid</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">pyr</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Contract</span><span class="se">\n</span><span class="s2">Tests (10%)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">pyr</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. In-Memory HTTP</span><span class="se">\n</span><span class="s2">$app-&gt;handle (35%)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">pyr</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. Domain &amp; Service</span><span class="se">\n</span><span class="s2">Unit Tests (55%)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">pyr</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mf">80.0</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mf">48.0</span><span class="p">,</span>
+    <span class="n">margin</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"bottom"</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="s2">"vertex_to_base"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">details</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">details</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Tier 3 · DB &amp; OpenAPI Contracts"</span><span class="p">,</span>
+    <span class="s2">"Verify SQL queries &amp; OpenAPI schemas"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"10%"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">details</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Tier 2 · In-Memory HTTP ($app-&gt;handle)"</span><span class="p">,</span>
+    <span class="s2">"FastRoute, JWT/RBAC, Actions &amp; Errors"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"35%"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_left_right</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">details</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Tier 1 · Pure Domain &amp; Use Cases"</span><span class="p">,</span>
+    <span class="s2">"Zero HTTP imports; fast business logic"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"55%"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">cube</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">details</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">94.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">94.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<ul>
+<li><strong>Tier 1 — Domain Unit Tests (<code>55%</code>)</strong>: Instantiate domain entities, value objects, and application services directly without booting Slim or PHP-DI.</li>
+<li><strong>Tier 2 — In-Memory HTTP Pipeline Tests (<code>35%</code>)</strong>: Boot <code>App</code> with real routes and middlewares, override external repositories or gateways in the PSR-11 container, and invoke <code>$response = $app-&gt;handle($request)</code>.</li>
+<li><strong>Tier 3 — Infrastructure &amp; Contract Tests (<code>10%</code>)</strong>: Verify SQL queries against a test database transaction and validate JSON responses against your OpenAPI 3.1 specification.</li>
+</ul>
+<h2>Reusable AppTestTrait for PSR-7 Request Construction &amp; Assertions</h2>
+<p>Creating a reusable <code>AppTestTrait</code> gives every PHPUnit test case ergonomic helper methods for building PSR-7 requests (<code>createRequest()</code>, <code>createJsonRequest()</code>) using your container's PSR-17 <code>ServerRequestFactoryInterface</code> and <code>StreamFactoryInterface</code>, plus fluent assertions for JSON payloads:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Tests\Support</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">DI\Container</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">DI\ContainerBuilder</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestFactoryInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\StreamFactoryInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\App</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="k">trait</span> <span class="nx">AppTestTrait</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nx">Container</span> <span class="nv">$container</span><span class="p">;</span>
+
+    <span class="sd">/** @var App&lt;Container&gt; */</span>
+    <span class="k">protected</span> <span class="nx">App</span> <span class="nv">$app</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">setUpApp</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$builder</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ContainerBuilder</span><span class="p">();</span>
+        <span class="p">(</span><span class="k">require</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../config/dependencies.php'</span><span class="p">)(</span><span class="nv">$builder</span><span class="p">);</span>
+
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span> <span class="o">=</span> <span class="nv">$builder</span><span class="o">-&gt;</span><span class="na">build</span><span class="p">();</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">createFromContainer</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span><span class="p">);</span>
+
+        <span class="p">(</span><span class="k">require</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../config/middleware.php'</span><span class="p">)(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span><span class="p">);</span>
+        <span class="p">(</span><span class="k">require</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../config/routes.php'</span><span class="p">)(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $headers</span>
+<span class="sd">     * @param array&lt;string, mixed&gt;  $queryParams</span>
+<span class="sd">     * @param array&lt;string, string&gt; $cookies</span>
+<span class="sd">     */</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">createRequest</span><span class="p">(</span>
+        <span class="nx">string</span> <span class="nv">$method</span><span class="p">,</span>
+        <span class="nx">string</span> <span class="nv">$path</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$headers</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Accept'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span><span class="p">],</span>
+        <span class="k">array</span> <span class="nv">$queryParams</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="k">array</span> <span class="nv">$cookies</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ServerRequestInterface</span> <span class="p">{</span>
+        <span class="sd">/** @var ServerRequestFactoryInterface $requestFactory */</span>
+        <span class="nv">$requestFactory</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">ServerRequestFactoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$requestFactory</span>
+            <span class="o">-&gt;</span><span class="na">createServerRequest</span><span class="p">(</span><span class="nv">$method</span><span class="p">,</span> <span class="nv">$path</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withQueryParams</span><span class="p">(</span><span class="nv">$queryParams</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withCookieParams</span><span class="p">(</span><span class="nv">$cookies</span><span class="p">);</span>
+
+        <span class="k">foreach</span> <span class="p">(</span><span class="nv">$headers</span> <span class="k">as</span> <span class="nv">$name</span> <span class="o">=&gt;</span> <span class="nv">$value</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="nv">$name</span><span class="p">,</span> <span class="nv">$value</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="nv">$request</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, mixed&gt;  $payload</span>
+<span class="sd">     * @param array&lt;string, string&gt; $headers</span>
+<span class="sd">     */</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">createJsonRequest</span><span class="p">(</span>
+        <span class="nx">string</span> <span class="nv">$method</span><span class="p">,</span>
+        <span class="nx">string</span> <span class="nv">$path</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$payload</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$headers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ServerRequestInterface</span> <span class="p">{</span>
+        <span class="sd">/** @var StreamFactoryInterface $streamFactory */</span>
+        <span class="nv">$streamFactory</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">StreamFactoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+        <span class="nv">$json</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createRequest</span><span class="p">(</span>
+            <span class="nv">$method</span><span class="p">,</span>
+            <span class="nv">$path</span><span class="p">,</span>
+            <span class="nb">array_merge</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s1">'Accept'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span><span class="p">,</span>
+                    <span class="s1">'Content-Type'</span> <span class="o">=&gt;</span> <span class="s1">'application/json'</span><span class="p">,</span>
+                <span class="p">],</span>
+                <span class="nv">$headers</span>
+            <span class="p">)</span>
+        <span class="p">);</span>
+
+        <span class="k">return</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">withBody</span><span class="p">(</span><span class="nv">$streamFactory</span><span class="o">-&gt;</span><span class="na">createStream</span><span class="p">(</span><span class="nv">$json</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @return array&lt;string, mixed&gt;</span>
+<span class="sd">     */</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">assertJsonResponse</span><span class="p">(</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="nx">int</span> <span class="nv">$expectedStatus</span>
+    <span class="p">)</span><span class="o">:</span> <span class="k">array</span> <span class="p">{</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertSame</span><span class="p">(</span><span class="nv">$expectedStatus</span><span class="p">,</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getStatusCode</span><span class="p">());</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertStringContainsString</span><span class="p">(</span>
+            <span class="s1">'application/json'</span><span class="p">,</span>
+            <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">)</span>
+        <span class="p">);</span>
+
+        <span class="nv">$body</span> <span class="o">=</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">();</span>
+        <span class="sd">/** @var array&lt;string, mixed&gt; $decoded */</span>
+        <span class="nv">$decoded</span> <span class="o">=</span> <span class="nb">json_decode</span><span class="p">(</span><span class="nv">$body</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="nv">$decoded</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h2>Mocking PSR-11 Container Dependencies &amp; Testing Middleware Pipelines</h2>
+<p>Because Slim's <code>CallableResolver</code> and <code>MiddlewareDispatcher</code> resolve controllers and middleware classes lazily from the PSR-11 container when <code>$app-&gt;handle($request)</code> is called, you can override any repository or external gateway in <code>$this-&gt;container-&gt;set(...)</code> right inside your test method before dispatching the request:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Tests\Feature\User</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Domain\User\User</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Domain\User\UserRepositoryInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Security\JwtTokenVerifierInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">PHPUnit\Framework\TestCase</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Tests\Support\AppTestTrait</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">CreateUserActionTest</span> <span class="k">extends</span> <span class="nx">TestCase</span>
+<span class="p">{</span>
+    <span class="k">use</span> <span class="nx">AppTestTrait</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">setUp</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">setUpApp</span><span class="p">();</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">testCreateUserReturns201WhenAuthenticatedAsAdmin</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="c1">// 1. Override JWT verifier and UserRepository in the PSR-11 container</span>
+        <span class="nv">$verifier</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createStub</span><span class="p">(</span><span class="nx">JwtTokenVerifierInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+        <span class="nv">$verifier</span><span class="o">-&gt;</span><span class="na">method</span><span class="p">(</span><span class="s1">'verify'</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">willReturn</span><span class="p">([</span>
+            <span class="s1">'sub'</span> <span class="o">=&gt;</span> <span class="s1">'usr_admin_01'</span><span class="p">,</span>
+            <span class="s1">'roles'</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="s1">'admin'</span><span class="p">],</span>
+            <span class="s1">'scope'</span> <span class="o">=&gt;</span> <span class="s1">'users:write users:read'</span><span class="p">,</span>
+        <span class="p">]);</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="nx">JwtTokenVerifierInterface</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="nv">$verifier</span><span class="p">);</span>
+
+        <span class="nv">$repository</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createMock</span><span class="p">(</span><span class="nx">UserRepositoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+        <span class="nv">$repository</span><span class="o">-&gt;</span><span class="na">expects</span><span class="p">(</span><span class="nx">self</span><span class="o">::</span><span class="na">once</span><span class="p">())</span>
+            <span class="o">-&gt;</span><span class="na">method</span><span class="p">(</span><span class="s1">'save'</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">willReturn</span><span class="p">(</span><span class="k">new</span> <span class="nx">User</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span> <span class="mi">42</span><span class="p">,</span> <span class="nx">email</span><span class="o">:</span> <span class="s1">'alice@example.com'</span><span class="p">,</span> <span class="nx">role</span><span class="o">:</span> <span class="s1">'editor'</span><span class="p">));</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">container</span><span class="o">-&gt;</span><span class="na">set</span><span class="p">(</span><span class="nx">UserRepositoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="nv">$repository</span><span class="p">);</span>
+
+        <span class="c1">// 2. Build PSR-7 POST request with JSON stream and Bearer header</span>
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createJsonRequest</span><span class="p">(</span>
+            <span class="nx">method</span><span class="o">:</span> <span class="s1">'POST'</span><span class="p">,</span>
+            <span class="nx">path</span><span class="o">:</span> <span class="s1">'/api/v1/admin/users'</span><span class="p">,</span>
+            <span class="nx">payload</span><span class="o">:</span> <span class="p">[</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s1">'alice@example.com'</span><span class="p">,</span> <span class="s1">'role'</span> <span class="o">=&gt;</span> <span class="s1">'editor'</span><span class="p">],</span>
+            <span class="nx">headers</span><span class="o">:</span> <span class="p">[</span><span class="s1">'Authorization'</span> <span class="o">=&gt;</span> <span class="s1">'Bearer eyJhbGciOiJIUzI1NiJ9.e30.sig'</span><span class="p">]</span>
+        <span class="p">);</span>
+
+        <span class="c1">// 3. Execute full PSR-15 pipeline in memory (BodyParsingMiddleware -&gt; Routing -&gt; JWT -&gt; RBAC -&gt; Action)</span>
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="c1">// 4. Assert status code, headers, and decoded JSON body</span>
+        <span class="nv">$data</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertJsonResponse</span><span class="p">(</span><span class="nv">$response</span><span class="p">,</span> <span class="mi">201</span><span class="p">);</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertSame</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="nv">$data</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]);</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertSame</span><span class="p">(</span><span class="s1">'alice@example.com'</span><span class="p">,</span> <span class="nv">$data</span><span class="p">[</span><span class="s1">'email'</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">testCreateUserReturns401WhenAuthorizationHeaderIsMissing</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createJsonRequest</span><span class="p">(</span>
+            <span class="nx">method</span><span class="o">:</span> <span class="s1">'POST'</span><span class="p">,</span>
+            <span class="nx">path</span><span class="o">:</span> <span class="s1">'/api/v1/admin/users'</span><span class="p">,</span>
+            <span class="nx">payload</span><span class="o">:</span> <span class="p">[</span><span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="s1">'alice@example.com'</span><span class="p">]</span>
+        <span class="p">);</span>
+
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="nv">$error</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertJsonResponse</span><span class="p">(</span><span class="nv">$response</span><span class="p">,</span> <span class="mi">401</span><span class="p">);</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertSame</span><span class="p">(</span><span class="s1">'401 Unauthorized'</span><span class="p">,</span> <span class="nv">$error</span><span class="p">[</span><span class="s1">'message'</span><span class="p">]);</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">testUnknownRouteReturns404ViaErrorMiddleware</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span>
+    <span class="p">{</span>
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">createRequest</span><span class="p">(</span><span class="s1">'GET'</span><span class="p">,</span> <span class="s1">'/api/v1/non-existent-endpoint'</span><span class="p">);</span>
+
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">app</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="nv">$error</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">assertJsonResponse</span><span class="p">(</span><span class="nv">$response</span><span class="p">,</span> <span class="mi">404</span><span class="p">);</span>
+        <span class="nx">self</span><span class="o">::</span><span class="na">assertSame</span><span class="p">(</span><span class="s1">'404 Not Found'</span><span class="p">,</span> <span class="nv">$error</span><span class="p">[</span><span class="s1">'message'</span><span class="p">]);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h2>Running PHPUnit &amp; Static Analysis in CI</h2>
+<p>Combine fast in-memory PHPUnit tests with static analysis (<code>phpstan</code> / <code>psalm</code>) and strict coding standards in your continuous integration workflow:</p>
+<pre><code class="language-bash"><span class="c1"># Run the full unit and in-memory HTTP test suite</span>
+vendor/bin/phpunit<span class="w"> </span>--colors<span class="o">=</span>always<span class="w"> </span>--testdox
+
+<span class="c1"># Run with Xdebug / PCOV line coverage enforcement</span>
+<span class="nv">XDEBUG_MODE</span><span class="o">=</span>coverage<span class="w"> </span>vendor/bin/phpunit<span class="w"> </span>--coverage-text
+
+<span class="c1"># Verify strict types and PSR-7/PSR-15 contracts with PHPStan</span>
+vendor/bin/phpstan<span class="w"> </span>analyse<span class="w"> </span>src<span class="w"> </span>tests<span class="w"> </span>--level<span class="o">=</span>max
+</code></pre>
+<p>Once your test suite passes, proceed to <strong><a href="production_deployment.html">Nginx, PHP-FPM &amp; Worker Runtimes</a></strong> to configure Composer classmap optimization, FastRoute caching, PHP-DI compilation, OPcache preloading, and RoadRunner / FrankenPHP workers. For a complete audit of Slim 4's own test suite and static analysis results, see the <strong><a href="https://slim.drawlib.com/reports/pni501/">PNI501 Security &amp; Quality Audit Portal</a></strong> and <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong>.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

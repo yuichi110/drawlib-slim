@@ -1,0 +1,2314 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コアアプリケーション &amp; ブートストラップファクトリ — Slim 4 API Reference (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('drawlib-theme');
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    
+    <link rel="icon" href="../_assets/favicon.png">
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/01_app_and_factories.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/01_app_and_factories.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/01_app_and_factories.html">
+    
+    
+    
+    <meta name="description" content="Slim\ および Slim\Factory\ 名前空間に属する 7 つのコアランタイム・ブートストラップクラス（Slim\App、Slim\Factory\AppFactory、Slim\Factory\ServerRequestCreatorFactory、Slim\CallableResolver、Slim\M…">
+    <link rel="canonical" href="https://slim.drawlib.com/api/ja/01_app_and_factories.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 API Reference">
+    <meta property="og:title" content="コアアプリケーション &amp; ブートストラップファクトリ — Slim 4 API Reference">
+    <meta property="og:description" content="Slim\ および Slim\Factory\ 名前空間に属する 7 つのコアランタイム・ブートストラップクラス（Slim\App、Slim\Factory\AppFactory、Slim\Factory\ServerRequestCreatorFactory、Slim\CallableResolver、Slim\M…">
+    <meta property="og:url" content="https://slim.drawlib.com/api/ja/01_app_and_factories.html">
+    <meta property="og:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="コアアプリケーション &amp; ブートストラップファクトリ — Slim 4 API Reference">
+    <meta name="twitter:description" content="Slim\ および Slim\Factory\ 名前空間に属する 7 つのコアランタイム・ブートストラップクラス（Slim\App、Slim\Factory\AppFactory、Slim\Factory\ServerRequestCreatorFactory、Slim\CallableResolver、Slim\M…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">API REFERENCE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）API リファレンス（非公式）
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">API Reference</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar" id="catalog-sidebar">
+            <div class="sidebar-header has-subbar">
+                <a href="index.html" class="site-title">
+                    Slim 4 API リファレンス
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle light/dark mode">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation menu">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-subbar">
+                
+                
+                <a href="index.html" class="sidebar-version-badge">
+                    <span class="sidebar-version-dot"></span>
+                    <span>API リファレンス · v4.15.3</span>
+                </a>
+                
+                
+                
+                <a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer" class="sidebar-github-link" aria-label="Repository" title="View Upstream Slim 4 Repository">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+                
+            </div>
+            
+
+            <div class="sidebar-menu">
+                <div class="catalog-sidebar-toolbar">
+                    <div class="catalog-filter-box">
+                        <svg class="catalog-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input id="catalog-filter-input" type="search" class="catalog-filter-input" placeholder="項目を絞り込み..." autocomplete="off" spellcheck="false" aria-label="項目を絞り込み...">
+                        <kbd class="catalog-filter-kbd">/</kbd>
+                    </div>
+                    <div class="catalog-toolbar-meta">
+                        <span class="catalog-toolbar-label">カテゴリ &amp; 項目</span>
+                        <button type="button" id="catalog-expand-toggle" class="catalog-expand-btn" data-expand-label="すべて展開" data-collapse-label="すべて折りたたむ">すべて折りたたむ</button>
+                    </div>
+                </div>
+
+                <nav class="catalog-sidebar-nav" id="catalog-sidebar-nav" aria-label="Catalog Navigation">
+                    
+                    
+                    
+                    <details class="catalog-nav-group" data-cat="Slim 4 パッケージ・名前空間概要" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="00_overview.html" class="catalog-nav-cat-link is-prose-cat">Slim 4 パッケージ・名前空間概要</a>
+                            
+                            <span class="catalog-nav-count">10</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="アーキテクチャと PHP-FIG (PSR) 標準への準拠">
+                                <a href="00_overview.html#アーキテクチャと-php-fig-psr-標準への準拠" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">アーキテクチャと PHP-FIG (PSR) 標準への準拠</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\">
+                                <a href="00_overview.html#slim" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory">
+                                <a href="00_overview.html#slim-factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory\Psr17">
+                                <a href="00_overview.html#slim-factory-psr17" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Routing">
+                                <a href="00_overview.html#slim-routing" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Middleware">
+                                <a href="00_overview.html#slim-middleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Handlers">
+                                <a href="00_overview.html#slim-handlers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Error\Renderers">
+                                <a href="00_overview.html#slim-error-renderers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Exception">
+                                <a href="00_overview.html#slim-exception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Interfaces">
+                                <a href="00_overview.html#slim-interfaces" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group is-current-page" data-cat="コアアプリケーション &amp; ブートストラップファクトリ" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="01_app_and_factories.html" class="catalog-nav-cat-link is-prose-cat">コアアプリケーション &amp; ブートストラップファクトリ</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\App">
+                                <a href="#slim-app" class="catalog-nav-sublink is-prose-sublink" data-target="slim-app">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\App</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\AppFactory">
+                                <a href="#slim-factory-appfactory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-appfactory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\AppFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\ServerRequestCreatorFactory">
+                                <a href="#slim-factory-serverrequestcreatorfactory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-serverrequestcreatorfactory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\ServerRequestCreatorFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\CallableResolver">
+                                <a href="#slim-callableresolver" class="catalog-nav-sublink is-prose-sublink" data-target="slim-callableresolver">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\CallableResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\MiddlewareDispatcher">
+                                <a href="#slim-middlewaredispatcher" class="catalog-nav-sublink is-prose-sublink" data-target="slim-middlewaredispatcher">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\MiddlewareDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\ResponseEmitter">
+                                <a href="#slim-responseemitter" class="catalog-nav-sublink is-prose-sublink" data-target="slim-responseemitter">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\ResponseEmitter</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Logger">
+                                <a href="#slim-logger" class="catalog-nav-sublink is-prose-sublink" data-target="slim-logger">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Logger</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="PSR-17 ファクトリ自動検出とプロバイダ" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="02_psr17_providers.html" class="catalog-nav-cat-link is-prose-cat">PSR-17 ファクトリ自動検出とプロバイダ</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="PSR-17 自動検出の優先順位とベンダマッピング一覧">
+                                <a href="02_psr17_providers.html#psr-17-自動検出の優先順位とベンダマッピング一覧" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">PSR-17 自動検出の優先順位とベンダマッピング一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17FactoryProvider">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factoryprovider" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17FactoryProvider</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\ServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-serverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\ServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttpserverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttppsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\NyholmPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-nyholmpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\NyholmPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\GuzzlePsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-guzzlepsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\GuzzlePsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\LaminasDiactorosPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-laminasdiactorospsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\HttpSoftPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-httpsoftpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\HttpSoftPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="ルーティング (Slim\Routing)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="03_routing.html" class="catalog-nav-cat-link is-prose-cat">ルーティング (Slim\Routing)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollectorProxy">
+                                <a href="03_routing.html#slim-routing-routecollectorproxy" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollectorProxy</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollector">
+                                <a href="03_routing.html#slim-routing-routecollector" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollector</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Route">
+                                <a href="03_routing.html#slim-routing-route" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Route</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteGroup">
+                                <a href="03_routing.html#slim-routing-routegroup" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteGroup</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteContext">
+                                <a href="03_routing.html#slim-routing-routecontext" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteContext</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteParser">
+                                <a href="03_routing.html#slim-routing-routeparser" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteParser</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteResolver">
+                                <a href="03_routing.html#slim-routing-routeresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteRunner">
+                                <a href="03_routing.html#slim-routing-routerunner" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteRunner</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Dispatcher">
+                                <a href="03_routing.html#slim-routing-dispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Dispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\FastRouteDispatcher">
+                                <a href="03_routing.html#slim-routing-fastroutedispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\FastRouteDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RoutingResults">
+                                <a href="03_routing.html#slim-routing-routingresults" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RoutingResults</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="ミドルウェア (Slim\Middleware)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="04_middleware.html" class="catalog-nav-cat-link is-prose-cat">ミドルウェア (Slim\Middleware)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\RoutingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-routingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\RoutingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ErrorMiddleware">
+                                <a href="04_middleware.html#slim-middleware-errormiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ErrorMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\BodyParsingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-bodyparsingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\BodyParsingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ContentLengthMiddleware">
+                                <a href="04_middleware.html#slim-middleware-contentlengthmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ContentLengthMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\MethodOverrideMiddleware">
+                                <a href="04_middleware.html#slim-middleware-methodoverridemiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\MethodOverrideMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\OutputBufferingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-outputbufferingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\OutputBufferingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="ハンドラと実行ストラテジー (Handlers &amp; Strategies)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="05_handlers_and_strategies.html" class="catalog-nav-cat-link is-prose-cat">ハンドラと実行ストラテジー (Handlers &amp; Strategies)</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="クラス一覧">
+                                <a href="05_handlers_and_strategies.html#クラス一覧" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">クラス一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\ErrorHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\ErrorHandler</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="ルートコールバック実行ストラテジー (Invocation Strategies)">
+                                <a href="05_handlers_and_strategies.html#ルートコールバック実行ストラテジー-invocation-strategies" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">ルートコールバック実行ストラテジー (Invocation Strategies)</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponse">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponse" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponse</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponseargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseNamedArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponsenamedargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseNamedArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requesthandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestHandler</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="エラーレンダラ (Error Renderers)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="06_error_renderers.html" class="catalog-nav-cat-link is-prose-cat">エラーレンダラ (Error Renderers)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="エラーレンダラ一覧">
+                                <a href="06_error_renderers.html#エラーレンダラ一覧" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">エラーレンダラ一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\AbstractErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-abstracterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\AbstractErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\JsonErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-jsonerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\JsonErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\HtmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-htmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\HtmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\XmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-xmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\XmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\PlainTextErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-plaintexterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\PlainTextErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="HTTP 例外 (Slim\Exception\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="07_exceptions.html" class="catalog-nav-cat-link is-prose-cat">HTTP 例外 (Slim\Exception\*)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpException">
+                                <a href="07_exceptions.html#slim-exception-httpexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpSpecializedException">
+                                <a href="07_exceptions.html#slim-exception-httpspecializedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpSpecializedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpBadRequestException">
+                                <a href="07_exceptions.html#slim-exception-httpbadrequestexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpBadRequestException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpUnauthorizedException">
+                                <a href="07_exceptions.html#slim-exception-httpunauthorizedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpUnauthorizedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpForbiddenException">
+                                <a href="07_exceptions.html#slim-exception-httpforbiddenexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpForbiddenException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotFoundException">
+                                <a href="07_exceptions.html#slim-exception-httpnotfoundexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotFoundException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpMethodNotAllowedException">
+                                <a href="07_exceptions.html#slim-exception-httpmethodnotallowedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpMethodNotAllowedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpGoneException">
+                                <a href="07_exceptions.html#slim-exception-httpgoneexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpGoneException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpTooManyRequestsException">
+                                <a href="07_exceptions.html#slim-exception-httptoomanyrequestsexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpTooManyRequestsException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpInternalServerErrorException">
+                                <a href="07_exceptions.html#slim-exception-httpinternalservererrorexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpInternalServerErrorException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotImplementedException">
+                                <a href="07_exceptions.html#slim-exception-httpnotimplementedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotImplementedException</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="契約インターフェース (Slim\Interfaces\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="08_interfaces.html" class="catalog-nav-cat-link is-prose-cat">契約インターフェース (Slim\Interfaces\*)</a>
+                            
+                            <span class="catalog-nav-count">17</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\AdvancedCallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-advancedcallableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\AdvancedCallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\CallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-callableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\CallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\DispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-dispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\DispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorHandlerInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorhandlerinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorHandlerInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorRendererInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorrendererinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorRendererInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\InvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\InvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\MiddlewareDispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\MiddlewareDispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryProviderInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryproviderinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryProviderInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RequestHandlerInvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RequestHandlerInvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorProxyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorproxyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorProxyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteGroupInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routegroupinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteGroupInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteParserInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeparserinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteParserInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ServerRequestCreatorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ServerRequestCreatorInterface</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    
+                    <div id="catalog-nav-empty" class="catalog-nav-empty" hidden>一致する項目が見つかりません。</div>
+                </nav>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <div class="content-wrapper">
+            <div class="top-bar">
+                <div class="breadcrumbs">
+                    <a href="index.html" class="crumb">API リファレンス</a>
+                    <span class="crumb-separator">/</span>
+                    <span class="crumb active">コアアプリケーション &amp; ブートストラップファクトリ</span>
+                </div>
+                
+                <div class="top-bar-right">
+                    
+                    
+                    <div class="lang-switcher" aria-label="Language switcher">
+                        <details class="lang-dropdown">
+                            <summary class="lang-dropdown-btn" aria-haspopup="listbox">
+                                <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span class="lang-current-label">日本語</span>
+                                <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </summary>
+                            <div class="lang-dropdown-menu" role="listbox">
+                                
+                                
+                                <a href="../en/01_app_and_factories.html" class="lang-option" role="option" hreflang="">
+                                    <span>English</span>
+                                </a>
+                                
+                                
+                                
+                                <span class="lang-option active" role="option" aria-selected="true">
+                                    <span>日本語</span>
+                                    <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </span>
+                                
+                                
+                            </div>
+                        </details>
+                    </div>
+                    
+                </div>
+                
+            </div>
+
+            <main class="main-content catalog-main-content">
+                <h1 class="catalog-page-title">コアアプリケーション &amp; ブートストラップファクトリ</h1>
+<p><code>Slim\</code> および <code>Slim\Factory\</code> 名前空間に属する 7 つのコアランタイム・ブートストラップクラス（<a href="#slim-app"><code>Slim\App</code></a>、<a href="#slim-factory-appfactory"><code>Slim\Factory\AppFactory</code></a>、<a href="#slim-factory-serverrequestcreatorfactory"><code>Slim\Factory\ServerRequestCreatorFactory</code></a>、<a href="#slim-callableresolver"><code>Slim\CallableResolver</code></a>、<a href="#slim-middlewaredispatcher"><code>Slim\MiddlewareDispatcher</code></a>、<a href="#slim-responseemitter"><code>Slim\ResponseEmitter</code></a>、<a href="#slim-logger"><code>Slim\Logger</code></a>）の完全 API リファレンスです。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/01_app_and_factories/core_app_api_surface_ja.png" alt="01_app_and_factories_1" />
+  <figcaption class="drawlib-caption">Slim\App & Slim\Factory\* — コアカーネル構成と協調オブジェクトグラフ</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.diagrams.architecture</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchitectureDiagram</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeGroup</span><span class="p">,</span> <span class="n">PhosphorIcon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">148</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">78</span><span class="p">)</span>
+
+<span class="n">d</span> <span class="o">=</span> <span class="n">ArchitectureDiagram</span><span class="p">(</span>
+    <span class="n">node_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="p">,</span>
+    <span class="n">node_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">edge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_width</span><span class="o">=</span><span class="mf">1.4</span><span class="p">),</span>
+    <span class="n">edge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Muted</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.5</span><span class="p">),</span>
+    <span class="n">node_card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">fac_grp</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">NodeGroup</span><span class="p">(</span>
+        <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Factory (静的ブートストラップ)"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">valign</span><span class="o">=</span><span class="s2">"top"</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">app_fac</span> <span class="o">=</span> <span class="n">fac_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"AppFactory</span><span class="se">\n</span><span class="s2">::create()"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">FACTORY</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">46</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">req_fac</span> <span class="o">=</span> <span class="n">fac_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"ServerRequestCreator</span><span class="se">\n</span><span class="s2">Factory::create()"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">GLOBE</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">core_grp</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">NodeGroup</span><span class="p">(</span>
+        <span class="s2">"Slim</span><span class="se">\\</span><span class="s2"> (アプリケーションカーネルと協調クラス)"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">92</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">valign</span><span class="o">=</span><span class="s2">"top"</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">52</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">app_node</span> <span class="o">=</span> <span class="n">core_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">App</span><span class="se">\n</span><span class="s2">(RouteCollectorProxy)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">CPU</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">46</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">emitter_node</span> <span class="o">=</span> <span class="n">core_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"ResponseEmitter</span><span class="se">\n</span><span class="s2">::emit(response)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">BROADCAST</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">mw_disp</span> <span class="o">=</span> <span class="n">core_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"MiddlewareDispatcher</span><span class="se">\n</span><span class="s2">(LIFO Stack)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">STACK</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">69</span><span class="p">,</span> <span class="mi">52</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">resolver</span> <span class="o">=</span> <span class="n">core_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"CallableResolver</span><span class="se">\n</span><span class="s2">('Class:method' / DI)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">PLUGS_CONNECTED</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">69</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">core_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Logger</span><span class="se">\n</span><span class="s2">(PSR-3 error_log)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">TERMINAL_WINDOW</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">69</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">app_fac</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">app_node</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"wires"</span><span class="p">)</span>
+<span class="n">req_fac</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">app_node</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Request"</span><span class="p">)</span>
+<span class="n">app_node</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">mw_disp</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"handle()"</span><span class="p">)</span>
+<span class="n">app_node</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">emitter_node</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"run()"</span><span class="p">)</span>
+<span class="n">mw_disp</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">resolver</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"resolves"</span><span class="p">)</span>
+<span class="n">app_node</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"logs"</span><span class="p">)</span>
+
+<span class="n">d</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="slim-app" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\App</span></code><a class="header-anchor" href="#slim-app" aria-label="Permalink to Slim\App">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/App.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim</code></li>
+<li><strong>継承クラス</strong>: <a href="03_routing.html#slim-routing-routecollectorproxy"><code>Slim\Routing\RouteCollectorProxy</code></a>（<a href="08_interfaces.html#slim-interfaces-routecollectorproxyinterface"><code>RouteCollectorProxyInterface</code></a> を実装）</li>
+<li><strong>実装インターフェース</strong>: <code>Psr\Http\Server\RequestHandlerInterface</code></li>
+<li><strong>ジェネリクス注釈</strong>: <code>@template TContainerInterface of (ContainerInterface|null)</code></li>
+</ul>
+<p><code>Slim\App</code> は Slim 4 アプリケーションの中核カーネルです。<a href="03_routing.html#slim-routing-routecollectorproxy"><code>RouteCollectorProxy</code></a> を継承しているため、<code>$app</code> インスタンス上で直接ルーティング定義メソッド（<code>get()</code>, <code>post()</code>, <code>put()</code>, <code>delete()</code>, <code>options()</code>, <code>patch()</code>, <code>any()</code>, <code>map()</code>, <code>group()</code>, <code>redirect()</code>）を呼び出せるほか、PSR-15 の <code>RequestHandlerInterface</code> を実装しているため、外部の PSR-15 ランナーへの組み込みやテストコードからの <code>$app-&gt;handle($request)</code> 直接実行が可能です。</p>
+<h3 id="php-クラスシグネチャ-slim-app">PHP クラスシグネチャ (<code>Slim\App</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-app" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim;</span>
+
+<span class="x">use Psr\Container\ContainerInterface;</span>
+<span class="x">use Psr\Http\Message\ResponseFactoryInterface;</span>
+<span class="x">use Psr\Http\Message\ResponseInterface;</span>
+<span class="x">use Psr\Http\Message\ServerRequestInterface;</span>
+<span class="x">use Psr\Http\Server\MiddlewareInterface;</span>
+<span class="x">use Psr\Http\Server\RequestHandlerInterface;</span>
+<span class="x">use Psr\Log\LoggerInterface;</span>
+<span class="x">use Slim\Interfaces\CallableResolverInterface;</span>
+<span class="x">use Slim\Interfaces\MiddlewareDispatcherInterface;</span>
+<span class="x">use Slim\Interfaces\RouteCollectorInterface;</span>
+<span class="x">use Slim\Interfaces\RouteResolverInterface;</span>
+<span class="x">use Slim\Middleware\BodyParsingMiddleware;</span>
+<span class="x">use Slim\Middleware\ErrorMiddleware;</span>
+<span class="x">use Slim\Middleware\RoutingMiddleware;</span>
+<span class="x">use Slim\Routing\RouteCollectorProxy;</span>
+
+<span class="x">class App extends RouteCollectorProxy implements RequestHandlerInterface</span>
+<span class="x">{</span>
+<span class="x">    public const VERSION = '4.15.1';</span>
+
+<span class="x">    protected RouteResolverInterface $routeResolver;</span>
+<span class="x">    protected MiddlewareDispatcherInterface $middlewareDispatcher;</span>
+
+<span class="x">    public function __construct(</span>
+<span class="x">        ResponseFactoryInterface $responseFactory,</span>
+<span class="x">        ?ContainerInterface $container = null,</span>
+<span class="x">        ?CallableResolverInterface $callableResolver = null,</span>
+<span class="x">        ?RouteCollectorInterface $routeCollector = null,</span>
+<span class="x">        ?RouteResolverInterface $routeResolver = null,</span>
+<span class="x">        ?MiddlewareDispatcherInterface $middlewareDispatcher = null</span>
+<span class="x">    );</span>
+
+<span class="x">    public function getRouteResolver(): RouteResolverInterface;</span>
+<span class="x">    public function getMiddlewareDispatcher(): MiddlewareDispatcherInterface;</span>
+<span class="x">    public function add($middleware): self;</span>
+<span class="x">    public function addMiddleware(MiddlewareInterface $middleware): self;</span>
+<span class="x">    public function addRoutingMiddleware(): RoutingMiddleware;</span>
+<span class="x">    public function addErrorMiddleware(</span>
+<span class="x">        bool $displayErrorDetails,</span>
+<span class="x">        bool $logErrors,</span>
+<span class="x">        bool $logErrorDetails,</span>
+<span class="x">        ?LoggerInterface $logger = null</span>
+<span class="x">    ): ErrorMiddleware;</span>
+<span class="x">    public function addBodyParsingMiddleware(array $bodyParsers = []): BodyParsingMiddleware;</span>
+<span class="x">    public function run(?ServerRequestInterface $request = null): void;</span>
+<span class="x">    public function handle(ServerRequestInterface $request): ResponseInterface;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="定数-プロパティ-slim-app">定数・プロパティ (<code>Slim\App</code>)<a class="header-anchor" href="#定数-プロパティ-slim-app" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メンバ</th>
+<th style="text-align:left">可視性・型</th>
+<th style="text-align:left">既定値 / 初期値</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>VERSION</code></td>
+<td style="text-align:left"><code>public const string</code></td>
+<td style="text-align:left"><code>'4.15.1'</code></td>
+<td style="text-align:left"><code>Slim\App</code> クラスに定義されたバージョン定数。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$routeResolver</code></td>
+<td style="text-align:left"><code>protected RouteResolverInterface</code></td>
+<td style="text-align:left"><code>new RouteResolver($this-&gt;routeCollector)</code></td>
+<td style="text-align:left">URI・HTTP メソッドに対するルート解決を実行するリゾルバ。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$middlewareDispatcher</code></td>
+<td style="text-align:left"><code>protected MiddlewareDispatcherInterface</code></td>
+<td style="text-align:left"><code>new MiddlewareDispatcher($routeRunner, ...)</code></td>
+<td style="text-align:left">内部の <a href="03_routing.html#slim-routing-routerunner"><code>RouteRunner</code></a> を中心カーネルとしてシードされた LIFO ミドルウェアディスパッチャ。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$responseFactory</code></td>
+<td style="text-align:left"><code>protected ResponseFactoryInterface</code></td>
+<td style="text-align:left"><em>(<code>RouteCollectorProxy</code> から継承)</em></td>
+<td style="text-align:left">新規レスポンスおよび <code>HEAD</code> リクエスト時の空ボディ生成に使用される PSR-17 ファクトリ。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$callableResolver</code></td>
+<td style="text-align:left"><code>protected CallableResolverInterface</code></td>
+<td style="text-align:left"><em>(<code>RouteCollectorProxy</code> から継承)</em></td>
+<td style="text-align:left">ルートおよびミドルウェアの Callable を解決するリゾルバ。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$container</code></td>
+<td style="text-align:left"><code>protected ?ContainerInterface</code></td>
+<td style="text-align:left"><em>(<code>RouteCollectorProxy</code> から継承)</em></td>
+<td style="text-align:left">任意の PSR-11 DI コンテナ。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$routeCollector</code></td>
+<td style="text-align:left"><code>protected RouteCollectorInterface</code></td>
+<td style="text-align:left"><em>(<code>RouteCollectorProxy</code> から継承)</em></td>
+<td style="text-align:left">ルート定義を保持するコレクタ（既定は <code>Slim\Routing\RouteCollector</code>）。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="コンストラクタ-メソッド一覧-slim-app">コンストラクタ・メソッド一覧 (<code>Slim\App</code>)<a class="header-anchor" href="#コンストラクタ-メソッド一覧-slim-app" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">動作・備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct(...)</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface $responseFactory</code>, <code>?ContainerInterface $container = null</code>, <code>?CallableResolverInterface $callableResolver = null</code>, <code>?RouteCollectorInterface $routeCollector = null</code>, <code>?RouteResolverInterface $routeResolver = null</code>, <code>?MiddlewareDispatcherInterface $middlewareDispatcher = null</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">親クラス <code>RouteCollectorProxy</code> を初期化し、未指定時は既定の <code>CallableResolver</code>, <code>RouteResolver</code>, <code>RouteRunner</code> を生成して <code>$middlewareDispatcher</code> の最深部カーネルに設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getRouteResolver()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-routeresolverinterface"><code>RouteResolverInterface</code></a></td>
+<td style="text-align:left">設定されている <code>RouteResolverInterface</code> インスタンスを返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getMiddlewareDispatcher()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface"><code>MiddlewareDispatcherInterface</code></a></td>
+<td style="text-align:left">アプリケーションの LIFO ミドルウェアディスパッチャを返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>add($middleware)</code></td>
+<td style="text-align:left"><code>MiddlewareInterface|string|callable $middleware</code></td>
+<td style="text-align:left"><code>self</code> (<code>App&lt;TContainerInterface&gt;</code>)</td>
+<td style="text-align:left">PSR-15 ミドルウェアインスタンス、クラス名・コンテナキー文字列、または Callable を LIFO スタックの最外層へ追加します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addMiddleware($middleware)</code></td>
+<td style="text-align:left"><code>MiddlewareInterface $middleware</code></td>
+<td style="text-align:left"><code>self</code> (<code>App&lt;TContainerInterface&gt;</code>)</td>
+<td style="text-align:left">型付きの <code>Psr\Http\Server\MiddlewareInterface</code> インスタンスをスタックへ追加します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addRoutingMiddleware()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><a href="04_middleware.html#slim-middleware-routingmiddleware"><code>RoutingMiddleware</code></a></td>
+<td style="text-align:left"><code>RoutingMiddleware</code> を生成・登録して返します。カスタムミドルウェア内で <code>RouteContext</code> を参照したい場合に、ミドルウェアの実行順序を明示制御する目的で使用します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addErrorMiddleware(...)</code></td>
+<td style="text-align:left"><code>bool $displayErrorDetails</code>, <code>bool $logErrors</code>, <code>bool $logErrorDetails</code>, <code>?LoggerInterface $logger = null</code></td>
+<td style="text-align:left"><a href="04_middleware.html#slim-middleware-errormiddleware"><code>ErrorMiddleware</code></a></td>
+<td style="text-align:left"><code>ErrorMiddleware</code> を生成・登録して返します。LIFO 順で最外層として動作させるため、<strong>最後に登録</strong>するのが原則です。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addBodyParsingMiddleware(...)</code></td>
+<td style="text-align:left"><code>callable[] $bodyParsers = []</code></td>
+<td style="text-align:left"><a href="04_middleware.html#slim-middleware-bodyparsingmiddleware"><code>BodyParsingMiddleware</code></a></td>
+<td style="text-align:left">JSON / フォーム / XML ボディを解析する <code>BodyParsingMiddleware</code> を生成・登録して返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>run($request)</code></td>
+<td style="text-align:left"><code>?ServerRequestInterface $request = null</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>$request</code> が <code>null</code> の場合は <code>ServerRequestCreatorFactory::create()-&gt;createServerRequestFromGlobals()</code> で自動生成し、<code>$this-&gt;handle($request)</code> の結果を <code>new ResponseEmitter()</code> でクライアントへ送出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>handle($request)</code></td>
+<td style="text-align:left"><code>ServerRequestInterface $request</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left"><code>$this-&gt;middlewareDispatcher-&gt;handle($request)</code> を実行します。RFC 2616 §9.4 準拠のため、リクエストメソッドが <code>'HEAD'</code> の場合はレスポンスボディを空ストリームに差し替えて返します。</td>
+</tr>
+</tbody>
+</table>
+<p><em>(親クラスから継承される <code>get()</code>, <code>post()</code>, <code>put()</code>, <code>delete()</code>, <code>options()</code>, <code>patch()</code>, <code>any()</code>, <code>map()</code>, <code>group()</code>, <code>redirect()</code>, <code>getBasePath()</code>, <code>setBasePath()</code>, <code>getResponseFactory()</code>, <code>getCallableResolver()</code>, <code>getContainer()</code>, <code>getRouteCollector()</code> の詳細は <a href="03_routing.html#slim-routing-routecollectorproxy"><code>Slim\Routing\RouteCollectorProxy</code></a> を参照してください。)</em></p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/01_app_and_factories/app_run_handle_sequence_ja.png" alt="01_app_and_factories_2" />
+  <figcaption class="drawlib-caption">Slim\App::run() & handle() — 起動・LIFO スタック実行・HEAD ボディ消去・レスポンス送出シーケンス</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.diagrams.sequence</span><span class="w"> </span><span class="kn">import</span> <span class="n">Participant</span><span class="p">,</span> <span class="n">PhosphorIcon</span><span class="p">,</span> <span class="n">SequenceDiagram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">144</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">96</span><span class="p">)</span>
+
+<span class="n">sd</span> <span class="o">=</span> <span class="n">SequenceDiagram</span><span class="p">(</span>
+    <span class="n">node_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="p">,</span>
+    <span class="n">node_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">edge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_width</span><span class="o">=</span><span class="mf">1.4</span><span class="p">),</span>
+    <span class="n">edge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.5</span><span class="p">),</span>
+    <span class="n">node_card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="n">col_width</span><span class="o">=</span><span class="mf">34.0</span><span class="p">,</span>
+    <span class="n">step_y</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">p_client</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Participant</span><span class="p">(</span><span class="s2">"index.php"</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">FILE_CODE</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">))</span>
+<span class="n">p_app</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Participant</span><span class="p">(</span>
+        <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">App"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">CPU</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">p_mw</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Participant</span><span class="p">(</span><span class="s2">"MiddlewareDispatcher"</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">STACK</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">))</span>
+<span class="n">p_emit</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Participant</span><span class="p">(</span><span class="s2">"ResponseEmitter"</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">BROADCAST</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">26</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">))</span>
+
+<span class="n">p_client</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">p_app</span><span class="p">,</span> <span class="s2">"1. run(request = null)"</span><span class="p">)</span>
+<span class="n">p_app</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">p_app</span><span class="p">,</span> <span class="s2">"2. createServerRequestFromGlobals()"</span><span class="p">)</span>
+<span class="n">p_app</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">p_mw</span><span class="p">,</span> <span class="s2">"3. handle(ServerRequestInterface)"</span><span class="p">)</span>
+<span class="n">p_mw</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">p_app</span><span class="p">,</span> <span class="s2">"4. ResponseInterface (LIFO + RouteRunner)"</span><span class="p">)</span>
+<span class="n">p_app</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">p_app</span><span class="p">,</span> <span class="s2">"5. If HEAD -&gt; withBody(emptyStream)"</span><span class="p">)</span>
+<span class="n">p_app</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">p_emit</span><span class="p">,</span> <span class="s2">"6. emit(response): headers, status, body"</span><span class="p">)</span>
+<span class="n">p_emit</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">p_client</span><span class="p">,</span> <span class="s2">"7. Stream HTTP Response to SAPI"</span><span class="p">)</span>
+
+<span class="n">sd</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">72</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">align</span><span class="o">=</span><span class="s2">"center"</span><span class="p">)</span>
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3 id="使用例-slim-app">使用例 (<code>Slim\App</code>)<a class="header-anchor" href="#使用例-slim-app" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// 1. JSON / form / XML リクエストボディの自動パースミドルウェア</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// 2. ルーティングミドルウェアの明示配置（RouteContext を参照するミドルウェアより内側に配置）</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// 3. エラーハンドリングミドルウェア（最後に追加＝LIFO で最も外側の層として実行）</span>
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/health'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'status'</span> <span class="o">=&gt;</span> <span class="s1">'ok'</span><span class="p">,</span> <span class="s1">'slim'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">::</span><span class="na">VERSION</span><span class="p">],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">run</span><span class="p">();</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-appfactory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\AppFactory</span></code><a class="header-anchor" href="#slim-factory-appfactory" aria-label="Permalink to Slim\Factory\AppFactory">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Factory/AppFactory.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Factory</code></li>
+</ul>
+<p><code>AppFactory</code> は、<code>ResponseFactoryInterface</code> を手動でインスタンス化することなく <a href="#slim-app"><code>Slim\App</code></a> を構築できる静的ビルダクラスです。<code>AppFactory::create()</code> または <code>AppFactory::createFromContainer($container)</code> を呼び出すと、静的プロパティ・PSR-11 コンテナ・<a href="02_psr17_providers.html#slim-factory-psr17-psr17factoryprovider"><code>Psr17FactoryProvider</code></a> の優先順位リストから利用可能な PSR-17 実装を自動検出し、<code>slim/http</code> がインストールされている場合は <code>Slim\Http\Factory\DecoratedResponseFactory</code> で自動装飾します。</p>
+<h3 id="php-クラスシグネチャ-slim-factory-appfactory">PHP クラスシグネチャ (<code>Slim\Factory\AppFactory</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-factory-appfactory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory;</span>
+
+<span class="x">use Psr\Container\ContainerInterface;</span>
+<span class="x">use Psr\Http\Message\ResponseFactoryInterface;</span>
+<span class="x">use Psr\Http\Message\StreamFactoryInterface;</span>
+<span class="x">use RuntimeException;</span>
+<span class="x">use Slim\App;</span>
+<span class="x">use Slim\Interfaces\CallableResolverInterface;</span>
+<span class="x">use Slim\Interfaces\MiddlewareDispatcherInterface;</span>
+<span class="x">use Slim\Interfaces\Psr17FactoryProviderInterface;</span>
+<span class="x">use Slim\Interfaces\RouteCollectorInterface;</span>
+<span class="x">use Slim\Interfaces\RouteResolverInterface;</span>
+
+<span class="x">class AppFactory</span>
+<span class="x">{</span>
+<span class="x">    protected static ?Psr17FactoryProviderInterface $psr17FactoryProvider = null;</span>
+<span class="x">    protected static ?ResponseFactoryInterface $responseFactory = null;</span>
+<span class="x">    protected static ?StreamFactoryInterface $streamFactory = null;</span>
+<span class="x">    protected static ?ContainerInterface $container = null;</span>
+<span class="x">    protected static ?CallableResolverInterface $callableResolver = null;</span>
+<span class="x">    protected static ?RouteCollectorInterface $routeCollector = null;</span>
+<span class="x">    protected static ?RouteResolverInterface $routeResolver = null;</span>
+<span class="x">    protected static ?MiddlewareDispatcherInterface $middlewareDispatcher = null;</span>
+<span class="x">    protected static bool $slimHttpDecoratorsAutomaticDetectionEnabled = true;</span>
+
+<span class="x">    public static function create(</span>
+<span class="x">        ?ResponseFactoryInterface $responseFactory = null,</span>
+<span class="x">        ?ContainerInterface $container = null,</span>
+<span class="x">        ?CallableResolverInterface $callableResolver = null,</span>
+<span class="x">        ?RouteCollectorInterface $routeCollector = null,</span>
+<span class="x">        ?RouteResolverInterface $routeResolver = null,</span>
+<span class="x">        ?MiddlewareDispatcherInterface $middlewareDispatcher = null</span>
+<span class="x">    ): App;</span>
+
+<span class="x">    public static function createFromContainer(ContainerInterface $container): App;</span>
+<span class="x">    public static function determineResponseFactory(): ResponseFactoryInterface;</span>
+
+<span class="x">    protected static function attemptResponseFactoryDecoration(</span>
+<span class="x">        ResponseFactoryInterface $responseFactory,</span>
+<span class="x">        StreamFactoryInterface $streamFactory</span>
+<span class="x">    ): ResponseFactoryInterface;</span>
+
+<span class="x">    public static function setPsr17FactoryProvider(Psr17FactoryProviderInterface $psr17FactoryProvider): void;</span>
+<span class="x">    public static function setResponseFactory(ResponseFactoryInterface $responseFactory): void;</span>
+<span class="x">    public static function setStreamFactory(StreamFactoryInterface $streamFactory): void;</span>
+<span class="x">    public static function setContainer(ContainerInterface $container): void;</span>
+<span class="x">    public static function setCallableResolver(CallableResolverInterface $callableResolver): void;</span>
+<span class="x">    public static function setRouteCollector(RouteCollectorInterface $routeCollector): void;</span>
+<span class="x">    public static function setRouteResolver(RouteResolverInterface $routeResolver): void;</span>
+<span class="x">    public static function setMiddlewareDispatcher(MiddlewareDispatcherInterface $middlewareDispatcher): void;</span>
+<span class="x">    public static function setSlimHttpDecoratorsAutomaticDetection(bool $enabled): void;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="静的メソッド一覧-slim-factory-appfactory">静的メソッド一覧 (<code>Slim\Factory\AppFactory</code>)<a class="header-anchor" href="#静的メソッド一覧-slim-factory-appfactory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>create(...)</code></td>
+<td style="text-align:left"><code>?ResponseFactoryInterface $responseFactory = null</code>, <code>?ContainerInterface $container = null</code>, <code>?CallableResolverInterface $callableResolver = null</code>, <code>?RouteCollectorInterface $routeCollector = null</code>, <code>?RouteResolverInterface $routeResolver = null</code>, <code>?MiddlewareDispatcherInterface $middlewareDispatcher = null</code></td>
+<td style="text-align:left"><a href="#slim-app"><code>App</code></a></td>
+<td style="text-align:left">明示引数と静的プロパティをマージし、<code>self::determineResponseFactory()</code> を解決して新規 <code>App</code> を生成します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>createFromContainer($container)</code></td>
+<td style="text-align:left"><code>ContainerInterface $container</code></td>
+<td style="text-align:left"><a href="#slim-app"><code>App</code></a></td>
+<td style="text-align:left"><code>$container-&gt;has(...)</code> を確認して <code>ResponseFactoryInterface</code>, <code>CallableResolverInterface</code>, <code>RouteCollectorInterface</code>, <code>RouteResolverInterface</code>, <code>MiddlewareDispatcherInterface</code> をコンテナから取得（未登録時は自動検出または <code>null</code>）し、<code>new App(...)</code> を返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>determineResponseFactory()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>ResponseFactoryInterface</code></td>
+<td style="text-align:left"><code>static::$responseFactory</code> または <code>Psr17FactoryProvider::getFactories()</code> から最初に見つかった <code>ResponseFactoryInterface</code> を返し、利用可能な実装がない場合は <code>RuntimeException</code> を送出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>attemptResponseFactoryDecoration(...)</code> <em>(protected)</em></td>
+<td style="text-align:left"><code>ResponseFactoryInterface $responseFactory</code>, <code>StreamFactoryInterface $streamFactory</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface</code></td>
+<td style="text-align:left">自動検出が有効かつ <code>slim/http</code> が存在する場合に <a href="02_psr17_providers.html#slim-factory-psr17-slimhttppsr17factory"><code>SlimHttpPsr17Factory::createDecoratedResponseFactory()</code></a> でラップします。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setPsr17FactoryProvider($provider)</code></td>
+<td style="text-align:left"><code>Psr17FactoryProviderInterface $psr17FactoryProvider</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">自動検出に使用する <code>Psr17FactoryProviderInterface</code> を差し替えます。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setResponseFactory($responseFactory)</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface $responseFactory</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">以降の <code>create()</code> で使用する既定の <code>ResponseFactoryInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setStreamFactory($streamFactory)</code></td>
+<td style="text-align:left"><code>StreamFactoryInterface $streamFactory</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>slim/http</code> 装飾時に使用する既定の <code>StreamFactoryInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setContainer($container)</code></td>
+<td style="text-align:left"><code>ContainerInterface $container</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">以降の <code>create()</code> で使用する既定の PSR-11 <code>ContainerInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setCallableResolver($callableResolver)</code></td>
+<td style="text-align:left"><code>CallableResolverInterface $callableResolver</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">既定の <code>CallableResolverInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setRouteCollector($routeCollector)</code></td>
+<td style="text-align:left"><code>RouteCollectorInterface $routeCollector</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">既定の <code>RouteCollectorInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setRouteResolver($routeResolver)</code></td>
+<td style="text-align:left"><code>RouteResolverInterface $routeResolver</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">既定の <code>RouteResolverInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setMiddlewareDispatcher($middlewareDispatcher)</code></td>
+<td style="text-align:left"><code>MiddlewareDispatcherInterface $middlewareDispatcher</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">既定の <code>MiddlewareDispatcherInterface</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setSlimHttpDecoratorsAutomaticDetection($enabled)</code></td>
+<td style="text-align:left"><code>bool $enabled</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>slim/http</code> の <code>DecoratedResponseFactory</code> 自動ラップの有効 (<code>true</code>) / 無効 (<code>false</code>) を切り替えます。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-factory-appfactory">使用例 (<code>Slim\Factory\AppFactory</code>)<a class="header-anchor" href="#使用例-slim-factory-appfactory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">DI\Container</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="c1">// パターン A: 静的セッターで DI コンテナを設定してから create() を呼び出す</span>
+<span class="nv">$container</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Container</span><span class="p">();</span>
+<span class="nx">AppFactory</span><span class="o">::</span><span class="na">setContainer</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+<span class="nx">AppFactory</span><span class="o">::</span><span class="na">setSlimHttpDecoratorsAutomaticDetection</span><span class="p">(</span><span class="k">false</span><span class="p">);</span>
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// パターン B: コンテナ内のインターフェース定義から App を一括構築する</span>
+<span class="nv">$appFromDi</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">createFromContainer</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-serverrequestcreatorfactory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\ServerRequestCreatorFactory</span></code><a class="header-anchor" href="#slim-factory-serverrequestcreatorfactory" aria-label="Permalink to Slim\Factory\ServerRequestCreatorFactory">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Factory/ServerRequestCreatorFactory.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Factory</code></li>
+</ul>
+<p><code>ServerRequestCreatorFactory</code> は、PHP のスーパーグローバル変数から PSR-7 <code>ServerRequestInterface</code> を生成する <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a> を構築する静的ファクトリです。<code>App::run()</code> にリクエストオブジェクトが渡されなかった際に内部で呼び出され、<a href="02_psr17_providers.html#slim-factory-psr17-psr17factoryprovider"><code>Psr17FactoryProvider</code></a> から利用可能なベンダー実装を検出し、<code>slim/http</code> が存在する場合は <a href="02_psr17_providers.html#slim-factory-psr17-slimhttpserverrequestcreator"><code>SlimHttpServerRequestCreator</code></a> で装飾します。</p>
+<h3 id="php-クラスシグネチャ-slim-factory-serverrequestcreatorfactory">PHP クラスシグネチャ (<code>Slim\Factory\ServerRequestCreatorFactory</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-factory-serverrequestcreatorfactory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory;</span>
+
+<span class="x">use RuntimeException;</span>
+<span class="x">use Slim\Interfaces\Psr17FactoryProviderInterface;</span>
+<span class="x">use Slim\Interfaces\ServerRequestCreatorInterface;</span>
+
+<span class="x">class ServerRequestCreatorFactory</span>
+<span class="x">{</span>
+<span class="x">    protected static ?Psr17FactoryProviderInterface $psr17FactoryProvider = null;</span>
+<span class="x">    protected static ?ServerRequestCreatorInterface $serverRequestCreator = null;</span>
+<span class="x">    protected static bool $slimHttpDecoratorsAutomaticDetectionEnabled = true;</span>
+
+<span class="x">    public static function create(): ServerRequestCreatorInterface;</span>
+<span class="x">    public static function determineServerRequestCreator(): ServerRequestCreatorInterface;</span>
+
+<span class="x">    protected static function attemptServerRequestCreatorDecoration(</span>
+<span class="x">        ServerRequestCreatorInterface $serverRequestCreator</span>
+<span class="x">    ): ServerRequestCreatorInterface;</span>
+
+<span class="x">    public static function setPsr17FactoryProvider(Psr17FactoryProviderInterface $psr17FactoryProvider): void;</span>
+<span class="x">    public static function setServerRequestCreator(ServerRequestCreatorInterface $serverRequestCreator): void;</span>
+<span class="x">    public static function setSlimHttpDecoratorsAutomaticDetection(bool $enabled): void;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="静的メソッド一覧-slim-factory-serverrequestcreatorfactory">静的メソッド一覧 (<code>Slim\Factory\ServerRequestCreatorFactory</code>)<a class="header-anchor" href="#静的メソッド一覧-slim-factory-serverrequestcreatorfactory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>create()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a></td>
+<td style="text-align:left"><code>static::determineServerRequestCreator()</code> のエイリアスです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>determineServerRequestCreator()</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a></td>
+<td style="text-align:left"><code>static::$serverRequestCreator</code> または <code>Psr17FactoryProvider::getFactories()</code> から最初に見つかった <code>getServerRequestCreator()</code> を返し、未検出時は <code>RuntimeException</code> を送出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>attemptServerRequestCreatorDecoration(...)</code> <em>(protected)</em></td>
+<td style="text-align:left"><code>ServerRequestCreatorInterface $serverRequestCreator</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a></td>
+<td style="text-align:left">自動検出が有効かつ <code>Slim\Http\ServerRequest</code> が存在する場合に <code>new SlimHttpServerRequestCreator($serverRequestCreator)</code> でラップします。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setPsr17FactoryProvider($provider)</code></td>
+<td style="text-align:left"><code>Psr17FactoryProviderInterface $psr17FactoryProvider</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>Psr17FactoryProviderInterface</code> レジストリを差し替えます。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setServerRequestCreator($creator)</code></td>
+<td style="text-align:left"><code>ServerRequestCreatorInterface $serverRequestCreator</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">カスタム <code>ServerRequestCreatorInterface</code> インスタンスを明示設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setSlimHttpDecoratorsAutomaticDetection($enabled)</code></td>
+<td style="text-align:left"><code>bool $enabled</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>Slim\Http\ServerRequest</code> による自動装飾の有効 / 無効を切り替えます。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-factory-serverrequestcreatorfactory">使用例 (<code>Slim\Factory\ServerRequestCreatorFactory</code>)<a class="header-anchor" href="#使用例-slim-factory-serverrequestcreatorfactory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\ServerRequestCreatorFactory</span><span class="p">;</span>
+
+<span class="c1">// スーパーグローバルから PSR-7 ServerRequest を手動生成して handle() に渡す</span>
+<span class="nv">$creator</span> <span class="o">=</span> <span class="nx">ServerRequestCreatorFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$request</span> <span class="o">=</span> <span class="nv">$creator</span><span class="o">-&gt;</span><span class="na">createServerRequestFromGlobals</span><span class="p">();</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$response</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-callableresolver" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\CallableResolver</span></code><a class="header-anchor" href="#slim-callableresolver" aria-label="Permalink to Slim\CallableResolver">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/CallableResolver.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim</code></li>
+<li><strong>修飾子</strong>: <code>final class</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-advancedcallableresolverinterface"><code>Slim\Interfaces\AdvancedCallableResolverInterface</code></a>（<a href="08_interfaces.html#slim-interfaces-callableresolverinterface"><code>CallableResolverInterface</code></a> を継承）</li>
+<li><strong>ジェネリクス注釈</strong>: <code>@template TContainerInterface of (ContainerInterface|null)</code></li>
+</ul>
+<p><code>CallableResolver</code> は、ルートやミドルウェアに指定された多様な Callable 表現を実行可能な PHP <code>callable</code> に解決するクラスです。</p>
+<ol>
+<li>標準の PHP <code>callable</code>（<code>Closure</code>、関数名、Invokable オブジェクト、<code>[$object, 'method']</code>）。</li>
+<li><code>[ClassName::class, 'method']</code> 形式の配列（内部で <code>'ClassName:method'</code> へ正規化）。</li>
+<li>Slim 独自のコロン記法 <code>'ClassName:method'</code>（正規表現 <code>CallableResolver::$callablePattern</code> で解析）。</li>
+<li>PSR-11 コンテナにサービス ID が登録されていれば <code>$this-&gt;container-&gt;get($class)</code> から取得し、未登録であれば <code>new $class($this-&gt;container)</code> でインスタンス化。</li>
+<li>メソッド省略時の既定メソッド補完：<code>resolveRoute()</code> は <code>RequestHandlerInterface</code> に対して <code>'handle'</code>、<code>resolveMiddleware()</code> は <code>MiddlewareInterface</code> に対して <code>'process'</code>、<code>resolve()</code> は <code>'__invoke'</code> を補完。</li>
+<li>クロージャのバインド：<code>$this-&gt;container</code> が存在し解決結果が <code>Closure</code> の場合、<code>$callable-&gt;bindTo($this-&gt;container)</code> によりクロージャ内の <code>$this</code> をコンテナへバインド。</li>
+</ol>
+<h3 id="php-クラスシグネチャ-slim-callableresolver">PHP クラスシグネチャ (<code>Slim\CallableResolver</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-callableresolver" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim;</span>
+
+<span class="x">use Psr\Container\ContainerInterface;</span>
+<span class="x">use Slim\Interfaces\AdvancedCallableResolverInterface;</span>
+
+<span class="x">final class CallableResolver implements AdvancedCallableResolverInterface</span>
+<span class="x">{</span>
+<span class="x">    public static string $callablePattern = '!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!';</span>
+
+<span class="x">    private ?ContainerInterface $container;</span>
+
+<span class="x">    public function __construct(?ContainerInterface $container = null);</span>
+<span class="x">    public function resolve($toResolve): callable;</span>
+<span class="x">    public function resolveRoute($toResolve): callable;</span>
+<span class="x">    public function resolveMiddleware($toResolve): callable;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="プロパティ-メソッド一覧-slim-callableresolver">プロパティ・メソッド一覧 (<code>Slim\CallableResolver</code>)<a class="header-anchor" href="#プロパティ-メソッド一覧-slim-callableresolver" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メンバ / メソッド</th>
+<th style="text-align:left">シグネチャ / 型</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$callablePattern</code></td>
+<td style="text-align:left"><code>public static string</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left"><code>'class:method'</code> 記法を抽出する正規表現パターン（<code>!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!</code>）。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__construct($container)</code></td>
+<td style="text-align:left"><code>?ContainerInterface $container = null</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">サービス解決および <code>Closure::bindTo()</code> に用いる任意の PSR-11 コンテナを保持します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>resolve($toResolve)</code></td>
+<td style="text-align:left"><code>string|callable $toResolve</code></td>
+<td style="text-align:left"><code>callable</code></td>
+<td style="text-align:left">汎用 Callable を解決します（メソッド省略時は <code>'__invoke'</code>）。解決不能な場合は <code>RuntimeException</code> を送出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>resolveRoute($toResolve)</code></td>
+<td style="text-align:left"><code>string|callable $toResolve</code></td>
+<td style="text-align:left"><code>callable</code></td>
+<td style="text-align:left">ルート用 Callable を解決します。対象が <code>RequestHandlerInterface</code> 実装でメソッド省略時は <code>[$instance, 'handle']</code> に解決します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>resolveMiddleware($toResolve)</code></td>
+<td style="text-align:left"><code>string|callable $toResolve</code></td>
+<td style="text-align:left"><code>callable</code></td>
+<td style="text-align:left">ミドルウェア用 Callable を解決します。対象が <code>MiddlewareInterface</code> 実装でメソッド省略時は <code>[$instance, 'process']</code> に解決します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-callableresolver">使用例 (<code>Slim\CallableResolver</code>)<a class="header-anchor" href="#使用例-slim-callableresolver" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\CallableResolver</span><span class="p">;</span>
+
+<span class="nv">$resolver</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">CallableResolver</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+
+<span class="c1">// 'Class:method' 記法、[Class::class, 'method'] 配列、PSR-15 ハンドラをすべて callable に解決</span>
+<span class="nv">$routeCallable</span> <span class="o">=</span> <span class="nv">$resolver</span><span class="o">-&gt;</span><span class="na">resolveRoute</span><span class="p">(</span><span class="s1">'App\Action\UserListAction:index'</span><span class="p">);</span>
+<span class="nv">$handlerCallable</span> <span class="o">=</span> <span class="nv">$resolver</span><span class="o">-&gt;</span><span class="na">resolveRoute</span><span class="p">(</span><span class="nx">\App\Action\SingleActionHandler</span><span class="o">::</span><span class="na">class</span><span class="p">);</span> <span class="c1">// -&gt; [$instance, 'handle']</span>
+<span class="nv">$mwCallable</span> <span class="o">=</span> <span class="nv">$resolver</span><span class="o">-&gt;</span><span class="na">resolveMiddleware</span><span class="p">(</span><span class="nx">\App\Middleware\AuthMiddleware</span><span class="o">::</span><span class="na">class</span><span class="p">);</span> <span class="c1">// -&gt; [$instance, 'process']</span>
+</code></pre>
+<hr />
+<h2 id="slim-middlewaredispatcher" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\MiddlewareDispatcher</span></code><a class="header-anchor" href="#slim-middlewaredispatcher" aria-label="Permalink to Slim\MiddlewareDispatcher">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/MiddlewareDispatcher.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface"><code>Slim\Interfaces\MiddlewareDispatcherInterface</code></a>（<code>Psr\Http\Server\RequestHandlerInterface</code> を継承）</li>
+<li><strong>ジェネリクス注釈</strong>: <code>@template TContainerInterface of (ContainerInterface|null)</code></li>
+</ul>
+<p><code>MiddlewareDispatcher</code> は、Slim 4 の同心円 <strong>LIFO（Last-In, First-Out：後入れ先出し）</strong> ミドルウェアスタックを実装します。中心の <code>RequestHandlerInterface $kernel</code>（アプリケーション全体では <a href="03_routing.html#slim-routing-routerunner"><code>RouteRunner</code></a>、個別ルートでは <a href="03_routing.html#slim-routing-route"><code>Route</code></a>）を起点として、<code>add()</code>, <code>addMiddleware()</code>, <code>addDeferred()</code>, <code>addCallable()</code> が呼ばれるたびに現在の <code>$this-&gt;tip</code> を <code>$next</code> として包む匿名 <code>RequestHandlerInterface</code> で <code>$this-&gt;tip</code> を更新します。</p>
+<h3 id="php-クラスシグネチャ-slim-middlewaredispatcher">PHP クラスシグネチャ (<code>Slim\MiddlewareDispatcher</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-middlewaredispatcher" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim;</span>
+
+<span class="x">use Psr\Container\ContainerInterface;</span>
+<span class="x">use Psr\Http\Message\ResponseInterface;</span>
+<span class="x">use Psr\Http\Message\ServerRequestInterface;</span>
+<span class="x">use Psr\Http\Server\MiddlewareInterface;</span>
+<span class="x">use Psr\Http\Server\RequestHandlerInterface;</span>
+<span class="x">use Slim\Interfaces\CallableResolverInterface;</span>
+<span class="x">use Slim\Interfaces\MiddlewareDispatcherInterface;</span>
+
+<span class="x">class MiddlewareDispatcher implements MiddlewareDispatcherInterface</span>
+<span class="x">{</span>
+<span class="x">    protected RequestHandlerInterface $tip;</span>
+<span class="x">    protected ?CallableResolverInterface $callableResolver;</span>
+<span class="x">    protected ?ContainerInterface $container;</span>
+
+<span class="x">    public function __construct(</span>
+<span class="x">        RequestHandlerInterface $kernel,</span>
+<span class="x">        ?CallableResolverInterface $callableResolver = null,</span>
+<span class="x">        ?ContainerInterface $container = null</span>
+<span class="x">    );</span>
+
+<span class="x">    public function seedMiddlewareStack(RequestHandlerInterface $kernel): void;</span>
+<span class="x">    public function handle(ServerRequestInterface $request): ResponseInterface;</span>
+<span class="x">    public function add($middleware): MiddlewareDispatcherInterface;</span>
+<span class="x">    public function addMiddleware(MiddlewareInterface $middleware): MiddlewareDispatcherInterface;</span>
+<span class="x">    public function addDeferred(string $middleware): self;</span>
+<span class="x">    public function addCallable(callable $middleware): self;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="コンストラクタ-メソッド一覧-slim-middlewaredispatcher">コンストラクタ・メソッド一覧 (<code>Slim\MiddlewareDispatcher</code>)<a class="header-anchor" href="#コンストラクタ-メソッド一覧-slim-middlewaredispatcher" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct(...)</code></td>
+<td style="text-align:left"><code>RequestHandlerInterface $kernel</code>, <code>?CallableResolverInterface $callableResolver = null</code>, <code>?ContainerInterface $container = null</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>seedMiddlewareStack($kernel)</code> を呼び出し、<code>$callableResolver</code> と <code>$container</code> を保持します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>seedMiddlewareStack($kernel)</code></td>
+<td style="text-align:left"><code>RequestHandlerInterface $kernel</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">スタック最深部のカーネルハンドラとして <code>$this-&gt;tip = $kernel</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>handle($request)</code></td>
+<td style="text-align:left"><code>ServerRequestInterface $request</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left">最外層の <code>$this-&gt;tip-&gt;handle($request)</code> を呼び出し、LIFO スタックを実行します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>add($middleware)</code></td>
+<td style="text-align:left"><code>MiddlewareInterface|string|callable $middleware</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface"><code>MiddlewareDispatcherInterface</code></a></td>
+<td style="text-align:left">引数の型に応じて <code>addMiddleware()</code>、<code>addDeferred()</code>、<code>addCallable()</code> へ振り分けます（それ以外は <code>RuntimeException</code>）。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addMiddleware($middleware)</code></td>
+<td style="text-align:left"><code>MiddlewareInterface $middleware</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface"><code>MiddlewareDispatcherInterface</code></a></td>
+<td style="text-align:left"><code>$middleware-&gt;process($request, $this-&gt;next)</code> を実行する匿名 <code>RequestHandlerInterface</code> で <code>$this-&gt;tip</code> をラップします。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addDeferred($middleware)</code></td>
+<td style="text-align:left"><code>string $middleware</code></td>
+<td style="text-align:left"><code>self</code></td>
+<td style="text-align:left">リクエスト処理時（<code>handle()</code> 実行時）まで <code>$middleware</code> 文字列の解決・インスタンス化を遅延する匿名ハンドラで <code>$this-&gt;tip</code> をラップします。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addCallable($middleware)</code></td>
+<td style="text-align:left"><code>callable $middleware</code></td>
+<td style="text-align:left"><code>self</code></td>
+<td style="text-align:left"><code>Closure</code> の場合はコンテナへバインドした上で、<code>($this-&gt;middleware)($request, $this-&gt;next)</code> を呼び出す匿名ハンドラで <code>$this-&gt;tip</code> をラップします。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-middlewaredispatcher">使用例 (<code>Slim\MiddlewareDispatcher</code>)<a class="header-anchor" href="#使用例-slim-middlewaredispatcher" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span> <span class="k">as</span> <span class="nx">RequestHandler</span><span class="p">;</span>
+
+<span class="c1">// LIFO 順序: 後から追加した OuterAuthMiddleware が先に実行される</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">RequestHandler</span> <span class="nv">$handler</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">withAttribute</span><span class="p">(</span><span class="s1">'inner'</span><span class="p">,</span> <span class="k">true</span><span class="p">));</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-Inner-Middleware'</span><span class="p">,</span> <span class="s1">'1'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="s1">'App\Middleware\OuterAuthMiddleware'</span><span class="p">);</span> <span class="c1">// handle() 実行時に遅延解決</span>
+</code></pre>
+<hr />
+<h2 id="slim-responseemitter" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\ResponseEmitter</span></code><a class="header-anchor" href="#slim-responseemitter" aria-label="Permalink to Slim\ResponseEmitter">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/ResponseEmitter.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim</code></li>
+</ul>
+<p><code>ResponseEmitter</code> は、PSR-7 <code>ResponseInterface</code> を PHP SAPI の標準出力へ送出するクラスです。実運用上の HTTP エッジケースに対応する 3 つの重要な保護機構を備えています。</p>
+<ol>
+<li><strong>複数 <code>Set-Cookie</code> ヘッダの保護</strong>: <code>emitHeaders()</code> では通常ヘッダは初回のみ置換（<code>$first = true</code>）しますが、<code>strtolower($name) !== 'set-cookie'</code> の判定により <code>Set-Cookie</code> ヘッダは常に上書きせず追記送出します。</li>
+<li><strong>ヘッダ送出後のステータス行設定</strong>: PHP の <code>header('Location: ...')</code> がステータスコードを勝手に <code>302</code> へ書き換える挙動（<a href="https://github.com/slimphp/Slim/issues/1730">Issue #1730</a>）を防ぐため、<code>emitHeaders()</code> の<strong>後</strong>に <code>emitStatusLine()</code> を実行します。</li>
+<li><strong>空レスポンス判定とチャンク送出</strong>: <code>isResponseEmpty()</code> により <code>204</code>, <code>205</code>, <code>304</code> または空ストリーム時はボディ送出をスキップし、<code>emitBody()</code> では <code>$responseChunkSize</code>（既定 <code>4096</code> バイト）単位でストリームを読み出し、<code>connection_status() !== CONNECTION_NORMAL</code> となった時点で安全に中断します。</li>
+</ol>
+<h3 id="php-クラスシグネチャ-slim-responseemitter">PHP クラスシグネチャ (<code>Slim\ResponseEmitter</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-responseemitter" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim;</span>
+
+<span class="x">use Psr\Http\Message\ResponseInterface;</span>
+
+<span class="x">class ResponseEmitter</span>
+<span class="x">{</span>
+<span class="x">    private int $responseChunkSize;</span>
+
+<span class="x">    public function __construct(int $responseChunkSize = 4096);</span>
+<span class="x">    public function emit(ResponseInterface $response): void;</span>
+<span class="x">    public function isResponseEmpty(ResponseInterface $response): bool;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="コンストラクタ-メソッド一覧-slim-responseemitter">コンストラクタ・メソッド一覧 (<code>Slim\ResponseEmitter</code>)<a class="header-anchor" href="#コンストラクタ-メソッド一覧-slim-responseemitter" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct($responseChunkSize)</code></td>
+<td style="text-align:left"><code>int $responseChunkSize = 4096</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">レスポンスボディ送出時に 1 回の <code>StreamInterface::read()</code> で読み出すチャンクサイズ（バイト数）を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>emit($response)</code></td>
+<td style="text-align:left"><code>ResponseInterface $response</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>headers_sent() === false</code> の場合にヘッダとステータス行を送出し、<code>!isResponseEmpty($response)</code> の場合にボディをストリーム出力します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isResponseEmpty($response)</code></td>
+<td style="text-align:left"><code>ResponseInterface $response</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">ステータスコードが <code>[204, 205, 304]</code> のいずれか、またはボディストリームが空（シーク可能なら <code>rewind()</code> 後の <code>read(1) === ''</code>、シーク不可なら <code>eof()</code>）の場合に <code>true</code> を返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-responseemitter">使用例 (<code>Slim\ResponseEmitter</code>)<a class="header-anchor" href="#使用例-slim-responseemitter" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\ServerRequestCreatorFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\ResponseEmitter</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$request</span> <span class="o">=</span> <span class="nx">ServerRequestCreatorFactory</span><span class="o">::</span><span class="na">create</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">createServerRequestFromGlobals</span><span class="p">();</span>
+<span class="nv">$response</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+<span class="c1">// 8 KB チャンクでレスポンスを送出</span>
+<span class="nv">$emitter</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ResponseEmitter</span><span class="p">(</span><span class="mi">8192</span><span class="p">);</span>
+<span class="nv">$emitter</span><span class="o">-&gt;</span><span class="na">emit</span><span class="p">(</span><span class="nv">$response</span><span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-logger" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Logger</span></code><a class="header-anchor" href="#slim-logger" aria-label="Permalink to Slim\Logger">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Logger.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim</code></li>
+<li><strong>継承クラス</strong>: <code>Psr\Log\AbstractLogger</code>（<code>Psr\Log\LoggerInterface</code> を実装）</li>
+</ul>
+<p><code>Slim\Logger</code> は、<code>App::addErrorMiddleware()</code> や <code>ErrorMiddleware</code> に外部の <code>Psr\Log\LoggerInterface</code> が渡されなかった場合に <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler"><code>ErrorHandler</code></a> がデフォルトで使用する軽量な PSR-3 ロガー実装です。<code>Psr\Log\AbstractLogger</code> から全ログレベルメソッド（<code>emergency()</code>, <code>alert()</code>, <code>critical()</code>, <code>error()</code>, <code>warning()</code>, <code>notice()</code>, <code>info()</code>, <code>debug()</code>）を継承し、すべてのメッセージを <code>error_log((string) $message)</code> へ出力します。</p>
+<h3 id="php-クラスシグネチャ-slim-logger">PHP クラスシグネチャ (<code>Slim\Logger</code>)<a class="header-anchor" href="#php-クラスシグネチャ-slim-logger" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim;</span>
+
+<span class="x">use Psr\Log\AbstractLogger;</span>
+<span class="x">use Psr\Log\InvalidArgumentException;</span>
+<span class="x">use Stringable;</span>
+
+<span class="x">class Logger extends AbstractLogger</span>
+<span class="x">{</span>
+<span class="x">    /**</span>
+<span class="x">     * @param mixed             $level</span>
+<span class="x">     * @param string|Stringable $message</span>
+<span class="x">     * @param array&lt;mixed&gt;      $context</span>
+<span class="x">     *</span>
+<span class="x">     * @throws InvalidArgumentException</span>
+<span class="x">     */</span>
+<span class="x">    public function log($level, $message, array $context = []): void;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="メソッド一覧-slim-logger">メソッド一覧 (<code>Slim\Logger</code>)<a class="header-anchor" href="#メソッド一覧-slim-logger" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">引数</th>
+<th style="text-align:left">戻り値型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>log($level, $message, $context)</code></td>
+<td style="text-align:left"><code>mixed $level</code>, <code>string|Stringable $message</code>, <code>array&lt;mixed&gt; $context = []</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>(string) $message</code> を PHP 標準の <code>error_log()</code> に出力します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-slim-logger">使用例 (<code>Slim\Logger</code>)<a class="header-anchor" href="#使用例-slim-logger" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Logger</span><span class="p">;</span>
+
+<span class="nv">$logger</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Logger</span><span class="p">();</span>
+<span class="nv">$logger</span><span class="o">-&gt;</span><span class="na">error</span><span class="p">(</span><span class="s1">'Unhandled exception in checkout pipeline'</span><span class="p">);</span>
+</code></pre>
+
+
+                
+                <nav class="catalog-pager" aria-label="Catalog Page Navigation">
+                    
+                    <a href="00_overview.html" class="catalog-pager-card is-prev">
+                        <span class="catalog-pager-dir">&larr; 前へ</span>
+                        <span class="catalog-pager-title">Slim 4 パッケージ・名前空間概要</span>
+                    </a>
+                    
+                    
+                    <a href="02_psr17_providers.html" class="catalog-pager-card is-next">
+                        <span class="catalog-pager-dir">次へ &rarr;</span>
+                        <span class="catalog-pager-title">PSR-17 ファクトリ自動検出とプロバイダ</span>
+                    </a>
+                    
+                </nav>
+                
+            </main>
+
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式 API リファレンスであり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    if (!current) {
+                        current = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    }
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('drawlib-theme', next); } catch (e) {}
+                });
+            }
+
+            var menuBtn = document.getElementById('menu-toggle');
+            var sidebar = document.getElementById('catalog-sidebar');
+            var backdrop = document.getElementById('sidebar-backdrop');
+            function closeMenu() {
+                if (sidebar) sidebar.classList.remove('is-open');
+                if (backdrop) backdrop.classList.remove('is-open');
+            }
+            if (menuBtn && sidebar && backdrop) {
+                menuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('is-open');
+                    backdrop.classList.toggle('is-open');
+                });
+                backdrop.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.catalog-nav-cat-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+
+            if (sidebar) {
+                try {
+                    var savedScroll = sessionStorage.getItem('drawlib-catalog-sidebar-scroll');
+                    if (savedScroll !== null) {
+                        sidebar.scrollTop = parseInt(savedScroll, 10) || 0;
+                    }
+                    sidebar.addEventListener('scroll', function() {
+                        try { sessionStorage.setItem('drawlib-catalog-sidebar-scroll', String(sidebar.scrollTop)); } catch (e) {}
+                    }, { passive: true });
+                } catch (e) {}
+            }
+
+            var groups = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-group'));
+            var expandBtn = document.getElementById('catalog-expand-toggle');
+            function updateExpandBtnLabel() {
+                if (!expandBtn || groups.length === 0) return;
+                var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                var expandText = expandBtn.getAttribute('data-expand-label') || 'Expand All';
+                var collapseText = expandBtn.getAttribute('data-collapse-label') || 'Collapse All';
+                expandBtn.textContent = allOpen ? collapseText : expandText;
+            }
+            if (expandBtn) {
+                updateExpandBtnLabel();
+                expandBtn.addEventListener('click', function() {
+                    var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                    var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                    visibleGroups.forEach(function(g) { g.open = !allOpen; });
+                    updateExpandBtnLabel();
+                });
+                groups.forEach(function(g) {
+                    g.addEventListener('toggle', updateExpandBtnLabel);
+                });
+            }
+
+            var filterInput = document.getElementById('catalog-filter-input');
+            var emptyNotice = document.getElementById('catalog-nav-empty');
+            var savedOpenState = null;
+
+            if (filterInput) {
+                filterInput.addEventListener('input', function() {
+                    var q = filterInput.value.trim().toLowerCase();
+                    if (q && !savedOpenState) {
+                        savedOpenState = groups.map(function(g) { return g.open; });
+                    }
+                    var anyMatch = false;
+                    groups.forEach(function(g, idx) {
+                        var catText = (g.getAttribute('data-cat') || '').toLowerCase();
+                        var catMatches = q !== '' && catText.indexOf(q) !== -1;
+                        var items = Array.prototype.slice.call(g.querySelectorAll('.catalog-nav-subitem'));
+                        var visibleCount = 0;
+
+                        items.forEach(function(li) {
+                            var symText = (li.getAttribute('data-sym') || '').toLowerCase();
+                            var show = (q === '') || catMatches || symText.indexOf(q) !== -1;
+                            li.hidden = !show;
+                            if (show) visibleCount += 1;
+                        });
+
+                        if (q === '') {
+                            g.hidden = false;
+                            if (savedOpenState && typeof savedOpenState[idx] === 'boolean') {
+                                g.open = savedOpenState[idx];
+                            }
+                            anyMatch = true;
+                        } else if (catMatches || visibleCount > 0) {
+                            g.hidden = false;
+                            g.open = true;
+                            anyMatch = true;
+                        } else {
+                            g.hidden = true;
+                        }
+                    });
+
+                    if (q === '') {
+                        savedOpenState = null;
+                    }
+                    if (emptyNotice) {
+                        emptyNotice.hidden = anyMatch;
+                    }
+                    updateExpandBtnLabel();
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === '/' && document.activeElement !== filterInput) {
+                        var tag = document.activeElement ? document.activeElement.tagName : '';
+                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+                            e.preventDefault();
+                            filterInput.focus();
+                        }
+                    } else if (e.key === 'Escape' && document.activeElement === filterInput) {
+                        filterInput.value = '';
+                        filterInput.dispatchEvent(new Event('input'));
+                        filterInput.blur();
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                document.querySelectorAll('.lang-dropdown[open]').forEach(function(dd) {
+                    if (!dd.contains(e.target)) {
+                        dd.removeAttribute('open');
+                    }
+                });
+            });
+
+            var activeLinks = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-sublink[data-target]'));
+            if (activeLinks.length > 0 && 'IntersectionObserver' in window) {
+                var linkBySlug = {};
+                var headings = [];
+                activeLinks.forEach(function(a) {
+                    var slug = a.getAttribute('data-target');
+                    var el = slug ? document.getElementById(slug) : null;
+                    if (slug && el) {
+                        linkBySlug[slug] = a;
+                        headings.push(el);
+                    }
+                    a.addEventListener('click', closeMenu);
+                });
+
+                function setActiveSlug(slug) {
+                    activeLinks.forEach(function(a) {
+                        if (a.getAttribute('data-target') === slug) {
+                            a.classList.add('is-active');
+                        } else {
+                            a.classList.remove('is-active');
+                        }
+                    });
+                }
+
+                if (window.location.hash) {
+                    var initSlug = decodeURIComponent(window.location.hash.slice(1));
+                    if (linkBySlug[initSlug]) setActiveSlug(initSlug);
+                } else if (headings.length > 0) {
+                    setActiveSlug(headings[0].id);
+                }
+
+                var visibleIds = {};
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        visibleIds[entry.target.id] = entry.isIntersecting;
+                    });
+                    for (var i = 0; i < headings.length; i++) {
+                        if (visibleIds[headings[i].id]) {
+                            setActiveSlug(headings[i].id);
+                            break;
+                        }
+                    }
+                }, { rootMargin: '-90px 0px -65% 0px', threshold: [0, 1] });
+
+                headings.forEach(function(h) { observer.observe(h); });
+            }
+        })();
+    </script>
+</body>
+</html>

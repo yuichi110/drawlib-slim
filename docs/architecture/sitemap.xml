@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://slim.drawlib.com/architecture/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/01_package_and_layers/module_hierarchy.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/02_bootstrap_and_psr17/app_factory_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/06_sapi_emission/response_emitter_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/01_package_and_layers/module_hierarchy.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/01_package_and_layers/module_hierarchy.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/02_bootstrap_and_psr17/app_factory_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/02_bootstrap_and_psr17/app_factory_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/03_middleware_and_resolver/middleware_dispatcher_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/architecture/ja/06_sapi_emission/response_emitter_internals.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/06_sapi_emission/response_emitter_internals.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html" />
+  </url>
+</urlset>

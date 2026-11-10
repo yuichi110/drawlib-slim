@@ -1,0 +1,26 @@
+[project]
+name = "architecture"
+type = "site"
+title = "Slim 4 Internal Architecture Guide (Unofficial)"
+description = "Source-level internal architecture guide to Slim Framework v4.15.3: 5-tier PSR package topology, AppFactory & PSR-17 auto-discovery, LIFO MiddlewareDispatcher & CallableResolver, FastRoute compilation & RouteRunner, and ErrorMiddleware content negotiation."
+style = "default"
+
+[i18n]
+default_lang = "en"
+langs = ["en", "ja"]
+
+[i18n.labels]
+en = "English"
+ja = "日本語"
+
+[i18n.descriptions]
+en = "Source-level internal architecture guide to Slim Framework v4.15.3: 5-tier PSR package topology, AppFactory & PSR-17 auto-discovery, LIFO MiddlewareDispatcher & CallableResolver, FastRoute compilation & RouteRunner, and ErrorMiddleware content negotiation."
+ja = "Slim Framework v4.15.3 の内部アーキテクチャ解説（非公式）：PSR 5層パッケージ構造、AppFactory と PSR-17 自動検出、MiddlewareDispatcher と CallableResolver、FastRoute 統合、ErrorMiddleware と ResponseEmitter の内部実装。"
+
+[seo]
+site_url = "https://slim.drawlib.com/architecture"
+og_image = "_assets/ogp.png"
+twitter_card = "summary_large_image"
+sitemap = true
+robots = true
+llms_txt = true

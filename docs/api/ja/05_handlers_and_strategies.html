@@ -1,0 +1,2225 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ハンドラと実行ストラテジー (Handlers &amp; Strategies) — Slim 4 API Reference (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('drawlib-theme');
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    
+    <link rel="icon" href="../_assets/favicon.png">
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html">
+    
+    
+    
+    <meta name="description" content="Slim\Handlers 名前空間は、HTTP コンテンツネゴシエーション・例外ロギング・エラーレスポンス生成を担うデフォルトの ErrorHandler と、Slim\Handlers\Strategies 配下の 4 つのルートコールバック実行ストラテジーを提供します。これらのクラスは、マッチした…">
+    <link rel="canonical" href="https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 API Reference">
+    <meta property="og:title" content="ハンドラと実行ストラテジー (Handlers &amp; Strategies) — Slim 4 API Reference">
+    <meta property="og:description" content="Slim\Handlers 名前空間は、HTTP コンテンツネゴシエーション・例外ロギング・エラーレスポンス生成を担うデフォルトの ErrorHandler と、Slim\Handlers\Strategies 配下の 4 つのルートコールバック実行ストラテジーを提供します。これらのクラスは、マッチした…">
+    <meta property="og:url" content="https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html">
+    <meta property="og:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ハンドラと実行ストラテジー (Handlers &amp; Strategies) — Slim 4 API Reference">
+    <meta name="twitter:description" content="Slim\Handlers 名前空間は、HTTP コンテンツネゴシエーション・例外ロギング・エラーレスポンス生成を担うデフォルトの ErrorHandler と、Slim\Handlers\Strategies 配下の 4 つのルートコールバック実行ストラテジーを提供します。これらのクラスは、マッチした…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">API REFERENCE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）API リファレンス（非公式）
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">API Reference</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar" id="catalog-sidebar">
+            <div class="sidebar-header has-subbar">
+                <a href="index.html" class="site-title">
+                    Slim 4 API リファレンス
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle light/dark mode">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation menu">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-subbar">
+                
+                
+                <a href="index.html" class="sidebar-version-badge">
+                    <span class="sidebar-version-dot"></span>
+                    <span>API リファレンス · v4.15.3</span>
+                </a>
+                
+                
+                
+                <a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer" class="sidebar-github-link" aria-label="Repository" title="View Upstream Slim 4 Repository">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+                
+            </div>
+            
+
+            <div class="sidebar-menu">
+                <div class="catalog-sidebar-toolbar">
+                    <div class="catalog-filter-box">
+                        <svg class="catalog-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input id="catalog-filter-input" type="search" class="catalog-filter-input" placeholder="項目を絞り込み..." autocomplete="off" spellcheck="false" aria-label="項目を絞り込み...">
+                        <kbd class="catalog-filter-kbd">/</kbd>
+                    </div>
+                    <div class="catalog-toolbar-meta">
+                        <span class="catalog-toolbar-label">カテゴリ &amp; 項目</span>
+                        <button type="button" id="catalog-expand-toggle" class="catalog-expand-btn" data-expand-label="すべて展開" data-collapse-label="すべて折りたたむ">すべて折りたたむ</button>
+                    </div>
+                </div>
+
+                <nav class="catalog-sidebar-nav" id="catalog-sidebar-nav" aria-label="Catalog Navigation">
+                    
+                    
+                    
+                    <details class="catalog-nav-group" data-cat="Slim 4 パッケージ・名前空間概要" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="00_overview.html" class="catalog-nav-cat-link is-prose-cat">Slim 4 パッケージ・名前空間概要</a>
+                            
+                            <span class="catalog-nav-count">10</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="アーキテクチャと PHP-FIG (PSR) 標準への準拠">
+                                <a href="00_overview.html#アーキテクチャと-php-fig-psr-標準への準拠" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">アーキテクチャと PHP-FIG (PSR) 標準への準拠</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\">
+                                <a href="00_overview.html#slim" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory">
+                                <a href="00_overview.html#slim-factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory\Psr17">
+                                <a href="00_overview.html#slim-factory-psr17" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Routing">
+                                <a href="00_overview.html#slim-routing" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Middleware">
+                                <a href="00_overview.html#slim-middleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Handlers">
+                                <a href="00_overview.html#slim-handlers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Error\Renderers">
+                                <a href="00_overview.html#slim-error-renderers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Exception">
+                                <a href="00_overview.html#slim-exception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Interfaces">
+                                <a href="00_overview.html#slim-interfaces" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="コアアプリケーション &amp; ブートストラップファクトリ" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="01_app_and_factories.html" class="catalog-nav-cat-link is-prose-cat">コアアプリケーション &amp; ブートストラップファクトリ</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\App">
+                                <a href="01_app_and_factories.html#slim-app" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\App</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\AppFactory">
+                                <a href="01_app_and_factories.html#slim-factory-appfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\AppFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\ServerRequestCreatorFactory">
+                                <a href="01_app_and_factories.html#slim-factory-serverrequestcreatorfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\ServerRequestCreatorFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\CallableResolver">
+                                <a href="01_app_and_factories.html#slim-callableresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\CallableResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\MiddlewareDispatcher">
+                                <a href="01_app_and_factories.html#slim-middlewaredispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\MiddlewareDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\ResponseEmitter">
+                                <a href="01_app_and_factories.html#slim-responseemitter" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\ResponseEmitter</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Logger">
+                                <a href="01_app_and_factories.html#slim-logger" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Logger</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="PSR-17 ファクトリ自動検出とプロバイダ" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="02_psr17_providers.html" class="catalog-nav-cat-link is-prose-cat">PSR-17 ファクトリ自動検出とプロバイダ</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="PSR-17 自動検出の優先順位とベンダマッピング一覧">
+                                <a href="02_psr17_providers.html#psr-17-自動検出の優先順位とベンダマッピング一覧" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">PSR-17 自動検出の優先順位とベンダマッピング一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17FactoryProvider">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factoryprovider" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17FactoryProvider</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\ServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-serverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\ServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttpserverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttppsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\NyholmPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-nyholmpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\NyholmPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\GuzzlePsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-guzzlepsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\GuzzlePsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\LaminasDiactorosPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-laminasdiactorospsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\HttpSoftPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-httpsoftpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\HttpSoftPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="ルーティング (Slim\Routing)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="03_routing.html" class="catalog-nav-cat-link is-prose-cat">ルーティング (Slim\Routing)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollectorProxy">
+                                <a href="03_routing.html#slim-routing-routecollectorproxy" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollectorProxy</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollector">
+                                <a href="03_routing.html#slim-routing-routecollector" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollector</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Route">
+                                <a href="03_routing.html#slim-routing-route" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Route</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteGroup">
+                                <a href="03_routing.html#slim-routing-routegroup" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteGroup</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteContext">
+                                <a href="03_routing.html#slim-routing-routecontext" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteContext</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteParser">
+                                <a href="03_routing.html#slim-routing-routeparser" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteParser</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteResolver">
+                                <a href="03_routing.html#slim-routing-routeresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteRunner">
+                                <a href="03_routing.html#slim-routing-routerunner" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteRunner</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Dispatcher">
+                                <a href="03_routing.html#slim-routing-dispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Dispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\FastRouteDispatcher">
+                                <a href="03_routing.html#slim-routing-fastroutedispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\FastRouteDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RoutingResults">
+                                <a href="03_routing.html#slim-routing-routingresults" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RoutingResults</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="ミドルウェア (Slim\Middleware)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="04_middleware.html" class="catalog-nav-cat-link is-prose-cat">ミドルウェア (Slim\Middleware)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\RoutingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-routingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\RoutingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ErrorMiddleware">
+                                <a href="04_middleware.html#slim-middleware-errormiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ErrorMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\BodyParsingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-bodyparsingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\BodyParsingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ContentLengthMiddleware">
+                                <a href="04_middleware.html#slim-middleware-contentlengthmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ContentLengthMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\MethodOverrideMiddleware">
+                                <a href="04_middleware.html#slim-middleware-methodoverridemiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\MethodOverrideMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\OutputBufferingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-outputbufferingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\OutputBufferingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group is-current-page" data-cat="ハンドラと実行ストラテジー (Handlers &amp; Strategies)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="05_handlers_and_strategies.html" class="catalog-nav-cat-link is-prose-cat">ハンドラと実行ストラテジー (Handlers &amp; Strategies)</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="クラス一覧">
+                                <a href="#クラス一覧" class="catalog-nav-sublink is-prose-sublink" data-target="クラス一覧">
+                                    
+                                    <span class="catalog-nav-sym-text">クラス一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\ErrorHandler">
+                                <a href="#slim-handlers-errorhandler" class="catalog-nav-sublink is-prose-sublink" data-target="slim-handlers-errorhandler">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\ErrorHandler</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="ルートコールバック実行ストラテジー (Invocation Strategies)">
+                                <a href="#ルートコールバック実行ストラテジー-invocation-strategies" class="catalog-nav-sublink is-prose-sublink" data-target="ルートコールバック実行ストラテジー-invocation-strategies">
+                                    
+                                    <span class="catalog-nav-sym-text">ルートコールバック実行ストラテジー (Invocation Strategies)</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponse">
+                                <a href="#slim-handlers-strategies-requestresponse" class="catalog-nav-sublink is-prose-sublink" data-target="slim-handlers-strategies-requestresponse">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponse</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseArgs">
+                                <a href="#slim-handlers-strategies-requestresponseargs" class="catalog-nav-sublink is-prose-sublink" data-target="slim-handlers-strategies-requestresponseargs">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseNamedArgs">
+                                <a href="#slim-handlers-strategies-requestresponsenamedargs" class="catalog-nav-sublink is-prose-sublink" data-target="slim-handlers-strategies-requestresponsenamedargs">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseNamedArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestHandler">
+                                <a href="#slim-handlers-strategies-requesthandler" class="catalog-nav-sublink is-prose-sublink" data-target="slim-handlers-strategies-requesthandler">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestHandler</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="エラーレンダラ (Error Renderers)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="06_error_renderers.html" class="catalog-nav-cat-link is-prose-cat">エラーレンダラ (Error Renderers)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="エラーレンダラ一覧">
+                                <a href="06_error_renderers.html#エラーレンダラ一覧" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">エラーレンダラ一覧</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\AbstractErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-abstracterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\AbstractErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\JsonErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-jsonerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\JsonErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\HtmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-htmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\HtmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\XmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-xmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\XmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\PlainTextErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-plaintexterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\PlainTextErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="HTTP 例外 (Slim\Exception\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="07_exceptions.html" class="catalog-nav-cat-link is-prose-cat">HTTP 例外 (Slim\Exception\*)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpException">
+                                <a href="07_exceptions.html#slim-exception-httpexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpSpecializedException">
+                                <a href="07_exceptions.html#slim-exception-httpspecializedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpSpecializedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpBadRequestException">
+                                <a href="07_exceptions.html#slim-exception-httpbadrequestexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpBadRequestException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpUnauthorizedException">
+                                <a href="07_exceptions.html#slim-exception-httpunauthorizedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpUnauthorizedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpForbiddenException">
+                                <a href="07_exceptions.html#slim-exception-httpforbiddenexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpForbiddenException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotFoundException">
+                                <a href="07_exceptions.html#slim-exception-httpnotfoundexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotFoundException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpMethodNotAllowedException">
+                                <a href="07_exceptions.html#slim-exception-httpmethodnotallowedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpMethodNotAllowedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpGoneException">
+                                <a href="07_exceptions.html#slim-exception-httpgoneexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpGoneException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpTooManyRequestsException">
+                                <a href="07_exceptions.html#slim-exception-httptoomanyrequestsexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpTooManyRequestsException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpInternalServerErrorException">
+                                <a href="07_exceptions.html#slim-exception-httpinternalservererrorexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpInternalServerErrorException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotImplementedException">
+                                <a href="07_exceptions.html#slim-exception-httpnotimplementedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotImplementedException</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="契約インターフェース (Slim\Interfaces\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="08_interfaces.html" class="catalog-nav-cat-link is-prose-cat">契約インターフェース (Slim\Interfaces\*)</a>
+                            
+                            <span class="catalog-nav-count">17</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\AdvancedCallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-advancedcallableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\AdvancedCallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\CallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-callableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\CallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\DispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-dispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\DispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorHandlerInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorhandlerinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorHandlerInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorRendererInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorrendererinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorRendererInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\InvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\InvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\MiddlewareDispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\MiddlewareDispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryProviderInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryproviderinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryProviderInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RequestHandlerInvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RequestHandlerInvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorProxyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorproxyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorProxyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteGroupInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routegroupinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteGroupInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteParserInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeparserinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteParserInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ServerRequestCreatorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ServerRequestCreatorInterface</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    
+                    <div id="catalog-nav-empty" class="catalog-nav-empty" hidden>一致する項目が見つかりません。</div>
+                </nav>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <div class="content-wrapper">
+            <div class="top-bar">
+                <div class="breadcrumbs">
+                    <a href="index.html" class="crumb">API リファレンス</a>
+                    <span class="crumb-separator">/</span>
+                    <span class="crumb active">ハンドラと実行ストラテジー (Handlers &amp; Strategies)</span>
+                </div>
+                
+                <div class="top-bar-right">
+                    
+                    
+                    <div class="lang-switcher" aria-label="Language switcher">
+                        <details class="lang-dropdown">
+                            <summary class="lang-dropdown-btn" aria-haspopup="listbox">
+                                <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span class="lang-current-label">日本語</span>
+                                <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </summary>
+                            <div class="lang-dropdown-menu" role="listbox">
+                                
+                                
+                                <a href="../en/05_handlers_and_strategies.html" class="lang-option" role="option" hreflang="">
+                                    <span>English</span>
+                                </a>
+                                
+                                
+                                
+                                <span class="lang-option active" role="option" aria-selected="true">
+                                    <span>日本語</span>
+                                    <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </span>
+                                
+                                
+                            </div>
+                        </details>
+                    </div>
+                    
+                </div>
+                
+            </div>
+
+            <main class="main-content catalog-main-content">
+                <h1 class="catalog-page-title">ハンドラと実行ストラテジー (Handlers &amp; Strategies)</h1>
+<p><code>Slim\Handlers</code> 名前空間は、HTTP コンテンツネゴシエーション・例外ロギング・エラーレスポンス生成を担うデフォルトの <a href="#slim-handlers-errorhandler"><code>ErrorHandler</code></a> と、<code>Slim\Handlers\Strategies</code> 配下の 4 つのルートコールバック実行ストラテジーを提供します。これらのクラスは、マッチした <a href="03_routing.html#slim-routing-route"><code>Route</code></a> コールバックの呼び出し規約と、未捕捉の <code>Throwable</code> を <a href="04_middleware.html#slim-middleware-errormiddleware"><code>ErrorMiddleware</code></a> 経由で PSR-7 レスポンスへ変換するパイプラインを制御します。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/05_handlers_and_strategies/p2_handlers_error_pipeline_ja.png" alt="05_handlers_and_strategies_1" />
+  <figcaption class="drawlib-caption">Slim\Handlers\ErrorHandler の実行とコンテンツネゴシエーション・パイプライン</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">)</span>
+
+<span class="c1"># Outer container for ErrorHandler</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">36</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">168</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">56</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mf">68.5</span><span class="p">),</span>
+    <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Handlers</span><span class="se">\\</span><span class="s2">ErrorHandler::__invoke(request, exception, ...)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">12.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Step 1: Input</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">warning_octagon</span><span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mf">47.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mf">40.5</span><span class="p">),</span> <span class="s2">"ErrorMiddleware"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">24</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">),</span> <span class="s2">"Request + Throwable"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Step 2: Status &amp; Content-Type Negotiation</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">52.0</span><span class="p">),</span> <span class="s2">"determineStatusCode()"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">46.5</span><span class="p">),</span> <span class="s2">"OPTIONS:200 | Http:Code | 500"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">28.0</span><span class="p">),</span> <span class="s2">"determineContentType()"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">22.5</span><span class="p">),</span> <span class="s2">"Accept Header / Forced MIME"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Step 3: Logger &amp; Renderer Resolution</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">116</span><span class="p">,</span> <span class="mf">52.0</span><span class="p">),</span> <span class="s2">"writeToErrorLog()"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">116</span><span class="p">,</span> <span class="mf">46.5</span><span class="p">),</span> <span class="s2">"PlainText -&gt; PSR-3 Logger"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">116</span><span class="p">,</span> <span class="mf">28.0</span><span class="p">),</span> <span class="s2">"determineRenderer()"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">116</span><span class="p">,</span> <span class="mf">22.5</span><span class="p">),</span> <span class="s2">"Resolve MIME Renderer"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Step 4: Output Response</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">157</span><span class="p">,</span> <span class="mi">37</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">((</span><span class="mi">157</span><span class="p">,</span> <span class="mf">43.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">157</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">),</span> <span class="s2">"respond()"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">157</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">),</span> <span class="s2">"PSR-7 Response"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Connectors</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">39</span><span class="p">,</span> <span class="mi">46</span><span class="p">),</span> <span class="p">(</span><span class="mi">49</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">39</span><span class="p">,</span> <span class="mi">38</span><span class="p">),</span> <span class="p">(</span><span class="mi">49</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">87</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span> <span class="p">(</span><span class="mi">98</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">87</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span> <span class="p">(</span><span class="mi">98</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">134</span><span class="p">,</span> <span class="mi">49</span><span class="p">),</span> <span class="p">(</span><span class="mi">143</span><span class="p">,</span> <span class="mi">41</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">134</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span> <span class="p">(</span><span class="mi">143</span><span class="p">,</span> <span class="mi">33</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="クラス一覧" class="catalog-section-heading"><span>クラス一覧</span><a class="header-anchor" href="#クラス一覧" aria-label="Permalink to クラス一覧">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">クラス</th>
+<th style="text-align:left">名前空間</th>
+<th style="text-align:left">実装インターフェース</th>
+<th style="text-align:left">主な役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><a href="#slim-handlers-errorhandler"><code>ErrorHandler</code></a></td>
+<td style="text-align:left"><code>Slim\Handlers</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-errorhandlerinterface"><code>ErrorHandlerInterface</code></a></td>
+<td style="text-align:left"><code>Accept</code> ヘッダに基づく MIME ネゴシエーション、PSR-3 ロギング、エラーレスポンス生成を実行します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-handlers-strategies-requestresponse"><code>RequestResponse</code></a></td>
+<td style="text-align:left"><code>Slim\Handlers\Strategies</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>InvocationStrategyInterface</code></a></td>
+<td style="text-align:left">デフォルト戦略：ルート引数をリクエスト属性に付与し、<code>($request, $response, array $args)</code> で呼び出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-handlers-strategies-requestresponseargs"><code>RequestResponseArgs</code></a></td>
+<td style="text-align:left"><code>Slim\Handlers\Strategies</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>InvocationStrategyInterface</code></a></td>
+<td style="text-align:left">ルートパラメータを位置引数 <code>($request, $response, ...array_values($args))</code> として展開します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-handlers-strategies-requestresponsenamedargs"><code>RequestResponseNamedArgs</code></a></td>
+<td style="text-align:left"><code>Slim\Handlers\Strategies</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>InvocationStrategyInterface</code></a></td>
+<td style="text-align:left">ルートパラメータを PHP 8+ の名前付き引数 <code>($request, $response, ...$args)</code> として展開します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-handlers-strategies-requesthandler"><code>RequestHandler</code></a></td>
+<td style="text-align:left"><code>Slim\Handlers\Strategies</code></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface"><code>RequestHandlerInvocationStrategyInterface</code></a></td>
+<td style="text-align:left">PSR-15 スタイルの <code>$callable($request)</code> として呼び出し、オプションでリクエスト属性注入を行います。</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="slim-handlers-errorhandler" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Handlers\ErrorHandler</span></code><a class="header-anchor" href="#slim-handlers-errorhandler" aria-label="Permalink to Slim\Handlers\ErrorHandler">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Handlers/ErrorHandler.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Handlers</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-errorhandlerinterface"><code>Slim\Interfaces\ErrorHandlerInterface</code></a></li>
+</ul>
+<p><code>ErrorHandler</code> は、<a href="04_middleware.html#slim-middleware-errormiddleware"><code>ErrorMiddleware</code></a> から呼び出される Slim 標準のエラーハンドラです。HTTP ステータスコードの決定、リクエストの <code>Accept</code> ヘッダに基づくコンテンツタイプのネゴシエーション（<a href="06_error_renderers.html"><code>Slim\Error\Renderers</code></a> による JSON / XML / HTML / Plain Text 出力）、PSR-3 ロガー（デフォルトは <a href="01_app_and_factories.html#slim-logger"><code>Slim\Logger</code></a>）へのエラー出力、および PSR-7 <code>ResponseInterface</code> の生成を一貫して担います。</p>
+<h3 id="クラスシグネチャ">クラスシグネチャ<a class="header-anchor" href="#クラスシグネチャ" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Handlers</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseFactoryInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Log\LoggerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\HtmlErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\JsonErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\PlainTextErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\XmlErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\CallableResolverInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\ErrorHandlerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\ErrorRendererInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">ErrorHandler</span> <span class="k">implements</span> <span class="nx">ErrorHandlerInterface</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nx">string</span> <span class="nv">$defaultErrorRendererContentType</span> <span class="o">=</span> <span class="s1">'text/html'</span><span class="p">;</span>
+
+    <span class="sd">/** @var ErrorRendererInterface|string|callable */</span>
+    <span class="k">protected</span> <span class="nv">$defaultErrorRenderer</span> <span class="o">=</span> <span class="nx">HtmlErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">;</span>
+
+    <span class="sd">/** @var ErrorRendererInterface|string|callable */</span>
+    <span class="k">protected</span> <span class="nv">$logErrorRenderer</span> <span class="o">=</span> <span class="nx">PlainTextErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">;</span>
+
+    <span class="sd">/** @var array&lt;string|callable&gt; */</span>
+    <span class="k">protected</span> <span class="k">array</span> <span class="nv">$errorRenderers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">'application/json'</span> <span class="o">=&gt;</span> <span class="nx">JsonErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+        <span class="s1">'application/xml'</span> <span class="o">=&gt;</span> <span class="nx">XmlErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+        <span class="s1">'text/xml'</span> <span class="o">=&gt;</span> <span class="nx">XmlErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+        <span class="s1">'text/html'</span> <span class="o">=&gt;</span> <span class="nx">HtmlErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+        <span class="s1">'text/plain'</span> <span class="o">=&gt;</span> <span class="nx">PlainTextErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+    <span class="p">];</span>
+
+    <span class="k">protected</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">bool</span> <span class="nv">$logErrors</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">bool</span> <span class="nv">$logErrorDetails</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="o">?</span><span class="nx">string</span> <span class="nv">$contentType</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">bool</span> <span class="nv">$isContentTypeForced</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="o">?</span><span class="nx">string</span> <span class="nv">$method</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">int</span> <span class="nv">$statusCode</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">CallableResolverInterface</span> <span class="nv">$callableResolver</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">ResponseFactoryInterface</span> <span class="nv">$responseFactory</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">LoggerInterface</span> <span class="nv">$logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="nx">CallableResolverInterface</span> <span class="nv">$callableResolver</span><span class="p">,</span>
+        <span class="nx">ResponseFactoryInterface</span> <span class="nv">$responseFactory</span><span class="p">,</span>
+        <span class="o">?</span><span class="nx">LoggerInterface</span> <span class="nv">$logger</span> <span class="o">=</span> <span class="k">null</span>
+    <span class="p">);</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span>
+        <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">,</span>
+        <span class="nx">bool</span> <span class="nv">$logErrors</span><span class="p">,</span>
+        <span class="nx">bool</span> <span class="nv">$logErrorDetails</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">forceContentType</span><span class="p">(</span><span class="o">?</span><span class="nx">string</span> <span class="nv">$contentType</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">registerErrorRenderer</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$contentType</span><span class="p">,</span> <span class="nv">$errorRenderer</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">setDefaultErrorRenderer</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$contentType</span><span class="p">,</span> <span class="nv">$errorRenderer</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">setLogErrorRenderer</span><span class="p">(</span><span class="nv">$logErrorRenderer</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">determineStatusCode</span><span class="p">()</span><span class="o">:</span> <span class="nx">int</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">determineContentType</span><span class="p">(</span><span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="o">?</span><span class="nx">string</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">determineRenderer</span><span class="p">()</span><span class="o">:</span> <span class="nx">callable</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">writeToErrorLog</span><span class="p">()</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">logError</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$error</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">getDefaultLogger</span><span class="p">()</span><span class="o">:</span> <span class="nx">LoggerInterface</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">respond</span><span class="p">()</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="プロパティ">プロパティ<a class="header-anchor" href="#プロパティ" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">プロパティ</th>
+<th style="text-align:left">可視性</th>
+<th style="text-align:left">型</th>
+<th style="text-align:left">デフォルト値</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$defaultErrorRendererContentType</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left"><code>'text/html'</code></td>
+<td style="text-align:left">コンテンツネゴシエーションで登録済み MIME タイプに一致しなかった場合に使用される <code>Content-type</code> ヘッダ値です。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$defaultErrorRenderer</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>ErrorRendererInterface|string|callable</code></td>
+<td style="text-align:left"><code>HtmlErrorRenderer::class</code></td>
+<td style="text-align:left"><code>$contentType</code> が <code>null</code> または未登録の際、<a href="08_interfaces.html#slim-interfaces-callableresolverinterface"><code>CallableResolverInterface</code></a> で解決されるデフォルトレンダラです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$logErrorRenderer</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>ErrorRendererInterface|string|callable</code></td>
+<td style="text-align:left"><code>PlainTextErrorRenderer::class</code></td>
+<td style="text-align:left"><code>writeToErrorLog()</code> 内で <code>$logger-&gt;error()</code> に渡すエラー文字列の整形に使用されるレンダラです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$errorRenderers</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>array&lt;string, ErrorRendererInterface|string|callable&gt;</code></td>
+<td style="text-align:left">5 種の標準マッピング</td>
+<td style="text-align:left">MIME タイプ（<code>application/json</code>, <code>application/xml</code>, <code>text/xml</code>, <code>text/html</code>, <code>text/plain</code>）とエラーレンダラの連想配列です。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$displayErrorDetails</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left"><code>false</code></td>
+<td style="text-align:left">HTTP レスポンスに例外の型・コード・メッセージ・ファイル・行番号・スタックトレースを含めるかどうかを制御します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$logErrors</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">未初期化</td>
+<td style="text-align:left"><code>__invoke()</code> 呼び出し時に設定され、<code>writeToErrorLog()</code> を実行するかどうかを制御します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$logErrorDetails</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left"><code>false</code></td>
+<td style="text-align:left"><code>__invoke()</code> 呼び出し時に設定され、<code>$logErrorRenderer</code> の第 2 引数として渡されます。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$contentType</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>?string</code></td>
+<td style="text-align:left"><code>null</code></td>
+<td style="text-align:left">現在のエラーレスポンスに対してネゴシエーションまたは強制指定された MIME タイプです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$isContentTypeForced</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left"><code>false</code></td>
+<td style="text-align:left"><code>true</code> の場合、<code>__invoke()</code> 時に <code>determineContentType($request)</code> をスキップして強制指定された <code>$contentType</code> を維持します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$method</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>?string</code></td>
+<td style="text-align:left"><code>null</code></td>
+<td style="text-align:left"><code>__invoke()</code> 時に <code>$request-&gt;getMethod()</code> から取得された HTTP メソッドです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$request</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>ServerRequestInterface</code></td>
+<td style="text-align:left">未初期化</td>
+<td style="text-align:left"><code>__invoke()</code> に渡された最新の PSR-7 リクエストインスタンスです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$exception</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>Throwable</code></td>
+<td style="text-align:left">未初期化</td>
+<td style="text-align:left"><code>__invoke()</code> に渡された捕捉済み例外またはエラーです。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$statusCode</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>int</code></td>
+<td style="text-align:left">未初期化</td>
+<td style="text-align:left">決定された HTTP ステータスコード（<code>OPTIONS</code> は <code>200</code>、<a href="07_exceptions.html#slim-exception-httpexception"><code>HttpException</code></a> は <code>$exception-&gt;getCode()</code>、それ以外は <code>500</code>）です。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$callableResolver</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>CallableResolverInterface</code></td>
+<td style="text-align:left">コンストラクタ注入</td>
+<td style="text-align:left">レンダラのクラス名やコンテナ ID を呼び出し可能な <code>callable</code> に解決します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$responseFactory</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface</code></td>
+<td style="text-align:left">コンストラクタ注入</td>
+<td style="text-align:left"><code>respond()</code> でベースとなる PSR-7 <code>ResponseInterface</code> を生成します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$logger</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>LoggerInterface</code></td>
+<td style="text-align:left"><code>new Logger()</code></td>
+<td style="text-align:left"><code>logError()</code> でエラーログを受け取る PSR-3 ロガーインスタンスです。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="メソッドとパラメータ">メソッドとパラメータ<a class="header-anchor" href="#メソッドとパラメータ" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">パラメータと型</th>
+<th style="text-align:left">戻り値の型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct</code></td>
+<td style="text-align:left"><code>CallableResolverInterface $callableResolver</code>, <code>ResponseFactoryInterface $responseFactory</code>, <code>?LoggerInterface $logger = null</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">ハンドラを初期化します。<code>$logger</code> が <code>null</code> の場合は <code>getDefaultLogger()</code>（<a href="01_app_and_factories.html#slim-logger"><code>Slim\Logger</code></a>）を使用します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>ServerRequestInterface $request</code>, <code>Throwable $exception</code>, <code>bool $displayErrorDetails</code>, <code>bool $logErrors</code>, <code>bool $logErrorDetails</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left">実行状態を保持し、ステータスコードとコンテンツタイプを決定（強制時を除く）し、必要に応じてエラーログを出力して <code>respond()</code> を返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>forceContentType</code></td>
+<td style="text-align:left"><code>?string $contentType</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">すべてのエラーレスポンスの MIME タイプ（例：<code>'application/json'</code>）を強制します。<code>null</code> を渡すと <code>Accept</code> ヘッダによるネゴシエーションに戻ります。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>registerErrorRenderer</code></td>
+<td style="text-align:left"><code>string $contentType</code>, <code>ErrorRendererInterface|string|callable $errorRenderer</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">指定した <code>$contentType</code> に対するエラーレンダラを <code>$errorRenderers[$contentType]</code> に登録または上書きします。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setDefaultErrorRenderer</code></td>
+<td style="text-align:left"><code>string $contentType</code>, <code>ErrorRendererInterface|string|callable $errorRenderer</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">ネゴシエーション不一致時に使用される <code>$defaultErrorRendererContentType</code> と <code>$defaultErrorRenderer</code> を設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setLogErrorRenderer</code></td>
+<td style="text-align:left"><code>ErrorRendererInterface|string|callable $logErrorRenderer</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>writeToErrorLog()</code> でログ文字列のフォーマットに使用するレンダラを設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>determineStatusCode</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>int</code></td>
+<td style="text-align:left"><code>protected</code>。<code>$this-&gt;method === 'OPTIONS'</code> なら <code>200</code>、<code>instanceof HttpException</code> なら <code>$this-&gt;exception-&gt;getCode()</code>、それ以外は <code>500</code> を返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>determineContentType</code></td>
+<td style="text-align:left"><code>ServerRequestInterface $request</code></td>
+<td style="text-align:left"><code>?string</code></td>
+<td style="text-align:left"><code>protected</code>。カンマ区切りの <code>Accept</code> ヘッダと <code>array_keys($this-&gt;errorRenderers)</code> の共通部分を検査（複数一致時は <code>text/plain</code> 以外を優先）し、さらに <code>/\+(json|xml)/</code> 形式のサブタイプを判定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>determineRenderer</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>callable</code></td>
+<td style="text-align:left"><code>protected</code>。<code>$this-&gt;contentType</code> が登録済みなら対応するレンダラ、未登録なら <code>$this-&gt;defaultErrorRenderer</code> を選択し、<code>$this-&gt;callableResolver-&gt;resolve()</code> で解決して返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>writeToErrorLog</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>protected</code>。<code>$this-&gt;logErrorRenderer</code> を解決して例外をフォーマットし、<code>PlainTextErrorRenderer</code> かつ <code>!$this-&gt;displayErrorDetails</code> の場合はヒント文を追記して <code>logError()</code> を呼び出します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>logError</code></td>
+<td style="text-align:left"><code>string $error</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left"><code>protected</code>。<code>$this-&gt;logger-&gt;error($error)</code> に委譲します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getDefaultLogger</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>LoggerInterface</code></td>
+<td style="text-align:left"><code>protected</code>。新しい <a href="01_app_and_factories.html#slim-logger"><code>Slim\Logger</code></a> インスタンスを生成して返します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>respond</code></td>
+<td style="text-align:left"><em>(なし)</em></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left"><code>protected</code>。<code>$this-&gt;statusCode</code> でレスポンスを生成し、<code>Content-type</code> ヘッダ（および <a href="07_exceptions.html#slim-exception-httpmethodnotallowedexception"><code>HttpMethodNotAllowedException</code></a> の場合は <code>Allow</code> ヘッダ）を設定し、レンダラ出力をボディに書き込んで返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例">使用例<a class="header-anchor" href="#使用例" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\JsonErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Handlers\ErrorHandler</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="nv">$errorHandler</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ErrorHandler</span><span class="p">(</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getCallableResolver</span><span class="p">(),</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getResponseFactory</span><span class="p">()</span>
+<span class="p">);</span>
+
+<span class="c1">// クライアントの Accept ヘッダに関わらず常に JSON でエラーを返すよう設定</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">forceContentType</span><span class="p">(</span><span class="s1">'application/json'</span><span class="p">);</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">setDefaultErrorRenderer</span><span class="p">(</span><span class="s1">'application/json'</span><span class="p">,</span> <span class="nx">JsonErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+<span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">setDefaultErrorHandler</span><span class="p">(</span><span class="nv">$errorHandler</span><span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="ルートコールバック実行ストラテジー-invocation-strategies" class="catalog-section-heading"><span>ルートコールバック実行ストラテジー (Invocation Strategies)</span><a class="header-anchor" href="#ルートコールバック実行ストラテジー-invocation-strategies" aria-label="Permalink to ルートコールバック実行ストラテジー (Invocation Strategies)">#</a></h2>
+<p><a href="03_routing.html#slim-routing-route"><code>Route</code></a> がリクエストにマッチすると、ルートコールバックの実行は <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>InvocationStrategyInterface</code></a> 実装クラスに委譲されます。ストラテジーは <code>RouteCollector::setDefaultInvocationStrategy()</code> でアプリケーション全体に一括設定するか、<code>Route::setInvocationStrategy()</code> でルート単位に個別設定できます。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/05_handlers_and_strategies/p2_handlers_invocation_strategies_ja.png" alt="05_handlers_and_strategies_2" />
+  <figcaption class="drawlib-caption">Slim の 4 つの実行ストラテジーにおけるルート引数のディスパッチ方式</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">84</span><span class="p">)</span>
+
+<span class="c1"># Left source node: Route::run()</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">26</span><span class="p">,</span> <span class="mi">42</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">((</span><span class="mi">26</span><span class="p">,</span> <span class="mf">52.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">26</span><span class="p">,</span> <span class="mf">44.0</span><span class="p">),</span> <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Routing</span><span class="se">\\</span><span class="s2">Route"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">26</span><span class="p">,</span> <span class="mf">38.0</span><span class="p">),</span> <span class="s2">"routeArguments ="</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">26</span><span class="p">,</span> <span class="mf">32.5</span><span class="p">),</span> <span class="s2">"['id' =&gt; '42', 'tab' =&gt; 'bio']"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Strategy 1: RequestResponse (Default)</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mi">72</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">102</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">75.0</span><span class="p">),</span>
+    <span class="s2">"1. RequestResponse (Default)  [+ sets request attributes]"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">69.0</span><span class="p">),</span>
+    <span class="s2">"callable(request, response, ['id' =&gt; '42', 'tab' =&gt; 'bio'])"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Strategy 2: RequestResponseArgs</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mi">52</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">102</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">55.0</span><span class="p">),</span>
+    <span class="s2">"2. RequestResponseArgs  [positional ...array_values(args)]"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">),</span>
+    <span class="s2">"callable(request, response, '42', 'bio')"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Strategy 3: RequestResponseNamedArgs</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">102</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">35.0</span><span class="p">),</span>
+    <span class="s2">"3. RequestResponseNamedArgs  [PHP 8+ named ...args]"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">29.0</span><span class="p">),</span>
+    <span class="s2">"callable(request, response, id: '42', tab: 'bio')"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Strategy 4: RequestHandler</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">102</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">),</span>
+    <span class="s2">"4. RequestHandler  [PSR-15 style, optional attributes]"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">122</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">),</span>
+    <span class="s2">"callable(request)  -&gt; returns ResponseInterface"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Connectors</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">46</span><span class="p">,</span> <span class="mi">52</span><span class="p">),</span> <span class="p">(</span><span class="mi">71</span><span class="p">,</span> <span class="mi">72</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">46</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span> <span class="p">(</span><span class="mi">71</span><span class="p">,</span> <span class="mi">52</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">46</span><span class="p">,</span> <span class="mi">39</span><span class="p">),</span> <span class="p">(</span><span class="mi">71</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">46</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="p">(</span><span class="mi">71</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="slim-handlers-strategies-requestresponse" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Handlers\Strategies\RequestResponse</span></code><a class="header-anchor" href="#slim-handlers-strategies-requestresponse" aria-label="Permalink to Slim\Handlers\Strategies\RequestResponse">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Handlers/Strategies/RequestResponse.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Handlers\Strategies</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>Slim\Interfaces\InvocationStrategyInterface</code></a></li>
+</ul>
+<p><code>RequestResponse</code> は、<a href="03_routing.html#slim-routing-routecollector"><code>RouteCollector</code></a> の初期化時に設定される Slim 4 のデフォルト実行ストラテジーです。コールバックを呼び出す前に <code>$routeArguments</code> の各キーと値を <code>$request-&gt;withAttribute($k, $v)</code> で PSR-7 リクエスト属性にセットし、<code>($request, $response, $routeArguments)</code> の 3 引数でコールバックを実行します。</p>
+<h3 id="クラスシグネチャ-2">クラスシグネチャ<a class="header-anchor" href="#クラスシグネチャ-2" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Handlers\Strategies</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\InvocationStrategyInterface</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">RequestResponse</span> <span class="k">implements</span> <span class="nx">InvocationStrategyInterface</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $routeArguments</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span>
+        <span class="nx">callable</span> <span class="nv">$callable</span><span class="p">,</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$routeArguments</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="プロパティ-2">プロパティ<a class="header-anchor" href="#プロパティ-2" aria-label="Permalink">#</a></h3>
+<p><code>RequestResponse</code> にはクラスプロパティはありません。</p>
+<h3 id="メソッドとパラメータ-2">メソッドとパラメータ<a class="header-anchor" href="#メソッドとパラメータ-2" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">パラメータと型</th>
+<th style="text-align:left">戻り値の型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>callable $callable</code>, <code>ServerRequestInterface $request</code>, <code>ResponseInterface $response</code>, <code>array&lt;string, string&gt; $routeArguments</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left"><code>$routeArguments</code> の各要素を <code>withAttribute($k, $v)</code> で <code>$request</code> に付与し、<code>$callable($request, $response, $routeArguments)</code> を呼び出して返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-2">使用例<a class="header-anchor" href="#使用例-2" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Handlers\Strategies\RequestResponse</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getRouteCollector</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">setDefaultInvocationStrategy</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequestResponse</span><span class="p">());</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/users/{id}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span> <span class="k">array</span> <span class="nv">$args</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="c1">// $args['id'] と $request-&gt;getAttribute('id') の両方から取得可能</span>
+    <span class="nv">$userId</span> <span class="o">=</span> <span class="nv">$args</span><span class="p">[</span><span class="s1">'id'</span><span class="p">];</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="s2">"User ID: </span><span class="si">{</span><span class="nv">$userId</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+<hr />
+<h2 id="slim-handlers-strategies-requestresponseargs" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Handlers\Strategies\RequestResponseArgs</span></code><a class="header-anchor" href="#slim-handlers-strategies-requestresponseargs" aria-label="Permalink to Slim\Handlers\Strategies\RequestResponseArgs">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Handlers/Strategies/RequestResponseArgs.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Handlers\Strategies</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>Slim\Interfaces\InvocationStrategyInterface</code></a></li>
+</ul>
+<p><code>RequestResponseArgs</code> は、<code>...array_values($routeArguments)</code> を用いてルートパラメータを <code>$request</code> と <code>$response</code> に続く個別の位置引数として展開します。<a href="#slim-handlers-strategies-requestresponse"><code>RequestResponse</code></a> とは異なり、<code>$request</code> の属性（attributes）への自動セットは行いません。</p>
+<h3 id="クラスシグネチャ-3">クラスシグネチャ<a class="header-anchor" href="#クラスシグネチャ-3" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Handlers\Strategies</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\InvocationStrategyInterface</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">RequestResponseArgs</span> <span class="k">implements</span> <span class="nx">InvocationStrategyInterface</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $routeArguments</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span>
+        <span class="nx">callable</span> <span class="nv">$callable</span><span class="p">,</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$routeArguments</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="プロパティ-3">プロパティ<a class="header-anchor" href="#プロパティ-3" aria-label="Permalink">#</a></h3>
+<p><code>RequestResponseArgs</code> にはクラスプロパティはありません。</p>
+<h3 id="メソッドとパラメータ-3">メソッドとパラメータ<a class="header-anchor" href="#メソッドとパラメータ-3" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">パラメータと型</th>
+<th style="text-align:left">戻り値の型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>callable $callable</code>, <code>ServerRequestInterface $request</code>, <code>ResponseInterface $response</code>, <code>array&lt;string, string&gt; $routeArguments</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left"><code>$callable($request, $response, ...array_values($routeArguments))</code> を呼び出して返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-3">使用例<a class="header-anchor" href="#使用例-3" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Handlers\Strategies\RequestResponseArgs</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getRouteCollector</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">setDefaultInvocationStrategy</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequestResponseArgs</span><span class="p">());</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/orgs/{orgId}/members/{memberId}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span>
+    <span class="nx">string</span> <span class="nv">$orgId</span><span class="p">,</span>
+    <span class="nx">string</span> <span class="nv">$memberId</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="s2">"Org: </span><span class="si">{</span><span class="nv">$orgId</span><span class="si">}</span><span class="s2">, Member: </span><span class="si">{</span><span class="nv">$memberId</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+<hr />
+<h2 id="slim-handlers-strategies-requestresponsenamedargs" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Handlers\Strategies\RequestResponseNamedArgs</span></code><a class="header-anchor" href="#slim-handlers-strategies-requestresponsenamedargs" aria-label="Permalink to Slim\Handlers\Strategies\RequestResponseNamedArgs">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Handlers/Strategies/RequestResponseNamedArgs.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Handlers\Strategies</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>Slim\Interfaces\InvocationStrategyInterface</code></a></li>
+</ul>
+<p><code>RequestResponseNamedArgs</code> は、連想配列 <code>$routeArguments</code> をそのまま <code>...$routeArguments</code> で展開し、PHP 8.0 以降の名前付き引数としてコールバックに渡します。ルートパターン内のプレースホルダ名（例：<code>{id}</code>, <code>{tab}</code>）とコールバックの仮引数名が一致している必要があり、<code>$request</code>, <code>$response</code> 以降の引数定義順序には依存しません。<a href="#slim-handlers-strategies-requestresponseargs"><code>RequestResponseArgs</code></a> と同様、<code>$request</code> 属性への自動セットは行いません。</p>
+<h3 id="クラスシグネチャ-4">クラスシグネチャ<a class="header-anchor" href="#クラスシグネチャ-4" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Handlers\Strategies</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\InvocationStrategyInterface</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">RequestResponseNamedArgs</span> <span class="k">implements</span> <span class="nx">InvocationStrategyInterface</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $routeArguments</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span>
+        <span class="nx">callable</span> <span class="nv">$callable</span><span class="p">,</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$routeArguments</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="プロパティ-4">プロパティ<a class="header-anchor" href="#プロパティ-4" aria-label="Permalink">#</a></h3>
+<p><code>RequestResponseNamedArgs</code> にはクラスプロパティはありません。</p>
+<h3 id="メソッドとパラメータ-4">メソッドとパラメータ<a class="header-anchor" href="#メソッドとパラメータ-4" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">パラメータと型</th>
+<th style="text-align:left">戻り値の型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>callable $callable</code>, <code>ServerRequestInterface $request</code>, <code>ResponseInterface $response</code>, <code>array&lt;string, string&gt; $routeArguments</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left">PHP の名前付き引数展開を用いて <code>$callable($request, $response, ...$routeArguments)</code> を呼び出して返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-4">使用例<a class="header-anchor" href="#使用例-4" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Handlers\Strategies\RequestResponseNamedArgs</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getRouteCollector</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">setDefaultInvocationStrategy</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequestResponseNamedArgs</span><span class="p">());</span>
+
+<span class="c1">// プレースホルダ名と一致していれば、$tab と $id の宣言順序を入れ替えても正しく渡されます</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/users/{id}/tabs/{tab}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span>
+    <span class="nx">string</span> <span class="nv">$tab</span><span class="p">,</span>
+    <span class="nx">string</span> <span class="nv">$id</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="s2">"User </span><span class="si">{</span><span class="nv">$id</span><span class="si">}</span><span class="s2"> -&gt; Tab </span><span class="si">{</span><span class="nv">$tab</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+<hr />
+<h2 id="slim-handlers-strategies-requesthandler" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Handlers\Strategies\RequestHandler</span></code><a class="header-anchor" href="#slim-handlers-strategies-requesthandler" aria-label="Permalink to Slim\Handlers\Strategies\RequestHandler">#</a></h2>
+<ul>
+<li><strong>ソースファイル</strong>: <code>Slim/Handlers/Strategies/RequestHandler.php</code></li>
+<li><strong>名前空間</strong>: <code>Slim\Handlers\Strategies</code></li>
+<li><strong>実装インターフェース</strong>: <a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface"><code>Slim\Interfaces\RequestHandlerInvocationStrategyInterface</code></a>（<a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface"><code>Slim\Interfaces\InvocationStrategyInterface</code></a> を継承）</li>
+</ul>
+<p><code>RequestHandler</code> は、PSR-15 の <code>RequestHandlerInterface</code> シグネチャに準拠した単一引数コールバック <code>$callable($request): ResponseInterface</code> として呼び出します（事前生成された <code>$response</code> は渡されません）。コンストラクタ引数 <code>$appendRouteArgumentsToRequestAttributes</code> に <code>true</code> を指定すると、<code>$callable($request)</code> の呼び出し前に <code>$routeArguments</code> の各キーと値を <code>$request-&gt;withAttribute($k, $v)</code> でリクエスト属性へ注入します。</p>
+<h3 id="クラスシグネチャ-5">クラスシグネチャ<a class="header-anchor" href="#クラスシグネチャ-5" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Handlers\Strategies</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\RequestHandlerInvocationStrategyInterface</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">RequestHandler</span> <span class="k">implements</span> <span class="nx">RequestHandlerInvocationStrategyInterface</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nx">bool</span> <span class="nv">$appendRouteArgumentsToRequestAttributes</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span><span class="nx">bool</span> <span class="nv">$appendRouteArgumentsToRequestAttributes</span> <span class="o">=</span> <span class="k">false</span><span class="p">);</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $routeArguments</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span>
+        <span class="nx">callable</span> <span class="nv">$callable</span><span class="p">,</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$routeArguments</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="プロパティ-5">プロパティ<a class="header-anchor" href="#プロパティ-5" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">プロパティ</th>
+<th style="text-align:left">可視性</th>
+<th style="text-align:left">型</th>
+<th style="text-align:left">デフォルト値</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$appendRouteArgumentsToRequestAttributes</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left"><code>false</code></td>
+<td style="text-align:left"><code>true</code> の場合、<code>$callable($request)</code> を呼び出す前に <code>$routeArguments</code> の各要素を <code>$request-&gt;withAttribute($k, $v)</code> でリクエスト属性へ追加します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="メソッドとパラメータ-5">メソッドとパラメータ<a class="header-anchor" href="#メソッドとパラメータ-5" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">メソッド</th>
+<th style="text-align:left">パラメータと型</th>
+<th style="text-align:left">戻り値の型</th>
+<th style="text-align:left">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct</code></td>
+<td style="text-align:left"><code>bool $appendRouteArgumentsToRequestAttributes = false</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">ルートパラメータを <code>$request</code> の属性に自動追加するかどうかを設定します。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>callable $callable</code>, <code>ServerRequestInterface $request</code>, <code>ResponseInterface $response</code>, <code>array&lt;string, string&gt; $routeArguments</code></td>
+<td style="text-align:left"><code>ResponseInterface</code></td>
+<td style="text-align:left">オプションで <code>$routeArguments</code> を <code>$request</code> 属性にセットし、<code>$callable($request)</code> を呼び出して返します。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="使用例-5">使用例<a class="header-anchor" href="#使用例-5" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Handlers\Strategies\RequestHandler</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// PSR-15 ハンドラ内でプレースホルダを取得できるよう属性注入を有効化</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getRouteCollector</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">setDefaultInvocationStrategy</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequestHandler</span><span class="p">(</span><span class="k">true</span><span class="p">));</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/articles/{slug}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$app</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$slug</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'slug'</span><span class="p">);</span>
+    <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getResponseFactory</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">createResponse</span><span class="p">(</span><span class="mi">200</span><span class="p">);</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="s2">"Article: </span><span class="si">{</span><span class="nv">$slug</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+
+
+                
+                <nav class="catalog-pager" aria-label="Catalog Page Navigation">
+                    
+                    <a href="04_middleware.html" class="catalog-pager-card is-prev">
+                        <span class="catalog-pager-dir">&larr; 前へ</span>
+                        <span class="catalog-pager-title">ミドルウェア (Slim\Middleware)</span>
+                    </a>
+                    
+                    
+                    <a href="06_error_renderers.html" class="catalog-pager-card is-next">
+                        <span class="catalog-pager-dir">次へ &rarr;</span>
+                        <span class="catalog-pager-title">エラーレンダラ (Error Renderers)</span>
+                    </a>
+                    
+                </nav>
+                
+            </main>
+
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式 API リファレンスであり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    if (!current) {
+                        current = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    }
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('drawlib-theme', next); } catch (e) {}
+                });
+            }
+
+            var menuBtn = document.getElementById('menu-toggle');
+            var sidebar = document.getElementById('catalog-sidebar');
+            var backdrop = document.getElementById('sidebar-backdrop');
+            function closeMenu() {
+                if (sidebar) sidebar.classList.remove('is-open');
+                if (backdrop) backdrop.classList.remove('is-open');
+            }
+            if (menuBtn && sidebar && backdrop) {
+                menuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('is-open');
+                    backdrop.classList.toggle('is-open');
+                });
+                backdrop.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.catalog-nav-cat-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+
+            if (sidebar) {
+                try {
+                    var savedScroll = sessionStorage.getItem('drawlib-catalog-sidebar-scroll');
+                    if (savedScroll !== null) {
+                        sidebar.scrollTop = parseInt(savedScroll, 10) || 0;
+                    }
+                    sidebar.addEventListener('scroll', function() {
+                        try { sessionStorage.setItem('drawlib-catalog-sidebar-scroll', String(sidebar.scrollTop)); } catch (e) {}
+                    }, { passive: true });
+                } catch (e) {}
+            }
+
+            var groups = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-group'));
+            var expandBtn = document.getElementById('catalog-expand-toggle');
+            function updateExpandBtnLabel() {
+                if (!expandBtn || groups.length === 0) return;
+                var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                var expandText = expandBtn.getAttribute('data-expand-label') || 'Expand All';
+                var collapseText = expandBtn.getAttribute('data-collapse-label') || 'Collapse All';
+                expandBtn.textContent = allOpen ? collapseText : expandText;
+            }
+            if (expandBtn) {
+                updateExpandBtnLabel();
+                expandBtn.addEventListener('click', function() {
+                    var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                    var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                    visibleGroups.forEach(function(g) { g.open = !allOpen; });
+                    updateExpandBtnLabel();
+                });
+                groups.forEach(function(g) {
+                    g.addEventListener('toggle', updateExpandBtnLabel);
+                });
+            }
+
+            var filterInput = document.getElementById('catalog-filter-input');
+            var emptyNotice = document.getElementById('catalog-nav-empty');
+            var savedOpenState = null;
+
+            if (filterInput) {
+                filterInput.addEventListener('input', function() {
+                    var q = filterInput.value.trim().toLowerCase();
+                    if (q && !savedOpenState) {
+                        savedOpenState = groups.map(function(g) { return g.open; });
+                    }
+                    var anyMatch = false;
+                    groups.forEach(function(g, idx) {
+                        var catText = (g.getAttribute('data-cat') || '').toLowerCase();
+                        var catMatches = q !== '' && catText.indexOf(q) !== -1;
+                        var items = Array.prototype.slice.call(g.querySelectorAll('.catalog-nav-subitem'));
+                        var visibleCount = 0;
+
+                        items.forEach(function(li) {
+                            var symText = (li.getAttribute('data-sym') || '').toLowerCase();
+                            var show = (q === '') || catMatches || symText.indexOf(q) !== -1;
+                            li.hidden = !show;
+                            if (show) visibleCount += 1;
+                        });
+
+                        if (q === '') {
+                            g.hidden = false;
+                            if (savedOpenState && typeof savedOpenState[idx] === 'boolean') {
+                                g.open = savedOpenState[idx];
+                            }
+                            anyMatch = true;
+                        } else if (catMatches || visibleCount > 0) {
+                            g.hidden = false;
+                            g.open = true;
+                            anyMatch = true;
+                        } else {
+                            g.hidden = true;
+                        }
+                    });
+
+                    if (q === '') {
+                        savedOpenState = null;
+                    }
+                    if (emptyNotice) {
+                        emptyNotice.hidden = anyMatch;
+                    }
+                    updateExpandBtnLabel();
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === '/' && document.activeElement !== filterInput) {
+                        var tag = document.activeElement ? document.activeElement.tagName : '';
+                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+                            e.preventDefault();
+                            filterInput.focus();
+                        }
+                    } else if (e.key === 'Escape' && document.activeElement === filterInput) {
+                        filterInput.value = '';
+                        filterInput.dispatchEvent(new Event('input'));
+                        filterInput.blur();
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                document.querySelectorAll('.lang-dropdown[open]').forEach(function(dd) {
+                    if (!dd.contains(e.target)) {
+                        dd.removeAttribute('open');
+                    }
+                });
+            });
+
+            var activeLinks = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-sublink[data-target]'));
+            if (activeLinks.length > 0 && 'IntersectionObserver' in window) {
+                var linkBySlug = {};
+                var headings = [];
+                activeLinks.forEach(function(a) {
+                    var slug = a.getAttribute('data-target');
+                    var el = slug ? document.getElementById(slug) : null;
+                    if (slug && el) {
+                        linkBySlug[slug] = a;
+                        headings.push(el);
+                    }
+                    a.addEventListener('click', closeMenu);
+                });
+
+                function setActiveSlug(slug) {
+                    activeLinks.forEach(function(a) {
+                        if (a.getAttribute('data-target') === slug) {
+                            a.classList.add('is-active');
+                        } else {
+                            a.classList.remove('is-active');
+                        }
+                    });
+                }
+
+                if (window.location.hash) {
+                    var initSlug = decodeURIComponent(window.location.hash.slice(1));
+                    if (linkBySlug[initSlug]) setActiveSlug(initSlug);
+                } else if (headings.length > 0) {
+                    setActiveSlug(headings[0].id);
+                }
+
+                var visibleIds = {};
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        visibleIds[entry.target.id] = entry.isIntersecting;
+                    });
+                    for (var i = 0; i < headings.length; i++) {
+                        if (visibleIds[headings[i].id]) {
+                            setActiveSlug(headings[i].id);
+                            break;
+                        }
+                    }
+                }, { rootMargin: '-90px 0px -65% 0px', threshold: [0, 1] });
+
+                headings.forEach(function(h) { observer.observe(h); });
+            }
+        })();
+    </script>
+</body>
+</html>

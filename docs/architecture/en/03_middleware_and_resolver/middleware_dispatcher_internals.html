@@ -1,0 +1,842 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiddlewareDispatcher LIFO Onion &amp; CallableResolver Internals — Slim 4 Architecture Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/03_middleware_and_resolver/middleware_dispatcher_internals.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html">
+    
+    
+    
+    <meta name="description" content="At the heart of Slim 4&#x27;s PSR-15 request execution model sit two tightly cooperating classes: Slim\MiddlewareDispatcher (Slim/MiddlewareDispatcher.php, 290…">
+    <link rel="canonical" href="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 Architecture">
+    <meta property="og:title" content="MiddlewareDispatcher LIFO Onion &amp; CallableResolver Internals — Slim 4 Architecture">
+    <meta property="og:description" content="At the heart of Slim 4&#x27;s PSR-15 request execution model sit two tightly cooperating classes: Slim\MiddlewareDispatcher (Slim/MiddlewareDispatcher.php, 290…">
+    <meta property="og:url" content="https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html">
+    <meta property="og:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MiddlewareDispatcher LIFO Onion &amp; CallableResolver Internals — Slim 4 Architecture">
+    <meta name="twitter:description" content="At the heart of Slim 4&#x27;s PSR-15 request execution model sit two tightly cooperating classes: Slim\MiddlewareDispatcher (Slim/MiddlewareDispatcher.php, 290…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Internal Architecture Guide to <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">Architecture</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 Architecture">
+                    
+                    Slim 4 Architecture
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Architecture Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Package Topology &amp; Layers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_package_and_layers/module_hierarchy.html" >5-Tier Module Hierarchy &amp; Coupling</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Bootstrap &amp; PSR-17 Auto-Discovery</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_bootstrap_and_psr17/app_factory_internals.html" >AppFactory &amp; Psr17FactoryProvider Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Middleware Onion &amp; CallableResolver</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="middleware_dispatcher_internals.html" >MiddlewareDispatcher &amp; CallableResolver Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. FastRoute &amp; RouteRunner Engine</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_routing_engine/fastroute_and_runner_internals.html" >FastRouteDispatcher, RouteRunner &amp; Strategies</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Error Subsystem &amp; Renderers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_error_subsystem/error_middleware_and_renderers.html" >ErrorMiddleware, ErrorHandler &amp; Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. SAPI Response Emission</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_sapi_emission/response_emitter_internals.html" >ResponseEmitter &amp; OutputBuffering Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 User Guide<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Diagnostic Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Slim Framework Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Architecture</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">MiddlewareDispatcher LIFO Onion &amp; CallableResolver Internals</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="middleware_dispatcher_internals.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/03_middleware_and_resolver/middleware_dispatcher_internals.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>MiddlewareDispatcher LIFO Onion &amp; CallableResolver Internals</h1>
+<p>At the heart of Slim 4's PSR-15 request execution model sit two tightly cooperating classes: <strong><code>Slim\MiddlewareDispatcher</code></strong> (<code>Slim/MiddlewareDispatcher.php</code>, <code>290</code> lines / <code>177</code> LOC) and <strong><code>Slim\CallableResolver</code></strong> (<code>Slim/CallableResolver.php</code>, <code>201</code> lines / <code>131</code> LOC). Together, they transform heterogeneous middleware registrations (<code>MiddlewareInterface</code> instances, <code>Closure</code> callbacks, <code>'Class:method'</code> strings, and PSR-11 container service IDs) into a unified concentric chain of <code>RequestHandlerInterface</code> objects.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/03_middleware_and_resolver/middleware_dispatcher_internals/lifo_middleware_onion_pointer.png" alt="middleware_dispatcher_internals_1" />
+  <figcaption class="drawlib-caption">MiddlewareDispatcher::$tip LIFO Pointer Rebinding & Anonymous RequestHandlerInterface Wrapping</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">92</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Construction Order (LIFO Stack Growth)</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"1. Registration Order ($this-&gt;tip Rebinding)"</span><span class="p">,</span>
+    <span class="s2">"Slim/MiddlewareDispatcher.php:63-134"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">84.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">84.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">reg_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">reg_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Step 0 · seedMiddlewareStack(routeRunner)"</span><span class="p">,</span>
+    <span class="s2">"this-&gt;tip = RouteRunner (innermost kernel)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Seed"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">reg_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Step 1 · app-&gt;addBodyParsingMiddleware()"</span><span class="p">,</span>
+    <span class="s2">"next = RouteRunner; this-&gt;tip = AnonHandler(BodyParsing, next)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Add 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_text</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">reg_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Step 2 · app-&gt;addRoutingMiddleware()"</span><span class="p">,</span>
+    <span class="s2">"next = BodyParsing; this-&gt;tip = AnonHandler(Routing, next)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Add 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">reg_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Step 3 · app-&gt;addErrorMiddleware(true, ...)"</span><span class="p">,</span>
+    <span class="s2">"next = Routing; this-&gt;tip = AnonHandler(Error, next) [Outermost]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Add 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_warning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">reg_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: Runtime Traversal Order (Inward Request -&gt; Outward Response)</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"2. Runtime Execution Order (this-&gt;tip-&gt;handle)"</span><span class="p">,</span>
+    <span class="s2">"Last-In-First-Out (LIFO) Concentric Traversal"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_in_line_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">84.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">84.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">run_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">run_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. ErrorMiddleware::process(req, next)"</span><span class="p">,</span>
+    <span class="s2">"Enters try { next-&gt;handle(req) } catch (Throwable e)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"In 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">run_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. RoutingMiddleware::process(req, next)"</span><span class="p">,</span>
+    <span class="s2">"Calls performRouting(req) -&gt; attaches RouteContext -&gt; next"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"In 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">compass</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">run_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. BodyParsingMiddleware::process(req, next)"</span><span class="p">,</span>
+    <span class="s2">"Parses JSON/XML/form body -&gt; req-&gt;withParsedBody() -&gt; next"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"In 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">run_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. RouteRunner::handle(req) -&gt; Route::run()"</span><span class="p">,</span>
+    <span class="s2">"Executes RouteGroup &amp; Route middlewares -&gt; Strategy -&gt; unwinds"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Core"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">run_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2>1. How <code>MiddlewareDispatcher</code> Builds the LIFO Onion</h2>
+<p>Unlike array-based middleware runners that maintain a mutable cursor index per request, <code>Slim\MiddlewareDispatcher</code> (<code>Slim/MiddlewareDispatcher.php:35-289</code>) stores a <strong>single pointer</strong>—<code>protected RequestHandlerInterface $tip;</code> (line 40)—and builds an immutable linked list of anonymous <code>RequestHandlerInterface</code> objects as middlewares are added.</p>
+<h3>Seeding the Kernel (<code>Slim/MiddlewareDispatcher.php:50-74</code>)</h3>
+<p>When <code>MiddlewareDispatcher</code> is constructed, <code>seedMiddlewareStack(RequestHandlerInterface $kernel)</code> sets <code>$this-&gt;tip = $kernel</code>:</p>
+<ul>
+<li>At the <strong>application level</strong> (<code>Slim/App.php:74</code>), <code>$kernel</code> is the <code>RouteRunner</code> instance.</li>
+<li>At the <strong>route level</strong> (<code>Slim/Routing/Route.php:140</code>), <code>$kernel</code> is the <code>Route</code> instance itself (which implements <code>RequestHandlerInterface</code>).</li>
+</ul>
+<pre><code class="language-php"><span class="x">// Slim/MiddlewareDispatcher.php:63-74</span>
+<span class="x">public function seedMiddlewareStack(RequestHandlerInterface $kernel): void</span>
+<span class="x">{</span>
+<span class="x">    $this-&gt;tip = $kernel;</span>
+<span class="x">}</span>
+
+<span class="x">public function handle(ServerRequestInterface $request): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    return $this-&gt;tip-&gt;handle($request);</span>
+<span class="x">}</span>
+</code></pre>
+<h3>Polymorphic Dispatch in <code>add($middleware)</code> (<code>Slim/MiddlewareDispatcher.php:85-104</code>)</h3>
+<p>When user code calls <code>$app-&gt;add($middleware)</code>, <code>MiddlewareDispatcher::add()</code> inspects the runtime type of <code>$middleware</code> and branches into one of three specialized wrappers:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Branch in <code>add()</code></th>
+<th style="text-align:left">Condition (<code>Slim/MiddlewareDispatcher.php</code>)</th>
+<th style="text-align:left">Target Method</th>
+<th style="text-align:left">Anonymous <code>RequestHandlerInterface</code> Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>1. PSR-15 Instance</strong></td>
+<td style="text-align:left"><code>$middleware instanceof MiddlewareInterface</code> (line 87)</td>
+<td style="text-align:left"><code>addMiddleware()</code> (lines 113–134)</td>
+<td style="text-align:left">Captures <code>($middleware, $next)</code> and calls <code>$this-&gt;middleware-&gt;process($request, $this-&gt;next)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>2. Deferred String</strong></td>
+<td style="text-align:left"><code>is_string($middleware)</code> (line 91)</td>
+<td style="text-align:left"><code>addDeferred()</code> (lines 144–244)</td>
+<td style="text-align:left">Defers container lookup and instantiation until <code>handle($request)</code> executes at request time</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>3. PHP Callable</strong></td>
+<td style="text-align:left"><code>is_callable($middleware)</code> (line 95)</td>
+<td style="text-align:left"><code>addCallable()</code> (lines 254–288)</td>
+<td style="text-align:left">Binds <code>Closure</code> to <code>$this-&gt;container</code> (if present) and calls <code>($this-&gt;middleware)($request, $this-&gt;next)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Let's inspect <code>addMiddleware()</code> (<code>Slim/MiddlewareDispatcher.php:113-134</code>) to see how each call wraps <code>$this-&gt;tip</code>:</p>
+<pre><code class="language-php"><span class="x">public function addMiddleware(MiddlewareInterface $middleware): MiddlewareDispatcherInterface</span>
+<span class="x">{</span>
+<span class="x">    $next = $this-&gt;tip;</span>
+<span class="x">    $this-&gt;tip = new class ($middleware, $next) implements RequestHandlerInterface {</span>
+<span class="x">        private MiddlewareInterface $middleware;</span>
+<span class="x">        private RequestHandlerInterface $next;</span>
+
+<span class="x">        public function __construct(MiddlewareInterface $middleware, RequestHandlerInterface $next)</span>
+<span class="x">        {</span>
+<span class="x">            $this-&gt;middleware = $middleware;</span>
+<span class="x">            $this-&gt;next = $next;</span>
+<span class="x">        }</span>
+
+<span class="x">        public function handle(ServerRequestInterface $request): ResponseInterface</span>
+<span class="x">        {</span>
+<span class="x">            return $this-&gt;middleware-&gt;process($request, $this-&gt;next);</span>
+<span class="x">        }</span>
+<span class="x">    };</span>
+
+<span class="x">    return $this;</span>
+<span class="x">}</span>
+</code></pre>
+<p>Because <code>$next = $this-&gt;tip</code> captures the <strong>previous</strong> tip and <code>$this-&gt;tip</code> is overwritten with the new anonymous <code>RequestHandlerInterface</code> wrapper, middlewares execute in <strong>Last-In-First-Out (LIFO)</strong> order:</p>
+<ul>
+<li>The <strong>first</strong> middleware added wraps <code>RouteRunner</code> directly and runs <strong>closest</strong> to the route handler.</li>
+<li>The <strong>last</strong> middleware added becomes the final <code>$this-&gt;tip</code> and runs <strong>first</strong> on every incoming request (which is why <code>$app-&gt;addErrorMiddleware(...)</code> should always be registered last).</li>
+</ul>
+<hr />
+<h2>2. Why <code>MiddlewareDispatcher::addDeferred()</code> Has Cognitive Complexity 26</h2>
+<p>In the PNI501 static AST audit of Slim <code>v4.15.3</code>, <code>MiddlewareDispatcher::addDeferred()</code> (<code>Slim/MiddlewareDispatcher.php:144-244</code>) is the single highest-complexity method in the entire repository (<strong>cognitive complexity = <code>26</code></strong> across <code>101</code> lines). Why is it so complex?</p>
+<pre><code class="language-php"><span class="x">// Slim/MiddlewareDispatcher.php:173-240 (inside addDeferred's anonymous RequestHandlerInterface)</span>
+<span class="x">public function handle(ServerRequestInterface $request): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    if ($this-&gt;callableResolver instanceof AdvancedCallableResolverInterface) {</span>
+<span class="x">        $callable = $this-&gt;callableResolver-&gt;resolveMiddleware($this-&gt;middleware);</span>
+<span class="x">        /** @var ResponseInterface */</span>
+<span class="x">        return $callable($request, $this-&gt;next);</span>
+<span class="x">    }</span>
+
+<span class="x">    $callable = null;</span>
+
+<span class="x">    if ($this-&gt;callableResolver instanceof CallableResolverInterface) {</span>
+<span class="x">        try {</span>
+<span class="x">            $callable = $this-&gt;callableResolver-&gt;resolve($this-&gt;middleware);</span>
+<span class="x">        } catch (RuntimeException $e) {</span>
+<span class="x">            // Do Nothing</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    if (!$callable) {</span>
+<span class="x">        $resolved = $this-&gt;middleware;</span>
+<span class="x">        $instance = null;</span>
+<span class="x">        $method = null;</span>
+
+<span class="x">        if (preg_match(CallableResolver::$callablePattern, $resolved, $matches)) {</span>
+<span class="x">            $resolved = $matches[1];</span>
+<span class="x">            $method = $matches[2];</span>
+<span class="x">        }</span>
+
+<span class="x">        if ($this-&gt;container &amp;&amp; $this-&gt;container-&gt;has($resolved)) {</span>
+<span class="x">            $instance = $this-&gt;container-&gt;get($resolved);</span>
+<span class="x">            if ($instance instanceof MiddlewareInterface) {</span>
+<span class="x">                return $instance-&gt;process($request, $this-&gt;next);</span>
+<span class="x">            }</span>
+<span class="x">        } elseif (!function_exists($resolved)) {</span>
+<span class="x">            if (!class_exists($resolved)) {</span>
+<span class="x">                throw new RuntimeException(sprintf('Middleware %s does not exist', $resolved));</span>
+<span class="x">            }</span>
+<span class="x">            $instance = new $resolved($this-&gt;container);</span>
+<span class="x">        }</span>
+
+<span class="x">        if ($instance &amp;&amp; $instance instanceof MiddlewareInterface) {</span>
+<span class="x">            return $instance-&gt;process($request, $this-&gt;next);</span>
+<span class="x">        }</span>
+<span class="x">        // ... binds [$instance, $method] and Closure::bindTo($this-&gt;container)</span>
+<span class="x">    }</span>
+</code></pre>
+<h3>Dissecting the Two Paths in <code>addDeferred()</code></h3>
+<ol>
+<li><strong>The Fast Path (<code>AdvancedCallableResolverInterface</code>, lines 175–179)</strong>:
+In 99.9% of Slim 4 applications, <code>$this-&gt;callableResolver</code> is Slim's built-in <code>Slim\CallableResolver</code>, which implements <code>AdvancedCallableResolverInterface</code>. On line 175, <code>addDeferred()</code> immediately delegates to <code>$this-&gt;callableResolver-&gt;resolveMiddleware($this-&gt;middleware)</code> and invokes <code>$callable($request, $this-&gt;next)</code> in <strong>5 lines of code</strong>.</li>
+<li><strong>The Legacy Backward-Compatibility Fallback (lines 181–239)</strong>:
+In Slim <code>4.0.0</code>, <code>CallableResolverInterface</code> only had <code>resolve($toResolve): callable</code>, which defaulted objects to <code>'__invoke'</code> rather than <code>'process'</code> (<code>MiddlewareInterface::process</code>). Therefore, if a user registered a PSR-15 <code>MiddlewareInterface</code> class string (which has <code>process()</code>, not <code>__invoke()</code>), <code>CallableResolverInterface::resolve()</code> threw a <code>RuntimeException</code>!
+To avoid breaking custom third-party <code>CallableResolverInterface</code> implementations when <code>AdvancedCallableResolverInterface</code> was introduced later in the <code>4.x</code> series, <code>addDeferred()</code> retains lines 181–239: it catches and ignores <code>RuntimeException</code> from <code>resolve()</code> (line 186) and manually re-implements regex splitting, <code>$container-&gt;has()</code> lookup, <code>instanceof MiddlewareInterface</code> checks, and <code>new $resolved($this-&gt;container)</code>.</li>
+</ol>
+<hr />
+<h2>3. <code>CallableResolver</code> &amp; <code>$callablePattern</code> Internals</h2>
+<p><code>Slim\CallableResolver</code> (<code>Slim/CallableResolver.php:32-200</code>) is the <code>final</code> class responsible for translating route handlers, group callbacks, middleware strings, and error renderers into valid PHP <code>callable</code>s.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/03_middleware_and_resolver/middleware_dispatcher_internals/callable_resolver_decision_tree.png" alt="middleware_dispatcher_internals_2" />
+  <figcaption class="drawlib-caption">Slim\CallableResolver::resolveByPredicate() & resolveSlimNotation() Resolution Pipeline</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Input Normalization &amp; Predicate Dispatch</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"1. Normalization &amp; Predicate Dispatch"</span><span class="p">,</span>
+    <span class="s2">"Slim/CallableResolver.php:50-105, 187-199"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">funnel</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">pred_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">pred_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"prepareToResolve($toResolve) [L187]"</span><span class="p">,</span>
+    <span class="s2">"Converts ['ClassName', 'method'] array -&gt; 'ClassName:method'"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_square</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">pred_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"is_callable($toResolve) Fast Return [L89]"</span><span class="p">,</span>
+    <span class="s2">"Directly returns bindToContainer($toResolve) for Closures/functions"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">pred_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"resolveRoute() vs resolveMiddleware()"</span><span class="p">,</span>
+    <span class="s2">"isRoute (RequestHandlerInterface -&gt; 'handle') | isMiddleware ('process')"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_fork</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">pred_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"assertCallable() &amp; bindToContainer() [L157]"</span><span class="p">,</span>
+    <span class="s2">"Validates is_callable() (or JSON error) &amp; binds Closure to $container"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">pred_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: resolveSlimNotation() Regex &amp; Container Lookup</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"2. resolveSlimNotation() &amp; PSR-11 Lookup"</span><span class="p">,</span>
+    <span class="s2">"Slim/CallableResolver.php:34, 128-149"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">magnifying_glass</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">slim_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">slim_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"CallableResolver::callablePattern [L34]"</span><span class="p">,</span>
+    <span class="s2">"!^([^</span><span class="se">\\</span><span class="s2">:]+)</span><span class="se">\\</span><span class="s2">:([a-zA-Z_</span><span class="se">\\</span><span class="s2">x7f-</span><span class="se">\\</span><span class="s2">xff][a-zA-Z0-9_</span><span class="se">\\</span><span class="s2">x7f-</span><span class="se">\\</span><span class="s2">xff]*)$!"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Regex"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">slim_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"PSR-11 container-&gt;has(class) [L134]"</span><span class="p">,</span>
+    <span class="s2">"Fetches instance = container-&gt;get(class); verifies is_object()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"DI Hit"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">slim_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Fallback class_exists(class) [L140]"</span><span class="p">,</span>
+    <span class="s2">"Instantiates new Class(this-&gt;container) directly if not in DI"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"New"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">cube</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">slim_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Default Method Fallback [L98-101]"</span><span class="p">,</span>
+    <span class="s2">"Uses 'handle' (Route), 'process' (Middleware), or '__invoke'"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Method"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">slim_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3>1. Why <code>prepareToResolve()</code> Rewrites <code>[ClassName::class, 'method']</code> (<code>Slim/CallableResolver.php:187-199</code>)</h3>
+<p>In PHP, <code>['App\Controller\UserController', 'index']</code> is <strong>not</strong> considered <code>is_callable()</code> by PHP 8 unless <code>UserController::index()</code> is declared <code>static</code>! If a user registers <code>$app-&gt;get('/users', [UserController::class, 'index'])</code> where <code>index()</code> is an <strong>instance</strong> method and <code>UserController</code> requires constructor dependencies from the PSR-11 container, a naive <code>is_callable()</code> check would fail.</p>
+<p><code>CallableResolver::prepareToResolve()</code> solves this in 12 lines by normalizing any two-string array <code>[$class, $method]</code> into Slim's colon notation <code>&quot;$class:$method&quot;</code> before checking <code>is_callable()</code>:</p>
+<pre><code class="language-php"><span class="x">// Slim/CallableResolver.php:187-199</span>
+<span class="x">private function prepareToResolve($toResolve)</span>
+<span class="x">{</span>
+<span class="x">    if (!is_array($toResolve)) {</span>
+<span class="x">        return $toResolve;</span>
+<span class="x">    }</span>
+<span class="x">    $candidate = $toResolve;</span>
+<span class="x">    $class = array_shift($candidate);</span>
+<span class="x">    $method = array_shift($candidate);</span>
+<span class="x">    if (is_string($class) &amp;&amp; is_string($method)) {</span>
+<span class="x">        return $class . ':' . $method;</span>
+<span class="x">    }</span>
+<span class="x">    return $toResolve;</span>
+<span class="x">}</span>
+</code></pre>
+<h3>2. Regex Parsing &amp; Container Resolution in <code>resolveSlimNotation()</code> (<code>Slim/CallableResolver.php:34, 128-149</code>)</h3>
+<p>Once normalized to a string, <code>resolveSlimNotation(string $toResolve)</code> applies <code>CallableResolver::$callablePattern</code>:</p>
+<pre><code class="language-php"><span class="x">// Slim/CallableResolver.php:34</span>
+<span class="x">public static string $callablePattern = '!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!';</span>
+</code></pre>
+<ul>
+<li><strong>Capture Group 1 (<code>([^\:]+)</code>)</strong>: Matches the container entry ID or fully qualified class name (everything up to the single colon <code>:</code>). Note that because it forbids colons, PHP static callable strings like <code>'MyClass::myStaticMethod'</code> do <strong>not</strong> match <code>$callablePattern</code>; instead, they are caught earlier by <code>if (is_callable($toResolve))</code> at line 53 or 89!</li>
+<li><strong>Capture Group 2 (<code>([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)</code>)</strong>: Matches any valid PHP method identifier (including extended ASCII <code>\x7f-\xff</code>).</li>
+<li><strong>Resolution Order (lines 134–148)</strong>:
+<ol>
+<li>If <code>$this-&gt;container &amp;&amp; $this-&gt;container-&gt;has($class)</code> is <code>true</code>, it fetches <code>$instance = $this-&gt;container-&gt;get($class)</code> and asserts <code>is_object($instance)</code>.</li>
+<li>Otherwise, it checks <code>class_exists($class)</code> (throwing <code>RuntimeException(&quot;Callable ... does not exist&quot;)</code> if missing) and instantiates <code>new $class($this-&gt;container)</code>.</li>
+</ol>
+</li>
+</ul>
+<h3>3. Predicate Method Selection (<code>resolve</code> vs <code>resolveRoute</code> vs <code>resolveMiddleware</code>)</h3>
+<p>When <code>$toResolve</code> is a single class name or object without an explicit <code>:method</code> suffix (for example, <code>$app-&gt;get('/users', ListUsersAction::class)</code> or <code>$app-&gt;add(AuthMiddleware::class)</code>), <code>resolveByPredicate()</code> (<code>Slim/CallableResolver.php:86-105</code>) selects the target method based on the caller's context:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method on <code>CallableResolver</code></th>
+<th style="text-align:left"><code>$predicate</code> Check</th>
+<th style="text-align:left"><code>$defaultMethod</code> When Predicate Matches</th>
+<th style="text-align:left">Fallback Method When Predicate Is <code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>resolve($toResolve)</code> (line 50)</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left"><code>'__invoke'</code> (line 59)</td>
+<td style="text-align:left"><code>'__invoke'</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>resolveRoute($toResolve)</code> (line 68)</td>
+<td style="text-align:left"><code>$toResolve instanceof RequestHandlerInterface</code> (<code>isRoute</code>, line 110)</td>
+<td style="text-align:left"><code>'handle'</code> (PSR-15 <code>RequestHandlerInterface::handle</code>)</td>
+<td style="text-align:left"><code>'__invoke'</code> (line 101)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>resolveMiddleware($toResolve)</code> (line 76)</td>
+<td style="text-align:left"><code>$toResolve instanceof MiddlewareInterface</code> (<code>isMiddleware</code>, line 118)</td>
+<td style="text-align:left"><code>'process'</code> (PSR-15 <code>MiddlewareInterface::process</code>)</td>
+<td style="text-align:left"><code>'__invoke'</code> (line 101)</td>
+</tr>
+</tbody>
+</table>
+<p>Finally, <code>bindToContainer(callable $callable)</code> (<code>Slim/CallableResolver.php:170-180</code>) unwraps <code>[Closure]</code> single-element arrays and calls <code>$callable-&gt;bindTo($this-&gt;container)</code> whenever <code>$this-&gt;container</code> is non-null and <code>$callable instanceof Closure</code>, allowing route or middleware closures to access <code>$this-&gt;get(...)</code> on the PSR-11 container directly.</p>
+<p>Continue to <strong><a href="../04_routing_engine/fastroute_and_runner_internals.html">Chapter 4: FastRouteDispatcher, RouteRunner &amp; Strategies</a></strong> to trace how <code>RouteCollector</code>, <code>FastRouteDispatcher</code>, <code>RoutingMiddleware</code>, and <code>RouteRunner</code> compile and execute routes.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial internal architecture guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

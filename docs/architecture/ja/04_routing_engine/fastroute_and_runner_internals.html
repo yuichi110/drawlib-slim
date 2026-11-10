@@ -1,0 +1,780 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastRoute コンパイル・RouteRunner・ハンドラ実行戦略の内部実装 — Slim 4 Architecture Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    
+    
+    <meta name="description" content="Slim 4 のルーティングエンジンは、Slim\Routing\（11 クラス）、Slim\Middleware\RoutingMiddleware（1 クラス）、および Slim\Handlers\Strategies\（4 クラス）の計 15 ファイル（953…">
+    <link rel="canonical" href="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 内部構造">
+    <meta property="og:title" content="FastRoute コンパイル・RouteRunner・ハンドラ実行戦略の内部実装 — Slim 4 内部構造">
+    <meta property="og:description" content="Slim 4 のルーティングエンジンは、Slim\Routing\（11 クラス）、Slim\Middleware\RoutingMiddleware（1 クラス）、および Slim\Handlers\Strategies\（4 クラス）の計 15 ファイル（953…">
+    <meta property="og:url" content="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html">
+    <meta property="og:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastRoute コンパイル・RouteRunner・ハンドラ実行戦略の内部実装 — Slim 4 内部構造">
+    <meta name="twitter:description" content="Slim 4 のルーティングエンジンは、Slim\Routing\（11 クラス）、Slim\Middleware\RoutingMiddleware（1 クラス）、および Slim\Handlers\Strategies\（4 クラス）の計 15 ファイル（953…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）内部アーキテクチャ解説（非公式）
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">Architecture</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 内部構造">
+                    
+                    Slim 4 内部構造
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >アーキテクチャ全体像</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. パッケージ階層と境界設計</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_package_and_layers/module_hierarchy.html" >5層モジュール構造と依存関係分析</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. ブートストラップと PSR-17 自動検出</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_bootstrap_and_psr17/app_factory_internals.html" >AppFactory と Psr17FactoryProvider 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. ミドルウェア玉ねぎ構造と Callable 解決</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_middleware_and_resolver/middleware_dispatcher_internals.html" >MiddlewareDispatcher と CallableResolver 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. FastRoute と RouteRunner エンジン</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="fastroute_and_runner_internals.html" >FastRouteDispatcher・RouteRunner・実行戦略</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. 例外処理サブシステムとレンダラ</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_error_subsystem/error_middleware_and_renderers.html" >ErrorMiddleware・ErrorHandler・レンダラ群</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. SAPI レスポンス送出機構</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_sapi_emission/response_emitter_internals.html" >ResponseEmitter と OutputBuffering 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">関連ガイド &amp; 公式リンク</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 ユーザーガイド<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API リファレンス<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 診断レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 公式ドキュメント<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub リポジトリ<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Architecture</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">FastRoute コンパイル・RouteRunner・ハンドラ実行戦略の内部実装</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">日本語</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="../../en/04_routing_engine/fastroute_and_runner_internals.html" class="lang-option" lang="en" hreflang="en" >
+                                <span>English</span>
+                                
+                            </a>
+                            
+                            <a href="fastroute_and_runner_internals.html" class="lang-option active" lang="ja" hreflang="ja" aria-current="page">
+                                <span>日本語</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>FastRoute コンパイル・RouteRunner・ハンドラ実行戦略の内部実装</h1>
+<p>Slim 4 のルーティングエンジンは、<code>Slim\Routing\*</code>（<code>11</code> クラス）、<code>Slim\Middleware\RoutingMiddleware</code>（<code>1</code> クラス）、および <code>Slim\Handlers\Strategies\*</code>（<code>4</code> クラス）の<strong>計 <code>15</code> ファイル（<code>953</code> LOC）<strong>で構成されています。設計上の最大の特徴は、</strong>「URI の正規表現照合（<code>RoutingMiddleware</code>）」と「ルートハンドラの実行（<code>RouteRunner</code>）」を 2 つの独立した PSR-15 フェーズに分離している点</strong>にあります。これにより、中間ミドルウェアがマッチ済みの <code>Route</code> オブジェクトやパラメータを参照してから、最内殻の <code>RouteRunner</code> がグループミドルウェア・ルートミドルウェア・呼び出し戦略（<code>InvocationStrategyInterface</code>）を順次実行できます。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_routing_engine/fastroute_and_runner_internals/fastroute_dispatch_and_runner_flow_ja.png" alt="fastroute_and_runner_internals_1" />
+  <figcaption class="drawlib-caption">2段階ルーティングアーキテクチャ：RoutingMiddleware + FastRouteDispatcher による照合と RouteRunner + Route::run() による実行</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">94</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Phase 1 — Route Registration &amp; FastRoute Dispatch</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"フェーズ 1 · FastRoute 照合と RouteContext 付与"</span><span class="p">,</span>
+    <span class="s2">"RouteCollector -&gt; FastRouteDispatcher -&gt; RoutingMiddleware"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">match_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteCollector::map() &amp; group()"</span><span class="p">,</span>
+    <span class="s2">"'route</span><span class="si">{N}</span><span class="s2">' 識別子を採番し現在の $this-&gt;routeGroups スタックを保存"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Reg"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">list_bullets</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteResolver::computeRoutingResults()"</span><span class="p">,</span>
+    <span class="s2">"rawurldecode($uri) と先頭 '/' の正規化を実施 [L40-46]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"URI"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">link</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"FastRouteDispatcher::dispatch()"</span><span class="p">,</span>
+    <span class="s2">"staticRouteMap -&gt; variableRouteData -&gt; HEAD/GET -&gt; '*' -&gt; 405/404"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Regex"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">magnifying_glass</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RoutingMiddleware::performRouting()"</span><span class="p">,</span>
+    <span class="s2">"__routeParser__・__routingResults__・__route__ を付与（または 404/405 例外）"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Attr"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: Phase 2 — RouteRunner, Group Onion &amp; Strategy Invocation</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"フェーズ 2 · RouteRunner・Group 玉ねぎ合成・実行戦略"</span><span class="p">,</span>
+    <span class="s2">"RouteRunner::handle() -&gt; Route::run() -&gt; Route::handle()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">exec_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteRunner::handle($request) [L57]"</span><span class="p">,</span>
+    <span class="s2">"未照合なら performRouting() を補完実行し __basePath__ 属性を付与"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">compass</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Route::appendGroupMiddlewareToRoute() [L327]"</span><span class="p">,</span>
+    <span class="s2">"初回実行時に array_reverse($this-&gt;groups) で外側から遅延合成"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Route::handle($request) &amp; CallableResolver"</span><span class="p">,</span>
+    <span class="s2">"resolveRoute() で解決し RequestHandlerInterface なら戦略を自動切替"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plugs_connected</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"InvocationStrategy::__invoke() [L362]"</span><span class="p">,</span>
+    <span class="s2">"RequestResponse | RequestResponseArgs | NamedArgs | RequestHandler"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2>1. ルート収集とプレフィックス・グループスタック（<code>RouteCollectorProxy</code> &amp; <code>RouteCollector</code>）</h2>
+<h3>ネストされた <code>group()</code> 呼び出しがプレフィックスとグループ階層を蓄積する仕組み</h3>
+<p>以下のようにネストされたルートグループを定義したとします。</p>
+<pre><code class="language-php"><span class="x">$app-&gt;group('/v1', function (RouteCollectorProxy $group) {</span>
+<span class="x">    $group-&gt;group('/users', function (RouteCollectorProxy $users) {</span>
+<span class="x">        $users-&gt;get('/{id}', UserController::class . ':show');</span>
+<span class="x">    })-&gt;add(UserScopeMiddleware::class);</span>
+<span class="x">})-&gt;add(ApiVersionMiddleware::class);</span>
+</code></pre>
+<p>この登録処理では、<code>RouteCollectorProxy</code>（<code>Slim/Routing/RouteCollectorProxy.php</code>）、<code>RouteCollector</code>（<code>Slim/Routing/RouteCollector.php</code>）、<code>RouteGroup</code>（<code>Slim/Routing/RouteGroup.php</code>）の3クラスが同期的に連携します。</p>
+<ol>
+<li><strong>グループプレフィックスの連結（<code>Slim/Routing/RouteCollectorProxy.php:165-180</code>）</strong>:
+各 <code>RouteCollectorProxy</code> は <code>protected string $groupPattern</code>（<code>Slim\App</code> 本体では <code>''</code>）を保持しています。<code>$proxy-&gt;group($pattern, $callable)</code> や <code>$proxy-&gt;map(...)</code> が呼ばれると、<code>$pattern = $this-&gt;groupPattern . $pattern</code> によって親プレフィックスを先頭に結合してから <code>$this-&gt;routeCollector</code> に委譲します。</li>
+<li><strong>グループスタックの Push / Pop（<code>Slim/Routing/RouteCollector.php:230-239</code>）</strong>:
+<code>RouteCollector::group()</code> は連結済み <code>$pattern</code> を持つ子 <code>RouteCollectorProxy</code> と <code>RouteGroup</code> を生成し、<code>$this-&gt;routeGroups[]</code> スタックに Push した状態で <code>$routeGroup-&gt;collectRoutes()</code> を実行し、完了直後に <code>array_pop($this-&gt;routeGroups)</code> で Pop します。<pre><code class="language-php"><span class="x">// Slim/Routing/RouteCollector.php:230-239</span>
+<span class="x">public function group(string $pattern, $callable): RouteGroupInterface</span>
+<span class="x">{</span>
+<span class="x">    $routeGroup = $this-&gt;createGroup($pattern, $callable);</span>
+<span class="x">    $this-&gt;routeGroups[] = $routeGroup;</span>
+
+<span class="x">    $routeGroup-&gt;collectRoutes();</span>
+<span class="x">    array_pop($this-&gt;routeGroups);</span>
+
+<span class="x">    return $routeGroup;</span>
+<span class="x">}</span>
+</code></pre>
+</li>
+<li><strong>ルート識別子 <code>'route{N}'</code> の採番とグループ配列のスナップショット（<code>Slim/Routing/RouteCollector.php:268-300</code>）</strong>:
+<code>collectRoutes()</code> 実行中に呼ばれた <code>$users-&gt;get(...)</code> は <code>RouteCollector::map()</code> に到達し、その時点でアクティブな <code>$this-&gt;routeGroups</code> 配列のコピー（<code>[RouteGroup('/v1'), RouteGroup('/v1/users')]</code>）と連番カウンタ <code>$this-&gt;routeCounter</code> を <code>new Route(...)</code>（<code>Slim/Routing/Route.php:120-141</code>）に渡します。生成された <code>Route</code> は <code>'route' . $identifier</code>（<code>'route0'</code>、<code>'route1'</code> 等）を識別子として <code>$this-&gt;routes['route0'] = $route</code> に格納されます。</li>
+</ol>
+<hr />
+<h2>2. <code>Dispatcher</code> と <code>FastRouteDispatcher</code>：Nikic FastRoute の拡張実装</h2>
+<h3>FastRoute の遅延コンパイルとキャッシュファイル出力（<code>Slim/Routing/Dispatcher.php:24-58</code>）</h3>
+<p><code>Slim\Routing\Dispatcher</code> は <code>$app-&gt;get()</code> の登録時には正規表現ツリーをコンパイルせず、最初の <code>dispatch()</code> または <code>getAllowedMethods()</code> 呼び出し時に <code>Dispatcher::createDispatcher()</code> で遅延生成します。</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Dispatcher.php:30-54</span>
+<span class="x">$routeDefinitionCallback = function (FastRouteCollector $r): void {</span>
+<span class="x">    $basePath = $this-&gt;routeCollector-&gt;getBasePath();</span>
+
+<span class="x">    foreach ($this-&gt;routeCollector-&gt;getRoutes() as $route) {</span>
+<span class="x">        $r-&gt;addRoute($route-&gt;getMethods(), $basePath . $route-&gt;getPattern(), $route-&gt;getIdentifier());</span>
+<span class="x">    }</span>
+<span class="x">};</span>
+
+<span class="x">$cacheFile = $this-&gt;routeCollector-&gt;getCacheFile();</span>
+<span class="x">if ($cacheFile) {</span>
+<span class="x">    $dispatcher = \FastRoute\cachedDispatcher($routeDefinitionCallback, [</span>
+<span class="x">        'dataGenerator' =&gt; GroupCountBased::class,</span>
+<span class="x">        'dispatcher' =&gt; FastRouteDispatcher::class,</span>
+<span class="x">        'routeParser' =&gt; new Std(),</span>
+<span class="x">        'cacheFile' =&gt; $cacheFile,</span>
+<span class="x">    ]);</span>
+<span class="x">} else {</span>
+<span class="x">    $dispatcher = \FastRoute\simpleDispatcher($routeDefinitionCallback, [</span>
+<span class="x">        'dataGenerator' =&gt; GroupCountBased::class,</span>
+<span class="x">        'dispatcher' =&gt; FastRouteDispatcher::class,</span>
+<span class="x">        'routeParser' =&gt; new Std(),</span>
+<span class="x">    ]);</span>
+<span class="x">}</span>
+</code></pre>
+<p>ここで FastRoute に登録されるハンドラ値（第3引数）が、クロージャやオブジェクトではなく <strong>文字列識別子 <code>$route-&gt;getIdentifier()</code>（<code>'route0'</code> 等）</strong> である点に注目してください。文字列のみで構成されているため、<code>\FastRoute\cachedDispatcher()</code> はコンパイル済みの静的連想配列と正規表現チャンク配列を <code>var_export()</code>（<code>&lt;?php return ...;</code>）でそのまま <code>$cacheFile</code> に書き出すことができ、本番環境の PHP-FPM ワーカーは OPcache から正規表現テーブルをゼロコストで読み込めます。</p>
+<h3>なぜ <code>FastRouteDispatcher</code> は <code>GroupCountBased</code> をオーバーライドするのか？（<code>Slim/Routing/FastRouteDispatcher.php:15-116</code>）</h3>
+<p><code>Slim\Routing\FastRouteDispatcher</code> は <code>FastRoute\Dispatcher\GroupCountBased</code> を継承し、<code>dispatch($httpMethod, $uri)</code>（33〜59 行目）と <code>getAllowedMethods(string $uri)</code>（92〜115 行目）を独自実装で置き換えています。</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/FastRouteDispatcher.php:33-59</span>
+<span class="x">public function dispatch($httpMethod, $uri): array</span>
+<span class="x">{</span>
+<span class="x">    $routingResults = $this-&gt;routingResults($httpMethod, $uri);</span>
+<span class="x">    if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">        return $routingResults;</span>
+<span class="x">    }</span>
+
+<span class="x">    // For HEAD requests, attempt fallback to GET</span>
+<span class="x">    if ($httpMethod === 'HEAD') {</span>
+<span class="x">        $routingResults = $this-&gt;routingResults('GET', $uri);</span>
+<span class="x">        if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">            return $routingResults;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    // If nothing else matches, try fallback routes</span>
+<span class="x">    $routingResults = $this-&gt;routingResults('*', $uri);</span>
+<span class="x">    if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">        return $routingResults;</span>
+<span class="x">    }</span>
+
+<span class="x">    if (!empty($this-&gt;getAllowedMethods($uri))) {</span>
+<span class="x">        return [self::METHOD_NOT_ALLOWED, null, []];</span>
+<span class="x">    }</span>
+
+<span class="x">    return [self::NOT_FOUND, null, []];</span>
+<span class="x">}</span>
+</code></pre>
+<ol>
+<li><strong>$O(1)$ 静的ハッシュ照合とチャンク正規表現照合（<code>routingResults()</code>、67〜85 行目）</strong>:
+まず <code>isset($this-&gt;staticRouteMap[$httpMethod][$uri])</code> を $O(1)$ で検査し、静的ルートでなければ親クラスの <code>$this-&gt;dispatchVariableRoute($this-&gt;variableRouteData[$httpMethod], $uri)</code>（約10ルート単位でグループ化された合成正規表現照合）を呼び出します。</li>
+<li><strong>RFC 2616 準拠の <code>HEAD -&gt; GET</code> フォールバック（41〜46 行目）</strong>:
+<code>HEAD</code> リクエストに対応する明示的な <code>HEAD</code> ルートが存在しない場合、自動的に <code>routingResults('GET', $uri)</code> へフォールバックします。その後、<code>Slim\App::handle()</code> の末尾（<code>Slim/App.php:218-222</code>）でレスポンスボディが空ストリームに差し替えられます。</li>
+<li><strong>ワイルドカード <code>'*'</code> メソッドフォールバック（49〜52 行目）</strong>:
+<code>$app-&gt;map(['*'], ...)</code> で登録された全メソッド共通ルートへのフォールバックを処理します。</li>
+<li><strong><code>getAllowedMethods(string $uri)</code> の単一 URI メモ化キャッシュ（92〜115 行目）</strong>:
+54 行目で <code>METHOD_NOT_ALLOWED</code>（<code>405</code>）と判定された直後、<code>RoutingMiddleware::performRouting()</code>（<code>Slim/Middleware/RoutingMiddleware.php:80</code>）が <code>$routingResults-&gt;getAllowedMethods()</code> を再度呼び出します。同じ URI に対して全メソッドの正規表現テーブルを2回走査する無駄を防ぐため、<code>FastRouteDispatcher</code> は <code>private ?string $allowedMethodsUri</code> と <code>private array $allowedMethods</code>（20〜25 行目、94〜96 行目）に直前の URI の許可メソッド配列をメモ化しています。</li>
+</ol>
+<hr />
+<h2>3. <code>RoutingMiddleware</code>・<code>RouteContext</code> と <code>Route::run()</code> のグループ玉ねぎ合成</h2>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_routing_engine/fastroute_and_runner_internals/route_group_middleware_onion_ja.png" alt="fastroute_and_runner_internals_2" />
+  <figcaption class="drawlib-caption">Route::appendGroupMiddlewareToRoute() の遅延玉ねぎ合成と 4 種のハンドラ呼び出し戦略</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Route::appendGroupMiddlewareToRoute()</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Route::appendGroupMiddlewareToRoute()"</span><span class="p">,</span>
+    <span class="s2">"Slim/Routing/Route.php:315-337 (array_reverse)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_in_line_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">grp_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. 内側ディスパッチャ (inner = this-&gt;middlewareDispatcher)"</span><span class="p">,</span>
+    <span class="s2">"route-&gt;add() で登録されたルート固有ミドルウェアと Route 本体"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Inner"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. 新規の外側 MiddlewareDispatcher(inner) 生成"</span><span class="p">,</span>
+    <span class="s2">"inner を中心核カーネルとして新しいディスパッチャを生成 [L329-330]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Wrap"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. foreach (array_reverse(this-&gt;groups) as group)"</span><span class="p">,</span>
+    <span class="s2">"内側の RouteGroup から外側の RouteGroup の順で add() [L332-334]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Reverse"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_down_up</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. 最終的な実行順序"</span><span class="p">,</span>
+    <span class="s2">"外側 Group MW -&gt; 内側 Group MW -&gt; Route MW -&gt; Route::handle()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Order"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: 4 Handler Invocation Strategies</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"4種の標準ハンドラ実行戦略 (Strategies)"</span><span class="p">,</span>
+    <span class="s2">"Slim/Handlers/Strategies/*.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">strat_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponse（デフォルト戦略）"</span><span class="p">,</span>
+    <span class="s2">"req-&gt;withAttribute(k, v) を付与し fn(req, res, args) を呼出"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Default"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">star</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponseArgs"</span><span class="p">,</span>
+    <span class="s2">"位置引数として展開：fn(req, res, ...array_values(args))"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Pos"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">list_numbers</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponseNamedArgs (PHP 8.0+)"</span><span class="p">,</span>
+    <span class="s2">"連想配列キーを名前付き引数として展開：fn(req, res, ...args)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Named"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestHandler（PSR-15 自動切替）"</span><span class="p">,</span>
+    <span class="s2">"Route::handle() [L353] で RequestHandlerInterface 実装時に自動選択"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"PSR-15"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3>なぜ <code>Route::appendGroupMiddlewareToRoute()</code> は <code>$this-&gt;groups</code> を逆順ループするのか？（<code>Slim/Routing/Route.php:327-337</code>）</h3>
+<p>ネストされたグループ内でルートが定義される際（<code>OuterGroup -&gt; InnerGroup -&gt; Route</code>）、ルート固有のミドルウェア（<code>$route-&gt;add(...)</code>）はグループコールバックの内部で登録されるのに対し、外側のグループミドルウェア（<code>$outerGroup-&gt;add(...)</code>）は <code>collectRoutes()</code> が終了した<strong>後</strong>にメソッドチェーンで登録されます。</p>
+<p>そのため、<code>Route</code> はコンストラクタ時点ではグループのミドルウェアを取り込むことができません。代わりに、最初のリクエストで <code>Route::run()</code>（<code>Slim/Routing/Route.php:315-322</code>）が呼ばれた瞬間に一度だけ <code>appendGroupMiddlewareToRoute()</code> を実行し、既存の <code>$this-&gt;middlewareDispatcher</code>（<code>$inner</code>）を核とする新しい <code>MiddlewareDispatcher($inner)</code> を作り、<code>array_reverse($this-&gt;groups)</code> の順でグループミドルウェアを追加します。</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Route.php:327-337</span>
+<span class="x">protected function appendGroupMiddlewareToRoute(): void</span>
+<span class="x">{</span>
+<span class="x">    $inner = $this-&gt;middlewareDispatcher;</span>
+<span class="x">    $this-&gt;middlewareDispatcher = new MiddlewareDispatcher($inner, $this-&gt;callableResolver, $this-&gt;container);</span>
+
+<span class="x">    foreach (array_reverse($this-&gt;groups) as $group) {</span>
+<span class="x">        $group-&gt;appendMiddlewareToDispatcher($this-&gt;middlewareDispatcher);</span>
+<span class="x">    }</span>
+
+<span class="x">    $this-&gt;groupMiddlewareAppended = true;</span>
+<span class="x">}</span>
+</code></pre>
+<p><code>MiddlewareDispatcher::add()</code> は後入れ先出し（LIFO）であるため、<code>array_reverse($this-&gt;groups)</code> によって内側の <code>InnerGroup</code> を先に <code>add()</code> し、外側の <code>OuterGroup</code> を後から <code>add()</code> することで、実行時には「<code>OuterGroup</code> -&gt; <code>InnerGroup</code> -&gt; <code>Route</code> 固有ミドルウェア -&gt; <code>Route::handle()</code>」という直感通りの外から内への実行順序が成立します。</p>
+<h3>PSR-15 <code>RequestHandler</code> 戦略への自動切り替え（<code>Slim/Routing/Route.php:342-363</code>）</h3>
+<p><code>Route::run()</code> の最内殻にある <code>Route::handle(ServerRequestInterface $request)</code> は、<code>CallableResolver::resolveRoute()</code> で解決された <code>$callable</code> が <code>[RequestHandlerInterface, 'handle']</code> の形式であるかどうかを検査します。</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Route.php:342-363</span>
+<span class="x">public function handle(ServerRequestInterface $request): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    if ($this-&gt;callableResolver instanceof AdvancedCallableResolverInterface) {</span>
+<span class="x">        $callable = $this-&gt;callableResolver-&gt;resolveRoute($this-&gt;callable);</span>
+<span class="x">    } else {</span>
+<span class="x">        $callable = $this-&gt;callableResolver-&gt;resolve($this-&gt;callable);</span>
+<span class="x">    }</span>
+<span class="x">    $strategy = $this-&gt;invocationStrategy;</span>
+
+<span class="x">    $strategyImplements = class_implements($strategy);</span>
+
+<span class="x">    if (</span>
+<span class="x">        is_array($callable)</span>
+<span class="x">        &amp;&amp; $callable[0] instanceof RequestHandlerInterface</span>
+<span class="x">        &amp;&amp; !in_array(RequestHandlerInvocationStrategyInterface::class, $strategyImplements)</span>
+<span class="x">    ) {</span>
+<span class="x">        $strategy = new RequestHandler();</span>
+<span class="x">    }</span>
+
+<span class="x">    $response = $this-&gt;responseFactory-&gt;createResponse();</span>
+<span class="x">    return $strategy($callable, $request, $response, $this-&gt;arguments);</span>
+<span class="x">}</span>
+</code></pre>
+<p>アプリケーションのデフォルト戦略が <code>RequestResponse</code> のままであっても、ルートハンドラが PSR-15 <code>RequestHandlerInterface</code> を実装していれば 353〜359 行目で自動的に <code>new RequestHandler()</code> 戦略へ切り替わり、不要な空 <code>Response</code> 引数を渡さずに <code>$callable($request)</code> を直接呼び出します。</p>
+<p>続いて <strong><a href="../05_error_subsystem/error_middleware_and_renderers.html">第5章: ErrorMiddleware・ErrorHandler・レンダラ群</a></strong> に進み、ルーティングやハンドラ実行中に発生した例外がどのように捕捉・コンテンツ交渉・描画されるかを詳しく見ていきましょう。</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式の内部アーキテクチャ解説であり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

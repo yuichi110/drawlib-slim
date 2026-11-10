@@ -1,0 +1,762 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResponseEmitter, Chunked SAPI Streaming &amp; OutputBuffering Internals — Slim 4 Architecture Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/06_sapi_emission/response_emitter_internals.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html">
+    
+    
+    
+    <meta name="description" content="At the end of every HTTP lifecycle in Slim\App::run() (Slim/App.php:186-196), Slim must bridge two fundamentally different worlds: the immutable, stateless…">
+    <link rel="canonical" href="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 Architecture">
+    <meta property="og:title" content="ResponseEmitter, Chunked SAPI Streaming &amp; OutputBuffering Internals — Slim 4 Architecture">
+    <meta property="og:description" content="At the end of every HTTP lifecycle in Slim\App::run() (Slim/App.php:186-196), Slim must bridge two fundamentally different worlds: the immutable, stateless…">
+    <meta property="og:url" content="https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html">
+    <meta property="og:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ResponseEmitter, Chunked SAPI Streaming &amp; OutputBuffering Internals — Slim 4 Architecture">
+    <meta name="twitter:description" content="At the end of every HTTP lifecycle in Slim\App::run() (Slim/App.php:186-196), Slim must bridge two fundamentally different worlds: the immutable, stateless…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Internal Architecture Guide to <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">Architecture</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 Architecture">
+                    
+                    Slim 4 Architecture
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Architecture Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Package Topology &amp; Layers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_package_and_layers/module_hierarchy.html" >5-Tier Module Hierarchy &amp; Coupling</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Bootstrap &amp; PSR-17 Auto-Discovery</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_bootstrap_and_psr17/app_factory_internals.html" >AppFactory &amp; Psr17FactoryProvider Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Middleware Onion &amp; CallableResolver</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_middleware_and_resolver/middleware_dispatcher_internals.html" >MiddlewareDispatcher &amp; CallableResolver Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. FastRoute &amp; RouteRunner Engine</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_routing_engine/fastroute_and_runner_internals.html" >FastRouteDispatcher, RouteRunner &amp; Strategies</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Error Subsystem &amp; Renderers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_error_subsystem/error_middleware_and_renderers.html" >ErrorMiddleware, ErrorHandler &amp; Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. SAPI Response Emission</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="response_emitter_internals.html" >ResponseEmitter &amp; OutputBuffering Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 User Guide<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Diagnostic Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Slim Framework Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Architecture</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">ResponseEmitter, Chunked SAPI Streaming &amp; OutputBuffering Internals</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="response_emitter_internals.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/06_sapi_emission/response_emitter_internals.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>ResponseEmitter, Chunked SAPI Streaming &amp; OutputBuffering Internals</h1>
+<p>At the end of every HTTP lifecycle in <code>Slim\App::run()</code> (<code>Slim/App.php:186-196</code>), Slim must bridge two fundamentally different worlds: the <strong>immutable, stateless PSR-7 <code>ResponseInterface</code> value object</strong> returned by <code>$this-&gt;handle($request)</code>, and <strong>PHP's stateful SAPI output buffer and global header stack</strong> (<code>header()</code>, <code>headers_sent()</code>, <code>echo</code>, <code>connection_status()</code>). This final chapter dissects <strong><code>Slim\ResponseEmitter</code></strong> (<code>Slim/ResponseEmitter.php</code>, <code>137</code> lines / <code>92</code> LOC) alongside Slim's four companion HTTP utility middlewares (<code>OutputBufferingMiddleware</code>, <code>ContentLengthMiddleware</code>, <code>BodyParsingMiddleware</code>, and <code>MethodOverrideMiddleware</code>).</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/06_sapi_emission/response_emitter_internals/response_emitter_sapi_pipeline.png" alt="response_emitter_internals_1" />
+  <figcaption class="drawlib-caption">Slim\ResponseEmitter::emit() SAPI Header Ordering (#1730), Set-Cookie Preservation & 4096-Byte Chunked Streaming</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">94</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: isResponseEmpty(), emitHeaders() &amp; emitStatusLine()</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"1. Empty Check, Headers &amp; Status Line (#1730)"</span><span class="p">,</span>
+    <span class="s2">"Slim/ResponseEmitter.php:38-82, 124-135"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">broadcast</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">hdr_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">hdr_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"isResponseEmpty($response) [L124-135]"</span><span class="p">,</span>
+    <span class="s2">"True on 204/205/304; else rewinds &amp; probes $stream-&gt;read(1) === ''"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">magnifying_glass</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hdr_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"if (headers_sent() === false) [L41]"</span><span class="p">,</span>
+    <span class="s2">"Guards header emission against prior SAPI output flush"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hdr_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"emitHeaders(response) [L58-68]"</span><span class="p">,</span>
+    <span class="s2">"first = strtolower(name) !== 'set-cookie'; preserves multi-cookies"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">cookie</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">hdr_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"emitStatusLine(response) AFTER Headers [L47, 73]"</span><span class="p">,</span>
+    <span class="s2">"Prevents PHP 'Location:' header from forcing status 302 (#1730)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Step 4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hdr_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: emitBody() Chunked Streaming &amp; Connection Abort</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"2. emitBody() 4096B Streaming &amp; Abort Check"</span><span class="p">,</span>
+    <span class="s2">"Slim/ResponseEmitter.php:87-119"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">waves</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">body_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">body_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Second body-&gt;rewind() [L90-92]"</span><span class="p">,</span>
+    <span class="s2">"Resets 1-byte offset advanced during isResponseEmpty() probe!"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Rewind"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrow_counter_clockwise</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">body_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Resolve amountToRead [L94-97]"</span><span class="p">,</span>
+    <span class="s2">"Reads Content-Length header first; falls back to body-&gt;getSize()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Size"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">ruler</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">body_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Bounded Loop: min(4096, amountToRead) [L99-110]"</span><span class="p">,</span>
+    <span class="s2">"Streams body-&gt;read(length) chunks &amp; decrements strlen(data)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Chunk"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">body_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"connection_status() !== CONNECTION_NORMAL"</span><span class="p">,</span>
+    <span class="s2">"Aborts loop immediately if client disconnects mid-stream [L107, 114]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Abort"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plugs</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">body_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2>1. Inside <code>ResponseEmitter::emit()</code> (<code>Slim/ResponseEmitter.php:26-136</code>)</h2>
+<p>When <code>App::run()</code> (<code>Slim/App.php:193-195</code>) finishes executing <code>$response = $this-&gt;handle($request)</code>, it instantiates <code>new ResponseEmitter()</code> (defaulting to <code>$this-&gt;responseChunkSize = 4096</code>) and calls <code>$responseEmitter-&gt;emit($response)</code>:</p>
+<pre><code class="language-php"><span class="x">// Slim/ResponseEmitter.php:38-53</span>
+<span class="x">public function emit(ResponseInterface $response): void</span>
+<span class="x">{</span>
+<span class="x">    $isEmpty = $this-&gt;isResponseEmpty($response);</span>
+<span class="x">    if (headers_sent() === false) {</span>
+<span class="x">        $this-&gt;emitHeaders($response);</span>
+
+<span class="x">        // Set the status _after_ the headers, because of PHP's "helpful" behavior with location headers.</span>
+<span class="x">        // See https://github.com/slimphp/Slim/issues/1730</span>
+
+<span class="x">        $this-&gt;emitStatusLine($response);</span>
+<span class="x">    }</span>
+
+<span class="x">    if (!$isEmpty) {</span>
+<span class="x">        $this-&gt;emitBody($response);</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</code></pre>
+<p>Four subtle SAPI engineering details in <code>ResponseEmitter</code> deserve close attention:</p>
+<h3>1. Why <code>isResponseEmpty()</code> Reads 1 Byte and Why <code>emitBody()</code> Must Rewind Twice (<code>Lines 89-92, 124-135</code>)</h3>
+<pre><code class="language-php"><span class="x">// Slim/ResponseEmitter.php:124-135</span>
+<span class="x">public function isResponseEmpty(ResponseInterface $response): bool</span>
+<span class="x">{</span>
+<span class="x">    if (in_array($response-&gt;getStatusCode(), [204, 205, 304], true)) {</span>
+<span class="x">        return true;</span>
+<span class="x">    }</span>
+<span class="x">    $stream = $response-&gt;getBody();</span>
+<span class="x">    $seekable = $stream-&gt;isSeekable();</span>
+<span class="x">    if ($seekable) {</span>
+<span class="x">        $stream-&gt;rewind();</span>
+<span class="x">    }</span>
+<span class="x">    return $seekable ? $stream-&gt;read(1) === '' : $stream-&gt;eof();</span>
+<span class="x">}</span>
+</code></pre>
+<ul>
+<li><strong>RFC Status Short-Circuit (line 125)</strong>: HTTP <code>204 No Content</code>, <code>205 Reset Content</code>, and <code>304 Not Modified</code> responses must never include a message body, even if the underlying PSR-7 stream contains bytes.</li>
+<li><strong>Why <code>$stream-&gt;read(1) === ''</code> Instead of <code>$stream-&gt;eof()</code>?</strong>: In PHP streams (<code>php://temp</code> or <code>php://memory</code>), <code>feof()</code> only returns <code>true</code> <strong>after</strong> a read operation attempts to read past the end of the stream; a newly written, rewound empty stream has <code>eof() === false</code> until <code>read(1)</code> is attempted!</li>
+<li><strong>Why <code>emitBody()</code> Rewinds Again (lines 90–92)</strong>: For a non-empty seekable stream, <code>isResponseEmpty()</code> consumes the first byte (<code>$stream-&gt;read(1)</code>), advancing the stream cursor to offset <code>1</code>. Therefore, <code>emitBody()</code> <strong>must</strong> call <code>$body-&gt;rewind()</code> a second time at line 91 so byte <code>0</code> is not dropped!</li>
+</ul>
+<h3>2. <code>Set-Cookie</code> Multi-Header Preservation (<code>Slim/ResponseEmitter.php:58-68</code>)</h3>
+<pre><code class="language-php"><span class="x">// Slim/ResponseEmitter.php:58-68</span>
+<span class="x">private function emitHeaders(ResponseInterface $response): void</span>
+<span class="x">{</span>
+<span class="x">    foreach ($response-&gt;getHeaders() as $name =&gt; $values) {</span>
+<span class="x">        $first = strtolower($name) !== 'set-cookie';</span>
+<span class="x">        foreach ($values as $value) {</span>
+<span class="x">            $header = sprintf('%s: %s', $name, $value);</span>
+<span class="x">            header($header, $first);</span>
+<span class="x">            $first = false;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</code></pre>
+<p>PHP's <code>header(string $header, bool $replace = true)</code> replaces any existing header of the same name when <code>$replace</code> is <code>true</code>.</p>
+<ul>
+<li>For standard headers (e.g. <code>Cache-Control</code> or <code>X-Custom</code>), <code>$first</code> starts as <code>true</code> so the first PSR-7 header value overwrites any default header set by PHP SAPI, and <code>$first = false</code> on subsequent loop iterations appends additional values.</li>
+<li>For <code>Set-Cookie</code>, <code>$first</code> starts as <code>false</code> (<code>strtolower($name) !== 'set-cookie'</code>) so <code>header('Set-Cookie: ...', false)</code> <strong>never</strong> overwrites cookies emitted earlier via <code>setcookie()</code> or multiple <code>Set-Cookie</code> headers on the PSR-7 response.</li>
+</ul>
+<h3>3. Why <code>emitStatusLine()</code> Runs <em>After</em> <code>emitHeaders()</code> (Issue <code>#1730</code>, <code>Lines 42-48, 73-82</code>)</h3>
+<p>Whenever PHP's <code>header()</code> function sees a <code>Location: ...</code> header and the current SAPI status code is <code>200</code>, PHP's C SAPI layer automatically forces the status code to <code>302 Found</code>. If a route returns <code>201 Created</code> with a <code>Location: /users/42</code> header (or <code>303 See Other</code> / <code>307 Temporary Redirect</code>) and <code>emitStatusLine()</code> ran <em>before</em> <code>emitHeaders()</code>, PHP's <code>header('Location: ...')</code> side effect could clobber the intended status code. Calling <code>emitStatusLine()</code> <strong>after</strong> <code>emitHeaders()</code> with explicit third parameter <code>$response-&gt;getStatusCode()</code> (<code>header($statusLine, true, $response-&gt;getStatusCode())</code>, line 81) guarantees the PSR-7 status code always wins.</p>
+<h3>4. Bounded Chunk Streaming &amp; Client Disconnect Detection (<code>Slim/ResponseEmitter.php:94-118</code>)</h3>
+<p>Instead of calling <code>echo (string) $response-&gt;getBody()</code> (which would buffer an entire multi-megabyte file download into PHP memory at once), <code>emitBody()</code> reads at most <code>$this-&gt;responseChunkSize</code> (<code>4096</code> bytes) per iteration and checks <code>if (connection_status() !== CONNECTION_NORMAL) { break; }</code> after every <code>echo</code>, halting stream reads immediately if the HTTP client closes the TCP socket.</p>
+<hr />
+<h2>2. <code>OutputBufferingMiddleware</code> &amp; Built-In HTTP Utility Middlewares</h2>
+<p>In addition to <code>RoutingMiddleware</code> and <code>ErrorMiddleware</code>, <code>Slim\Middleware\*</code> provides four specialized PSR-15 middlewares that sanitize and normalize requests and responses around the pipeline:</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/06_sapi_emission/response_emitter_internals/builtin_utility_middlewares_map.png" alt="response_emitter_internals_2" />
+  <figcaption class="drawlib-caption">Slim\Middleware\* Utility Middlewares: OutputBufferingMiddleware, BodyParsingMiddleware, MethodOverrideMiddleware & ContentLengthMiddleware</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: OutputBufferingMiddleware &amp; ContentLengthMiddleware (Response Path)</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Response-Side Middlewares (OB &amp; Length)"</span><span class="p">,</span>
+    <span class="s2">"OutputBufferingMiddleware.php &amp; ContentLengthMiddleware.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_out_line_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">ob_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">ob_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"OutputBufferingMiddleware::process() [L52]"</span><span class="p">,</span>
+    <span class="s2">"Wraps handler-&gt;handle(req) in try { ob_start(); ... ob_get_clean(); }"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"OB 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">terminal_window</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ob_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Exception Cleanup: ob_end_clean() [L58-61]"</span><span class="p">,</span>
+    <span class="s2">"Discards partial stray echo output before rethrowing Throwable"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"OB 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">trash</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ob_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"APPEND ('append') vs PREPEND ('prepend')"</span><span class="p">,</span>
+    <span class="s2">"APPEND writes to existing body; PREPEND creates new StreamFactory body"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"OB 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_fork</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ob_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"ContentLengthMiddleware::process() [L21-32]"</span><span class="p">,</span>
+    <span class="s2">"Injects Content-Length: $body-&gt;getSize() when header is absent"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Len"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">ruler</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ob_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: BodyParsingMiddleware &amp; MethodOverrideMiddleware (Request Path)</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Request-Side Middlewares (Body &amp; Method)"</span><span class="p">,</span>
+    <span class="s2">"BodyParsingMiddleware.php &amp; MethodOverrideMiddleware.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_in_line_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">req_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">req_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"BodyParsingMiddleware (JSON / Form / XML)"</span><span class="p">,</span>
+    <span class="s2">"Parses body when getParsedBody() is empty; supports +json/+xml (RFC 6839)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Body"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">req_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"XXE Protection in XML Body Parser [L120, 189]"</span><span class="p">,</span>
+    <span class="s2">"Guarded libxml_use_internal_errors(true) &amp; LIBXML_VERSION &gt;= 20900 check"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"XXE"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">req_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"MethodOverrideMiddleware Header [L26-29]"</span><span class="p">,</span>
+    <span class="s2">"Overrides request method from X-Http-Method-Override header"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Hdr"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">swap</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">req_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"MethodOverrideMiddleware POST _METHOD [L30-40]"</span><span class="p">,</span>
+    <span class="s2">"Reads getParsedBody()['_METHOD'] on POST &amp; rewinds body if at EOF"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"POST"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrow_counter_clockwise</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">req_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3><code>OutputBufferingMiddleware</code>: <code>APPEND</code> vs <code>PREPEND</code> (<code>Slim/Middleware/OutputBufferingMiddleware.php:52-74</code>)</h3>
+<p>If legacy PHP code or a third-party library uses <code>echo</code> or <code>print</code> directly during request handling, stray bytes sent to PHP's output buffer before <code>ResponseEmitter::emit()</code> can trigger <code>headers_sent() === true</code> or corrupt JSON responses. <code>OutputBufferingMiddleware</code> captures all stray output inside a nested output buffer:</p>
+<pre><code class="language-php"><span class="x">// Slim/Middleware/OutputBufferingMiddleware.php:52-74</span>
+<span class="x">public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    try {</span>
+<span class="x">        ob_start();</span>
+<span class="x">        $response = $handler-&gt;handle($request);</span>
+<span class="x">        $output = ob_get_clean();</span>
+<span class="x">    } catch (Throwable $e) {</span>
+<span class="x">        ob_end_clean();</span>
+<span class="x">        throw $e;</span>
+<span class="x">    }</span>
+
+<span class="x">    if (!empty($output)) {</span>
+<span class="x">        if ($this-&gt;style === static::PREPEND) {</span>
+<span class="x">            $body = $this-&gt;streamFactory-&gt;createStream();</span>
+<span class="x">            $body-&gt;write($output . $response-&gt;getBody());</span>
+<span class="x">            $response = $response-&gt;withBody($body);</span>
+<span class="x">        } elseif ($this-&gt;style === static::APPEND &amp;&amp; $response-&gt;getBody()-&gt;isWritable()) {</span>
+<span class="x">            $response-&gt;getBody()-&gt;write($output);</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    return $response;</span>
+<span class="x">}</span>
+</code></pre>
+<ul>
+<li><strong><code>OutputBufferingMiddleware::APPEND</code> (default, lines 68–70)</strong>: Appends captured <code>$output</code> to the existing <code>$response-&gt;getBody()</code> stream if <code>isWritable()</code> is <code>true</code>.</li>
+<li><strong><code>OutputBufferingMiddleware::PREPEND</code> (lines 64–67)</strong>: Allocates a fresh PSR-7 stream via <code>$this-&gt;streamFactory-&gt;createStream()</code>, writes <code>$output . $response-&gt;getBody()</code>, and returns <code>$response-&gt;withBody($body)</code>.</li>
+<li><strong>Exception Safety (lines 58–61)</strong>: If any downstream middleware or route throws a <code>Throwable</code>, <code>ob_end_clean()</code> discards the buffered output before rethrowing <code>$e</code> so <code>ErrorMiddleware</code> renders a clean error payload uncorrupted by partial output.</li>
+</ul>
+<h3>Summary of Companion Utility Middlewares</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Middleware Class (<code>Slim\Middleware\*</code>)</th>
+<th style="text-align:left">Source File &amp; LOC</th>
+<th style="text-align:left">Internal Mechanism &amp; Ordering Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>BodyParsingMiddleware</code></td>
+<td style="text-align:left"><code>Slim/Middleware/BodyParsingMiddleware.php</code> (<code>202</code> lines / <code>126</code> LOC)</td>
+<td style="text-align:left">Strips <code>; charset=...</code> parameters in <code>getMediaType()</code> (lines 177–187), checks exact <code>$this-&gt;bodyParsers[$mediaType]</code>, falls back to RFC 6839 <code>+suffix</code> (<code>application/vnd.api+json</code> -&gt; <code>application/json</code>, lines 150–156), and validates that the parser returns <code>array|object|null</code> (lines 162–166).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>MethodOverrideMiddleware</code></td>
+<td style="text-align:left"><code>Slim/Middleware/MethodOverrideMiddleware.php</code> (<code>45</code> lines / <code>31</code> LOC)</td>
+<td style="text-align:left">Inspects <code>X-Http-Method-Override</code> header first (lines 26–29), or inspects <code>$request-&gt;getParsedBody()['_METHOD']</code> on <code>POST</code> requests (lines 30–35). Must be placed <strong>outside</strong> <code>RoutingMiddleware</code> and <strong>inside</strong> <code>BodyParsingMiddleware</code> so <code>getParsedBody()</code> is already populated before <code>RoutingMiddleware</code> dispatches!</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>ContentLengthMiddleware</code></td>
+<td style="text-align:left"><code>Slim/Middleware/ContentLengthMiddleware.php</code> (<code>34</code> lines / <code>20</code> LOC)</td>
+<td style="text-align:left">Post-processes <code>$response = $handler-&gt;handle($request)</code> by reading <code>$size = $response-&gt;getBody()-&gt;getSize()</code> and attaching <code>Content-Length: (string) $size</code> when <code>hasHeader('Content-Length')</code> is <code>false</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Return to Overview or Explore Companion Portals</h2>
+<ul>
+<li>Return to the <strong><a href="../index.html">Architecture Overview</a></strong> to review the end-to-end PSR-15 pipeline.</li>
+<li>Visit the <strong><a href="https://slim.drawlib.com/">Slim 4 User Guide</a></strong> for production application patterns, <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong> for searchable class signatures, or the <strong><a href="https://slim.drawlib.com/reports/pni501/">PNI501 Diagnostic Report</a></strong> for the complete AST, PCOV coverage (<code>99.4%</code>), and security audit.</li>
+</ul>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial internal architecture guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

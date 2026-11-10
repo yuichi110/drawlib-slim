@@ -1,0 +1,33 @@
+[project]
+name = "api"
+type = "catalog"
+title = "Slim 4 API Reference"
+description = "Complete bilingual API reference for Slim Framework v4.15.3 — every public class, interface, factory, PSR-17 provider, router, PSR-15 middleware, invocation strategy, error renderer, and HTTP exception."
+style = "default"
+
+[i18n]
+default_lang = "en"
+langs = ["en", "ja"]
+
+[i18n.labels]
+en = "English"
+ja = "日本語"
+
+[i18n.descriptions]
+en = "Complete bilingual API reference for Slim Framework v4.15.3 — every public class, interface, factory, PSR-17 provider, router, PSR-15 middleware, invocation strategy, error renderer, and HTTP exception."
+ja = "Slim Framework v4.15.3 の完全 API リファレンス（非公式）：全公開クラス、インターフェース、AppFactory、PSR-17 プロバイダ、ルーティング、PSR-15 ミドルウェア、エラーレンダラ、HTTP 例外を網羅。"
+
+[catalog]
+sidebar_expanded = true
+breadcrumb_root = { en = "API Reference", ja = "API リファレンス" }
+badge_text = { en = "API Reference · v4.15.3", ja = "API リファレンス · v4.15.3" }
+badge_url = "index.html"
+repo_url = "https://github.com/slimphp/Slim"
+
+[seo]
+site_url = "https://slim.drawlib.com/api"
+og_image = "_assets/ogp.png"
+twitter_card = "summary_large_image"
+sitemap = true
+robots = true
+llms_txt = true

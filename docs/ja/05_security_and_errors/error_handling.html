@@ -1,0 +1,840 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErrorMiddleware とカスタム ErrorRenderer — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html">
+    
+    
+    
+    <meta name="description" content="Slim\Middleware\ErrorMiddleware は、Slim（v4.15.3）アプリケーションの最外層に位置する例外キャッチ境界です。LIFO（後入れ先出し）ミドルウェアパイプラインにおいて $app-&gt;addErrorMiddleware(...)…">
+    <link rel="canonical" href="https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 ユーザーガイド">
+    <meta property="og:title" content="ErrorMiddleware とカスタム ErrorRenderer — Slim 4 ユーザーガイド">
+    <meta property="og:description" content="Slim\Middleware\ErrorMiddleware は、Slim（v4.15.3）アプリケーションの最外層に位置する例外キャッチ境界です。LIFO（後入れ先出し）ミドルウェアパイプラインにおいて $app-&gt;addErrorMiddleware(...)…">
+    <meta property="og:url" content="https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html">
+    <meta property="og:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ErrorMiddleware とカスタム ErrorRenderer — Slim 4 ユーザーガイド">
+    <meta name="twitter:description" content="Slim\Middleware\ErrorMiddleware は、Slim（v4.15.3）アプリケーションの最外層に位置する例外キャッチ境界です。LIFO（後入れ先出し）ミドルウェアパイプラインにおいて $app-&gt;addErrorMiddleware(...)…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">UNOFFICIAL GUIDE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）非公式ユーザーガイド
+            </span>
+            <span class="demo-banner-links">
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 ユーザーガイド">
+                    
+                    Slim 4 ユーザーガイド
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >ガイド概要</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. イントロ &amp; クイックスタート</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Slim 4 の設計思想と PSR 標準</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >クイックスタートと基本ミドルウェア</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. 実践アーキテクチャ &amp; DI 設計</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >モジュラー設計と Action コントローラ</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 コンテナと Callable 解決</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. ルーティング・グループ・呼び出し戦略</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute パターン・グループ・キャッシュ</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >呼び出し戦略（Strategy）と RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 メッセージ &amp; ミドルウェア</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/requests_and_responses.html" >PSR-7 リクエスト・レスポンス・ストリーム</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/middleware_pipeline.html" >PSR-15 同心円 LIFO ミドルウェアパイプライン</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. セキュリティ・CORS・例外ハンドリング</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="auth_and_cors.html" >JWT 認証・RBAC 認可・CORS 設計</a>
+                            </li>
+                            
+                            <li class="nav-item active">
+                                <a href="error_handling.html" >ErrorMiddleware とカスタム ErrorRenderer</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. 実践テスト &amp; 本番デプロイ運用</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >PHPUnit によるインメモリ HTTP テスト</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx + PHP-FPM と常駐ワーカー運用</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">関連ガイド &amp; 公式リンク</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API リファレンス<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 内部アーキテクチャ解説<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 監査レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Slim 4 公式ドキュメント<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub リポジトリ<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">ErrorMiddleware とカスタム ErrorRenderer</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">日本語</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="../../en/05_security_and_errors/error_handling.html" class="lang-option" lang="en" hreflang="en" >
+                                <span>English</span>
+                                
+                            </a>
+                            
+                            <a href="error_handling.html" class="lang-option active" lang="ja" hreflang="ja" aria-current="page">
+                                <span>日本語</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>ErrorMiddleware とカスタム ErrorRenderer</h1>
+<p><code>Slim\Middleware\ErrorMiddleware</code> は、Slim（<code>v4.15.3</code>）アプリケーションの最外層に位置する例外キャッチ境界です。LIFO（後入れ先出し）ミドルウェアパイプラインにおいて <code>$app-&gt;addErrorMiddleware(...)</code> を最後に登録することで最初に実行され、内側のすべての処理を <code>try / catch (Throwable $e)</code> でラップします。例外捕捉時には <code>HttpException</code> から最新の <code>ServerRequestInterface</code> を取り出し、型に応じた <code>ErrorHandlerInterface</code> の解決、<strong>PSR-3</strong> <code>LoggerInterface</code> へのエラーログ出力、そして <code>Accept</code> ヘッダに基づくコンテンツネゴシエーション（<code>JSON</code> / <code>XML</code> / <code>HTML</code> / <code>PlainText</code>）を一貫して実行します。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/error_handling/error_middleware_dispatch_ja.png" alt="error_handling_1" />
+  <figcaption class="drawlib-caption">Slim 4 ErrorMiddleware & ErrorHandler パイプライン — 例外ハンドラ解決・Accept ネゴシエーション・PSR-3 ログ出力</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim v4.15.3 ErrorMiddleware -&gt; ErrorHandler -&gt; ErrorRendererInterface 処理フロー"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">warning_octagon</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. catch (Throwable)"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"ErrorMiddleware"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. getErrorHandler()"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"完全一致 / 継承 / 既定"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Status &amp; Accept"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"HttpException / +json"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. writeToErrorLog()"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"PSR-3 LoggerInterface"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. ErrorRenderer"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"JSON / XML / HTML / Text"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">41.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">19.5</span><span class="p">)</span>
+
+<span class="n">cards</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"ハンドラ解決の優先順位"</span><span class="p">,</span>
+    <span class="s2">"1. 完全一致 -&gt; 2. 継承一致</span><span class="se">\n</span><span class="s2">-&gt; 3. デフォルト ErrorHandler"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Accept ネゴシエーション"</span><span class="p">,</span>
+    <span class="s2">"application/json, +(json|xml)</span><span class="se">\n</span><span class="s2">xml, html, text/plain"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">sliders_horizontal</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2 系統の Renderer 出力"</span><span class="p">,</span>
+    <span class="s2">"HTTP 応答用 Renderer</span><span class="se">\n</span><span class="s2">+ logErrorRenderer (PSR-3)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">29.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>ErrorMiddleware による例外捕捉とハンドラ解決</h2>
+<p><code>ErrorMiddleware::process()</code> が <code>Throwable</code> をキャッチすると、<code>handleException(ServerRequestInterface $request, Throwable $exception)</code> が呼び出されます。捕捉された例外が <code>Slim\Exception\HttpException</code> のインスタンスである場合、<code>ErrorMiddleware</code> は <code>$request = $exception-&gt;getRequest()</code> によって例外発生直前の最新リクエスト（内側のミドルウェアが付与した属性を含む）を復元します。その後、<code>getErrorHandler(string $type)</code> が以下の 4 段階の優先順位でエラーハンドラを解決します。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">解決優先順位</th>
+<th style="text-align:left">内部ルックアップ処理</th>
+<th style="text-align:left">ハンドラ登録メソッド</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>1. 例外クラスの完全一致</strong></td>
+<td style="text-align:left"><code>isset($this-&gt;handlers[$type])</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler($class, $handler, false)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>2. サブクラス登録の直接一致</strong></td>
+<td style="text-align:left"><code>isset($this-&gt;subClassHandlers[$type])</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler($baseClass, $handler, true)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>3. 親クラス階層の走査</strong></td>
+<td style="text-align:left"><code>foreach ($this-&gt;subClassHandlers) { is_subclass_of($type, $class) }</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler(DomainException::class, $handler, true)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>4. デフォルトハンドラ</strong></td>
+<td style="text-align:left"><code>$this-&gt;getDefaultErrorHandler()</code>（<code>Slim\Handlers\ErrorHandler</code> を遅延生成）</td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setDefaultErrorHandler($customDefaultHandler)</code></td>
+</tr>
+</tbody>
+</table>
+<p>登録されたハンドラ（クロージャ、PSR-11 コンテナのサービス ID 文字列、または <code>ErrorHandlerInterface</code> 実装クラス）は <code>CallableResolverInterface</code> によって解決され、5 つの引数 <code>(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails): ResponseInterface</code> で呼び出されます。</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">App\Domain\Exception\DomainValidationException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Http\Error\ValidationErrorHandler</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Log\LoggerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">createFromContainer</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+
+<span class="c1">// BodyParsingMiddleware と RoutingMiddleware を先に追加し、最後に ErrorMiddleware で全体を包む</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+
+<span class="sd">/** @var LoggerInterface $logger */</span>
+<span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">LoggerInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span>
+    <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span> <span class="c1">// 本番環境ではクライアントへスタックトレースを露出しない</span>
+    <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>            <span class="c1">// PSR-3 LoggerInterface へのエラーログ出力を有効化</span>
+    <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>      <span class="c1">// ログ側にはファイル名・行番号・例外チェーン詳細を記録</span>
+    <span class="nx">logger</span><span class="o">:</span> <span class="nv">$logger</span>
+<span class="p">);</span>
+
+<span class="c1">// DomainValidationException（およびその全サブクラス）を専用のハンドラへルーティング：</span>
+<span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">setErrorHandler</span><span class="p">(</span>
+    <span class="nx">DomainValidationException</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+    <span class="nx">ValidationErrorHandler</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+    <span class="nx">handleSubclasses</span><span class="o">:</span> <span class="k">true</span>
+<span class="p">);</span>
+</code></pre>
+<h2>HttpException と HttpSpecializedException クラス階層</h2>
+<p>Slim 4 は HTTP ステータスエラーを、PHP 標準の <code>RuntimeException</code> を継承した <code>Slim\Exception\HttpException</code> と抽象クラス <code>Slim\Exception\HttpSpecializedException</code> による明確なクラス階層として表現します。基底の <code>HttpException::__construct(ServerRequestInterface $request, string $message = '', int $code = 0, ?Throwable $previous = null)</code> で任意のステータスコードを指定できるほか、<strong>9 つの具象 <code>HttpSpecializedException</code> サブクラス</strong>には標準ステータスコード（<code>400</code>〜<code>501</code>）、タイトル（<code>getTitle()</code>）、説明文（<code>getDescription()</code>）があらかじめ定義されています。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/error_handling/http_exception_hierarchy_ja.png" alt="error_handling_2" />
+  <figcaption class="drawlib-caption">Slim 4 HttpException & HttpSpecializedException クラス階層 — 9 つの組み込み HTTP ステータス例外（400〜501）</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpException -&gt; HttpSpecializedException クラス階層 (v4.15.3)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">tree_structure</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">68.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">11.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.8</span><span class="p">))</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">),</span>
+    <span class="s2">"RuntimeException  --&gt;  Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpException  --&gt;  Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpSpecializedException"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">65.0</span><span class="p">),</span>
+    <span class="s2">"ServerRequestInterface $request, int $code, string $message, string $title, string $description を保持"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">row1</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpBadRequest</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"400 不正リクエスト"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"400"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpUnauthorized</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"401 認証エラー"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"401"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpForbidden</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"403 権限不足"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"403"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"HttpNotFound</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span>
+    <span class="s2">"404 ルート未検出"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"404"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpMethodNotAllowed</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"405 + Allow ヘッダ"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"405"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">23.5</span><span class="p">)</span>
+
+<span class="n">row2</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpGone</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"410 恒久的に廃止"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"410"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpTooManyRequests</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"429 レート制限超過"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"429"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"HttpInternalServerError</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span>
+    <span class="s2">"500 サーバー内部エラー"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"500"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpNotImplemented</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"501 未実装機能"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"501"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">23.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<p><code>Slim\Exception\</code> に含まれる 9 つの具象例外クラスのステータスコード、既定の <code>$message</code> / <code>$title</code>、および固有メソッドの一覧は以下の通りです。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">例外クラス（<code>Slim\Exception\*</code>）</th>
+<th style="text-align:left">コード</th>
+<th style="text-align:left">既定の <code>$message</code></th>
+<th style="text-align:left">既定の <code>$title</code></th>
+<th style="text-align:left">固有メソッド・フレームワーク内での利用箇所</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>HttpBadRequestException</code></td>
+<td style="text-align:left"><code>400</code></td>
+<td style="text-align:left"><code>'Bad request.'</code></td>
+<td style="text-align:left"><code>'400 Bad Request'</code></td>
+<td style="text-align:left">クエリ・ヘッダ・リクエストボディの形式不正時にスロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpUnauthorizedException</code></td>
+<td style="text-align:left"><code>401</code></td>
+<td style="text-align:left"><code>'Unauthorized.'</code></td>
+<td style="text-align:left"><code>'401 Unauthorized'</code></td>
+<td style="text-align:left">認証トークンの欠落・署名不正・有効期限切れ時にスロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpForbiddenException</code></td>
+<td style="text-align:left"><code>403</code></td>
+<td style="text-align:left"><code>'Forbidden.'</code></td>
+<td style="text-align:left"><code>'403 Forbidden'</code></td>
+<td style="text-align:left">認証済みユーザーのロールやスコープ権限が不足している際にスロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpNotFoundException</code></td>
+<td style="text-align:left"><code>404</code></td>
+<td style="text-align:left"><code>'Not found.'</code></td>
+<td style="text-align:left"><code>'404 Not Found'</code></td>
+<td style="text-align:left"><code>RoutingMiddleware</code> が <code>RoutingResults::NOT_FOUND</code> 時に自動スロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpMethodNotAllowedException</code></td>
+<td style="text-align:left"><code>405</code></td>
+<td style="text-align:left"><code>'Method not allowed.'</code></td>
+<td style="text-align:left"><code>'405 Method Not Allowed'</code></td>
+<td style="text-align:left"><code>RoutingMiddleware</code> が自動スロー。<code>setAllowedMethods(string[])</code> の値が <code>ErrorHandler::respond()</code> で <code>Allow</code> レスポンスヘッダに出力される</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpGoneException</code></td>
+<td style="text-align:left"><code>410</code></td>
+<td style="text-align:left"><code>'Gone.'</code></td>
+<td style="text-align:left"><code>'410 Gone'</code></td>
+<td style="text-align:left">廃止された API バージョンや恒久削除されたリソースへのアクセス時にスロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpTooManyRequestsException</code></td>
+<td style="text-align:left"><code>429</code></td>
+<td style="text-align:left"><code>'Too many requests.'</code></td>
+<td style="text-align:left"><code>'429 Too Many Requests'</code></td>
+<td style="text-align:left">レート制限ミドルウェアでリクエスト上限を超過した際にスロー</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpInternalServerErrorException</code></td>
+<td style="text-align:left"><code>500</code></td>
+<td style="text-align:left"><code>'Internal server error.'</code></td>
+<td style="text-align:left"><code>'500 Internal Server Error'</code></td>
+<td style="text-align:left">明示的な <code>500</code> 例外（一般の <code>Throwable</code> も <code>500</code> として処理される）</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpNotImplementedException</code></td>
+<td style="text-align:left"><code>501</code></td>
+<td style="text-align:left"><code>'Not implemented.'</code></td>
+<td style="text-align:left"><code>'501 Not Implemented'</code></td>
+<td style="text-align:left">エンドポイントや HTTP メソッドが未実装の際にスロー</td>
+</tr>
+</tbody>
+</table>
+<p>任意の <code>HttpException</code> インスタンスは、スローする前に <code>setTitle()</code> および <code>setDescription()</code> でクライアント向けのタイトルと説明文をカスタマイズできます。</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpGoneException</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/api/v1/legacy-export'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">ResponseInterface</span> <span class="nv">$response</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+    <span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HttpGoneException</span><span class="p">(</span>
+        <span class="nv">$request</span><span class="p">,</span>
+        <span class="s1">'The /api/v1/legacy-export endpoint was decommissioned on 2026-01-01.'</span>
+    <span class="p">);</span>
+    <span class="nv">$exception</span>
+        <span class="o">-&gt;</span><span class="na">setTitle</span><span class="p">(</span><span class="s1">'410 Endpoint Decommissioned'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">setDescription</span><span class="p">(</span><span class="s1">'Migrate to POST /api/v2/exports for asynchronous CSV/Parquet exports.'</span><span class="p">);</span>
+
+    <span class="k">throw</span> <span class="nv">$exception</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+<h2>Accept ヘッダによるコンテンツネゴシエーションと組み込み Renderer</h2>
+<p><code>Slim\Handlers\ErrorHandler</code>（デフォルトの <code>ErrorHandlerInterface</code> 実装）は、<code>determineContentType()</code> メソッド内でリクエストの <code>Accept</code> ヘッダを解析し、<code>$this-&gt;errorRenderers</code> に登録された 4 種類の組み込み <code>ErrorRendererInterface</code> から最適なレンダラを選択します。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">一致する <code>Accept</code> ヘッダ / サフィックス</th>
+<th style="text-align:left">組み込み Renderer（<code>Slim\Error\Renderers\*</code>）</th>
+<th style="text-align:left">出力フォーマット（<code>displayErrorDetails: false</code> / <code>true</code>）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>application/json</code> または <code>+*json</code>（<code>application/problem+json</code>, <code>application/vnd.api+json</code> 等）</td>
+<td style="text-align:left"><code>JsonErrorRenderer</code></td>
+<td style="text-align:left"><code>{ &quot;message&quot;: &quot;&lt;title&gt;&quot; }</code>（<code>true</code> 時は <code>&quot;exception&quot;: [{ &quot;type&quot;, &quot;code&quot;, &quot;message&quot;, &quot;file&quot;, &quot;line&quot; }]</code> を追加）</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>application/xml</code>, <code>text/xml</code>, または <code>+*xml</code></td>
+<td style="text-align:left"><code>XmlErrorRenderer</code></td>
+<td style="text-align:left"><code>&lt;error&gt;&lt;message&gt;...&lt;/message&gt;&lt;exception&gt;...&lt;/exception&gt;&lt;/error&gt;</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>text/html</code> <em>（未一致時のデフォルト）</em></td>
+<td style="text-align:left"><code>HtmlErrorRenderer</code></td>
+<td style="text-align:left"><code>&lt;title&gt;</code> と説明文（<code>true</code> 時はスタックトレース）を含む HTML ドキュメント</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>text/plain</code> <em>（<code>$logErrorRenderer</code> の既定値）</em></td>
+<td style="text-align:left"><code>PlainTextErrorRenderer</code></td>
+<td style="text-align:left">プレーンテキスト形式のエラー要約と例外チェーン文字列</td>
+</tr>
+</tbody>
+</table>
+<p>JSON API を構築する際は、<code>ErrorHandler</code> の以下の 2 つの仕様を把握しておくと非常に便利です。</p>
+<ul>
+<li><strong>構造化構文サフィックス（<code>/\+(json|xml)/</code>）の自動判定</strong>: クライアントが <code>Accept: application/problem+json</code> や <code>Accept: application/vnd.api+json</code> を送信した場合、<code>$errorRenderers</code> に完全一致するキーが登録されていなくても、正規表現 <code>/\+(json|xml)/</code> によって <code>application/json</code>（または <code>application/xml</code>）へ自動的にフォールバックします。</li>
+<li><strong>JSON 専用 API での <code>forceContentType()</code></strong>: ブラウザからの直接アクセスや <code>Accept: */*</code> を伴うリクエストでは、既定の <code>text/html</code>（<code>HtmlErrorRenderer</code>）が選択されます。API サーバーで常に JSON エラーを返したい場合は、<code>$errorHandler-&gt;forceContentType('application/json')</code> または <code>$errorHandler-&gt;setDefaultErrorRenderer('application/json', JsonErrorRenderer::class)</code> を呼び出します。</li>
+</ul>
+<h2>RFC 9457 Problem Details カスタム Renderer と PSR-3 ログ連携</h2>
+<p>モダンな REST API で標準化されている <strong>RFC 9457 Problem Details for HTTP APIs</strong>（<code>application/problem+json</code>：<code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code> フィールドを持つ JSON 形式）は、<code>Slim\Interfaces\ErrorRendererInterface</code>（または <code>Slim\Error\AbstractErrorRenderer</code>）を実装し、<code>ErrorHandler</code> に登録するだけで導入できます。</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Error</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">ProblemDetailsErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span>
+    <span class="p">{</span>
+        <span class="nv">$status</span> <span class="o">=</span> <span class="nv">$exception</span> <span class="nx">instanceof</span> <span class="nx">HttpException</span> <span class="o">?</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getCode</span><span class="p">()</span> <span class="o">:</span> <span class="mi">500</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$status</span> <span class="o">&lt;</span> <span class="mi">400</span> <span class="o">||</span> <span class="nv">$status</span> <span class="o">&gt;</span> <span class="mi">599</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$status</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nv">$problem</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">'type'</span> <span class="o">=&gt;</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'https://httpstatuses.io/%d'</span><span class="p">,</span> <span class="nv">$status</span><span class="p">),</span>
+            <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorTitle</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+            <span class="s1">'status'</span> <span class="o">=&gt;</span> <span class="nv">$status</span><span class="p">,</span>
+            <span class="s1">'detail'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorDescription</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+        <span class="p">];</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$exception</span> <span class="nx">instanceof</span> <span class="nx">HttpException</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$problem</span><span class="p">[</span><span class="s1">'instance'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getRequest</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getUri</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getPath</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$displayErrorDetails</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$problem</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">'exception'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+                <span class="s1">'message'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">(),</span>
+                <span class="s1">'file'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getFile</span><span class="p">(),</span>
+                <span class="s1">'line'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getLine</span><span class="p">(),</span>
+            <span class="p">];</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nb">json_encode</span><span class="p">(</span>
+            <span class="nv">$problem</span><span class="p">,</span>
+            <span class="nx">JSON_PRETTY_PRINT</span> <span class="o">|</span> <span class="nx">JSON_UNESCAPED_SLASHES</span> <span class="o">|</span> <span class="nx">JSON_INVALID_UTF8_SUBSTITUTE</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// ErrorHandler への ProblemDetailsErrorRenderer 登録と PSR-3 ロガーの注入：</span>
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span>
+    <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span>
+    <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+    <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+    <span class="nx">logger</span><span class="o">:</span> <span class="nv">$monologLogger</span>
+<span class="p">);</span>
+
+<span class="sd">/** @var \Slim\Handlers\ErrorHandler $errorHandler */</span>
+<span class="nv">$errorHandler</span> <span class="o">=</span> <span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">getDefaultErrorHandler</span><span class="p">();</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">registerErrorRenderer</span><span class="p">(</span><span class="s1">'application/problem+json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">registerErrorRenderer</span><span class="p">(</span><span class="s1">'application/json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">setDefaultErrorRenderer</span><span class="p">(</span><span class="s1">'application/problem+json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+</code></pre>
+<p>認証・認可・CORS（<a href="auth_and_cors.html">JWT 認証・RBAC 認可・CORS 設計</a>）と構造化エラーハンドリングが揃ったら、次は <strong><a href="../06_testing_and_deployment/phpunit_testing.html">第 6 章：PHPUnit によるインメモリ HTTP テスト</a></strong> に進み、正常系レスポンスと <code>HttpSpecializedException</code> エラー応答をソケット通信なしで高速に自動検証する方法を学びましょう。本番環境でのエラーログ設計や設定については <strong><a href="../06_testing_and_deployment/production_deployment.html">Nginx + PHP-FPM と常駐ワーカー運用</a></strong> および <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 Internal Architecture</a></strong> も参照してください。</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式ガイドであり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

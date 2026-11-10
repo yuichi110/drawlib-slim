@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://slim.drawlib.com/api/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/00_overview.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/00_overview.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/00_overview.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/00_overview.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/01_app_and_factories.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/01_app_and_factories.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/01_app_and_factories.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/01_app_and_factories.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/02_psr17_providers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/02_psr17_providers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/02_psr17_providers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/02_psr17_providers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/03_routing.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/03_routing.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/03_routing.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/03_routing.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/04_middleware.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/04_middleware.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/04_middleware.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/04_middleware.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/05_handlers_and_strategies.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/06_error_renderers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/06_error_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/06_error_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/06_error_renderers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/07_exceptions.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/07_exceptions.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/07_exceptions.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/07_exceptions.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/en/08_interfaces.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/08_interfaces.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/08_interfaces.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/08_interfaces.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/00_overview.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/00_overview.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/00_overview.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/00_overview.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/01_app_and_factories.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/01_app_and_factories.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/01_app_and_factories.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/01_app_and_factories.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/02_psr17_providers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/02_psr17_providers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/02_psr17_providers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/02_psr17_providers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/03_routing.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/03_routing.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/03_routing.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/03_routing.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/04_middleware.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/04_middleware.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/04_middleware.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/04_middleware.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/05_handlers_and_strategies.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/06_error_renderers.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/06_error_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/06_error_renderers.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/06_error_renderers.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/07_exceptions.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/07_exceptions.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/07_exceptions.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/07_exceptions.html" />
+  </url>
+  <url>
+    <loc>https://slim.drawlib.com/api/ja/08_interfaces.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/08_interfaces.html" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/08_interfaces.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/08_interfaces.html" />
+  </url>
+</urlset>

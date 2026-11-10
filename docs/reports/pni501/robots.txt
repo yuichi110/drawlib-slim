@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://slim.drawlib.com/reports/pni501/sitemap.xml

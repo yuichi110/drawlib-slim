@@ -1,0 +1,791 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSR-7 リクエスト・レスポンス・ストリーム — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html">
+    
+    
+    
+    <meta name="description" content="Slim v4.15.3 は、PSR-7 HTTP Message Interface（Psr\Http\Message\ServerRequestInterface、ResponseInterface、StreamInterface、UploadedFileInterface）および PSR-17 HTTP…">
+    <link rel="canonical" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 ユーザーガイド">
+    <meta property="og:title" content="PSR-7 リクエスト・レスポンス・ストリーム — Slim 4 ユーザーガイド">
+    <meta property="og:description" content="Slim v4.15.3 は、PSR-7 HTTP Message Interface（Psr\Http\Message\ServerRequestInterface、ResponseInterface、StreamInterface、UploadedFileInterface）および PSR-17 HTTP…">
+    <meta property="og:url" content="https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html">
+    <meta property="og:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PSR-7 リクエスト・レスポンス・ストリーム — Slim 4 ユーザーガイド">
+    <meta name="twitter:description" content="Slim v4.15.3 は、PSR-7 HTTP Message Interface（Psr\Http\Message\ServerRequestInterface、ResponseInterface、StreamInterface、UploadedFileInterface）および PSR-17 HTTP…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">UNOFFICIAL GUIDE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）非公式ユーザーガイド
+            </span>
+            <span class="demo-banner-links">
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 ユーザーガイド">
+                    
+                    Slim 4 ユーザーガイド
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >ガイド概要</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. イントロ &amp; クイックスタート</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Slim 4 の設計思想と PSR 標準</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >クイックスタートと基本ミドルウェア</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. 実践アーキテクチャ &amp; DI 設計</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >モジュラー設計と Action コントローラ</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 コンテナと Callable 解決</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. ルーティング・グループ・呼び出し戦略</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute パターン・グループ・キャッシュ</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >呼び出し戦略（Strategy）と RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 メッセージ &amp; ミドルウェア</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="requests_and_responses.html" >PSR-7 リクエスト・レスポンス・ストリーム</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="middleware_pipeline.html" >PSR-15 同心円 LIFO ミドルウェアパイプライン</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. セキュリティ・CORS・例外ハンドリング</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/auth_and_cors.html" >JWT 認証・RBAC 認可・CORS 設計</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/error_handling.html" >ErrorMiddleware とカスタム ErrorRenderer</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. 実践テスト &amp; 本番デプロイ運用</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >PHPUnit によるインメモリ HTTP テスト</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx + PHP-FPM と常駐ワーカー運用</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">関連ガイド &amp; 公式リンク</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API リファレンス<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 内部アーキテクチャ解説<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 監査レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Slim 4 公式ドキュメント<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub リポジトリ<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">PSR-7 リクエスト・レスポンス・ストリーム</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">日本語</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="../../en/04_psr7_and_middleware/requests_and_responses.html" class="lang-option" lang="en" hreflang="en" >
+                                <span>English</span>
+                                
+                            </a>
+                            
+                            <a href="requests_and_responses.html" class="lang-option active" lang="ja" hreflang="ja" aria-current="page">
+                                <span>日本語</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>PSR-7 リクエスト・レスポンス・ストリーム</h1>
+<p>Slim v4.15.3 は、<strong>PSR-7 HTTP Message Interface</strong>（<code>Psr\Http\Message\ServerRequestInterface</code>、<code>ResponseInterface</code>、<code>StreamInterface</code>、<code>UploadedFileInterface</code>）および <strong>PSR-17 HTTP Factories</strong>（<code>ResponseFactoryInterface</code>、<code>StreamFactoryInterface</code>）の上に直接構築されています。HTTP メッセージの状態を PHP のスーパーグローバル変数（<code>$_GET</code>、<code>$_POST</code>、<code>$_SERVER</code>、<code>header()</code>、<code>echo</code>）から完全に分離しているため、PHP-FPM、CLI 上の PHPUnit インメモリテスト、常駐ワーカーランタイムのいずれにおいても、すべてのミドルウェアとルートハンドラは予測可能でテスト容易な値オブジェクト（Value Object）として動作します。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/requests_and_responses/psr7_immutability_streams_ja.png" alt="requests_and_responses_1" />
+  <figcaption class="drawlib-caption">Slim v4.15.3 における PSR-7 メッセージフロー — Clone-on-Write による不変エンベロープと StreamInterface バッファ</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">74</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim v4.15.3 — PSR-7 ServerRequest・BodyParsing・Response・ResponseEmitter"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_left_right</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">184.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">66.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.3</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. ServerRequest</span><span class="se">\n</span><span class="s2">生成"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"PSR-17 ファクトリ"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. BodyParsing</span><span class="se">\n</span><span class="s2">ミドルウェア"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"withParsedBody()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. ルートハンドラ</span><span class="se">\n</span><span class="s2">&amp; ストリーム書込"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"getBody()-&gt;write()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.3</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. Response</span><span class="se">\n</span><span class="s2">Clone-on-Write"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"withStatus/Header()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. Response</span><span class="se">\n</span><span class="s2">Emitter 送出"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"ヘッダ + 4KB チャンク"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">38.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">176.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">51.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">copy</span><span class="p">((</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"イミュータブルなメッセージ（with* メソッド）"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• withHeader(), withStatus(), withAttribute() は複製を返却"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• 必ず戻り値を再代入： $response = withStatus(201)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">141.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">hard_drive</span><span class="p">((</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">110.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"ストリームバッファ（StreamInterface）"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• $response-&gt;getBody()-&gt;write() は php://temp へ直接追記"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• ResponseEmitter が 4096 バイト単位で省メモリ送出"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>PSR-7 のイミュータビリティ（不変性）と Clone-on-Write 原則</h2>
+<p>PSR-7 において、<code>ServerRequestInterface</code> と <code>ResponseInterface</code> はどちらも**イミュータブルな値オブジェクト（Immutable Value Object）**として定義されています。<code>withHeader()</code>、<code>withAddedHeader()</code>、<code>withStatus()</code>、<code>withAttribute()</code>、<code>withParsedBody()</code> などの <code>with*()</code> メソッドは、元のオブジェクトを変更せず内部で <code>clone $this</code> を実行し、<strong>変更が適用された新しいインスタンス</strong>を返します。一方、<code>$response-&gt;getBody()</code> が返す <code>StreamInterface</code> は基盤となる I/O リソース（<code>php://temp</code> やファイルストリーム）へのハンドルであり、<code>write()</code> 呼び出し時にバッファへ直接書き込まれます。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">PSR-7 インターフェース &amp; メソッド</th>
+<th style="text-align:left">変更モデル</th>
+<th style="text-align:left">戻り値と実装上のルール</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$request-&gt;withAttribute(string $name, $value)</code></td>
+<td style="text-align:left"><strong>イミュータブル（Clone-on-Write）</strong></td>
+<td style="text-align:left">新しい <code>ServerRequestInterface</code> を返却。必ず <code>$request = ...</code> で再代入する</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$request-&gt;withParsedBody($data)</code></td>
+<td style="text-align:left"><strong>イミュータブル（Clone-on-Write）</strong></td>
+<td style="text-align:left">解析済みボディを持つ新しい <code>ServerRequestInterface</code> を返却</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withStatus(int $code, string $reason = '')</code></td>
+<td style="text-align:left"><strong>イミュータブル（Clone-on-Write）</strong></td>
+<td style="text-align:left">新しい <code>ResponseInterface</code> を返却。再代入またはそのまま <code>return</code> する</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withHeader(string $name, $value)</code></td>
+<td style="text-align:left"><strong>イミュータブル（Clone-on-Write）</strong></td>
+<td style="text-align:left">同名ヘッダ（大文字小文字非依存）を上書きした新しいクローンを返却</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withAddedHeader(string $name, $value)</code></td>
+<td style="text-align:left"><strong>イミュータブル（Clone-on-Write）</strong></td>
+<td style="text-align:left">既存の同名ヘッダを維持したまま値を追加（複数の <code>Set-Cookie</code> 等）</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;getBody()-&gt;write(string $string)</code></td>
+<td style="text-align:left"><strong>ストリームリソースへの直接追記</strong></td>
+<td style="text-align:left">書き込んだバイト数（<code>int</code>）を返却。共有 <code>StreamInterface</code> バッファを更新</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!CAUTION]
+<strong>典型的なバグ：<code>withHeader()</code> の戻り値の破棄</strong>: <code>$response-&gt;withHeader('Content-Type', 'application/json');</code> のように戻り値を変数へ代入せず単独の文として呼び出すと、せっかく生成された新しいクローンが破棄され、レスポンスヘッダが一切反映されません。必ず <code>return $response-&gt;withStatus(201)-&gt;withHeader('Content-Type', 'application/json');</code> のようにメソッドチェーンで返すか、<code>$response = $response-&gt;withHeader(...)</code> で再代入してください。</p>
+</blockquote>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/items'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'created'</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+    <span class="c1">// StreamInterface::write() は内部ストリームバッファへ直接書き込む</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+
+    <span class="c1">// 誤り（クローンが破棄されステータスもヘッダも反映されない）:</span>
+    <span class="c1">// $response-&gt;withStatus(201);</span>
+    <span class="c1">// $response-&gt;withHeader('Content-Type', 'application/json');</span>
+
+    <span class="c1">// 正解: クローンされた ResponseInterface をチェーンして return する</span>
+    <span class="k">return</span> <span class="nv">$response</span>
+        <span class="o">-&gt;</span><span class="na">withStatus</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withAddedHeader</span><span class="p">(</span><span class="s1">'X-Cache-Tag'</span><span class="p">,</span> <span class="s1">'items'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withAddedHeader</span><span class="p">(</span><span class="s1">'X-Cache-Tag'</span><span class="p">,</span> <span class="s1">'catalog'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2>クエリ・ヘッダ・Cookie・属性・アップロードファイルの取得</h2>
+<p>Slim のコントローラやミドルウェア内では <code>$_GET</code>、<code>$_POST</code>、<code>$_COOKIE</code>、<code>$_FILES</code>、<code>$_SERVER</code> を直接参照せず、必ず <code>ServerRequestInterface</code> のメソッド経由で取得します。これにより PHPUnit によるインメモリテストでも本番とまったく同じコードが動作します。</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\UploadedFileInterface</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/documents'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="c1">// 1. クエリパラメータ (?page=2&amp;limit=20)</span>
+    <span class="nv">$queryParams</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getQueryParams</span><span class="p">();</span>
+    <span class="nv">$page</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="p">(</span><span class="nv">$queryParams</span><span class="p">[</span><span class="s1">'page'</span><span class="p">]</span> <span class="o">??</span> <span class="mi">1</span><span class="p">));</span>
+
+    <span class="c1">// 2. 大文字・小文字を区別しない HTTP ヘッダ取得</span>
+    <span class="nv">$requestId</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'X-Request-Id'</span><span class="p">)</span> <span class="o">?:</span> <span class="nb">bin2hex</span><span class="p">(</span><span class="nb">random_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
+    <span class="nv">$clientIp</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getServerParams</span><span class="p">()[</span><span class="s1">'REMOTE_ADDR'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'127.0.0.1'</span><span class="p">;</span>
+
+    <span class="c1">// 3. Cookie および前段の認証ミドルウェアが注入したリクエスト属性</span>
+    <span class="nv">$sessionCookie</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getCookieParams</span><span class="p">()[</span><span class="s1">'session_id'</span><span class="p">]</span> <span class="o">??</span> <span class="k">null</span><span class="p">;</span>
+    <span class="nv">$actorId</span> <span class="o">=</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'authenticated_user_id'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// 4. PSR-7 UploadedFileInterface による安全なファイルアップロード処理</span>
+    <span class="nv">$uploadedFiles</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getUploadedFiles</span><span class="p">();</span>
+    <span class="sd">/** @var UploadedFileInterface|null $attachment */</span>
+    <span class="nv">$attachment</span> <span class="o">=</span> <span class="nv">$uploadedFiles</span><span class="p">[</span><span class="s1">'document'</span><span class="p">]</span> <span class="o">??</span> <span class="k">null</span><span class="p">;</span>
+    <span class="nv">$savedFilename</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$attachment</span> <span class="o">!==</span> <span class="k">null</span> <span class="o">&amp;&amp;</span> <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">getError</span><span class="p">()</span> <span class="o">===</span> <span class="nx">UPLOAD_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$extension</span> <span class="o">=</span> <span class="nb">pathinfo</span><span class="p">((</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">getClientFilename</span><span class="p">(),</span> <span class="nx">PATHINFO_EXTENSION</span><span class="p">);</span>
+        <span class="nv">$savedFilename</span> <span class="o">=</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'%s.%s'</span><span class="p">,</span> <span class="nb">bin2hex</span><span class="p">(</span><span class="nb">random_bytes</span><span class="p">(</span><span class="mi">12</span><span class="p">)),</span> <span class="nv">$extension</span> <span class="o">?:</span> <span class="s1">'bin'</span><span class="p">);</span>
+        <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">moveTo</span><span class="p">(</span><span class="s1">'/var/data/uploads/'</span> <span class="o">.</span> <span class="nv">$savedFilename</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span>
+        <span class="s1">'page'</span> <span class="o">=&gt;</span> <span class="nv">$page</span><span class="p">,</span>
+        <span class="s1">'request_id'</span> <span class="o">=&gt;</span> <span class="nv">$requestId</span><span class="p">,</span>
+        <span class="s1">'client_ip'</span> <span class="o">=&gt;</span> <span class="nv">$clientIp</span><span class="p">,</span>
+        <span class="s1">'has_session'</span> <span class="o">=&gt;</span> <span class="nv">$sessionCookie</span> <span class="o">!==</span> <span class="k">null</span><span class="p">,</span>
+        <span class="s1">'actor_id'</span> <span class="o">=&gt;</span> <span class="nv">$actorId</span><span class="p">,</span>
+        <span class="s1">'uploaded_file'</span> <span class="o">=&gt;</span> <span class="nv">$savedFilename</span><span class="p">,</span>
+    <span class="p">],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2><code>BodyParsingMiddleware</code> とカスタムメディアタイプパーサ</h2>
+<p>素の PSR-7 リクエストでは、通常の <code>POST</code> フォーム送信（<code>$_POST</code> 由来）以外のボディは自動デコードされません。<code>application/json</code> や <code>PUT</code> / <code>PATCH</code> のフォームボディ、XML ペイロード、独自メディアタイプを <code>$request-&gt;getParsedBody()</code> で取得するには <strong><code>$app-&gt;addBodyParsingMiddleware()</code></strong>（<code>Slim\Middleware\BodyParsingMiddleware</code>）を登録します。このミドルウェアは <code>Content-Type</code> ヘッダからメディアタイプを抽出し、完全一致するパーサが見つからない場合でも <strong>RFC 6839 構造化構文サフィックス</strong>（<code>+json</code> および <code>+xml</code>）へ自動的にフォールバックしてデコードを実行します。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/requests_and_responses/body_parsing_media_types_ja.png" alt="requests_and_responses_2" />
+  <figcaption class="drawlib-caption">BodyParsingMiddleware のメディアタイプ判定 — 完全一致・RFC 6839 サフィックス（+json / +xml）・カスタムパーサ登録</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">left_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"標準 JSON &amp; フォームボディパーサ"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.2</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">left_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+<span class="n">l_xy</span><span class="p">,</span> <span class="n">l_w</span><span class="p">,</span> <span class="n">l_h</span> <span class="o">=</span> <span class="n">left_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_left</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/json"</span><span class="p">,</span>
+    <span class="s2">"json_decode($input, true) で連想配列へ変換"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"JSON"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RFC 6839 *+json サフィックス"</span><span class="p">,</span>
+    <span class="s2">"application/vnd.api+json や problem+json に対応"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"RFC"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/x-www-form-urlencoded"</span><span class="p">,</span>
+    <span class="s2">"PUT / PATCH / POST のフォーム文字列を parse_str()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Form"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">textbox</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">l_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">l_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">l_h</span><span class="p">)</span>
+
+<span class="n">right_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"XML（XXE 防御済）&amp; カスタムパーサ拡張"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.2</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">right_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+<span class="n">r_xy</span><span class="p">,</span> <span class="n">r_w</span><span class="p">,</span> <span class="n">r_h</span> <span class="o">=</span> <span class="n">right_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_right</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/xml, text/xml &amp; *+xml"</span><span class="p">,</span>
+    <span class="s2">"LIBXML_NONET 付き simplexml_load_string() 解析"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"XML"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"registerBodyParser(mediaType, callable)"</span><span class="p">,</span>
+    <span class="s2">"CSV・YAML・MsgPack・Protobuf 等の独自パーサ登録"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Ext"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plug</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"戻り値の型ガード"</span><span class="p">,</span>
+    <span class="s2">"パーサ戻り値が null / array / object 以外なら例外送出"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Type"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">r_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">r_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">r_h</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<p>また、<code>$bodyParsingMiddleware-&gt;registerBodyParser(string $mediaType, callable $callable)</code> を呼び出すことで、<code>text/csv</code> や <code>application/msgpack</code>、<code>application/x-yaml</code> などのカスタムパーサを追加登録できます（パーサの戻り値は <code>null</code>、<code>array</code>、または <code>object</code> である必要があり、それ以外の型を返すと <code>RuntimeException</code> がスローされます）。</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// 標準の JSON / Form / XML ボディパーサを有効化</span>
+<span class="nv">$bodyParsingMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// text/csv メディアタイプ用のカスタムパーサを追加登録</span>
+<span class="nv">$bodyParsingMiddleware</span><span class="o">-&gt;</span><span class="na">registerBodyParser</span><span class="p">(</span><span class="s1">'text/csv'</span><span class="p">,</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">string</span> <span class="nv">$input</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span> <span class="p">{</span>
+    <span class="nv">$lines</span> <span class="o">=</span> <span class="nb">array_values</span><span class="p">(</span><span class="nb">array_filter</span><span class="p">(</span> <span class="nb">preg_split</span><span class="p">(</span><span class="s1">'/\r\n|\r|\n/'</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="nv">$input</span><span class="p">))</span> <span class="o">?:</span> <span class="p">[]</span> <span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$lines</span> <span class="o">===</span> <span class="p">[])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[];</span>
+    <span class="p">}</span>
+    <span class="nv">$headers</span> <span class="o">=</span> <span class="nb">str_getcsv</span><span class="p">((</span><span class="nx">string</span><span class="p">)</span> <span class="nb">array_shift</span><span class="p">(</span><span class="nv">$lines</span><span class="p">));</span>
+    <span class="nv">$rows</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="nv">$lines</span> <span class="k">as</span> <span class="nv">$line</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$values</span> <span class="o">=</span> <span class="nb">str_getcsv</span><span class="p">(</span><span class="nv">$line</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">count</span><span class="p">(</span><span class="nv">$values</span><span class="p">)</span> <span class="o">===</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$headers</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nv">$rows</span><span class="p">[]</span> <span class="o">=</span> <span class="nb">array_combine</span><span class="p">(</span><span class="nv">$headers</span><span class="p">,</span> <span class="nv">$values</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nv">$rows</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/import'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$parsed</span> <span class="o">=</span> <span class="p">(</span><span class="k">array</span><span class="p">)</span> <span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getParsedBody</span><span class="p">()</span> <span class="o">??</span> <span class="p">[]);</span>
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'imported_count'</span> <span class="o">=&gt;</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$parsed</span><span class="p">)],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2>JSON レスポンス・リダイレクト・ファイルストリームと <code>ResponseEmitter</code></h2>
+<p>ルートハンドラからレスポンスを返却する際は、用途に応じてメモリ効率の良いストリーム操作を選択します。</p>
+<ul>
+<li><strong>JSON レスポンスの構築</strong>: <code>json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)</code> でシリアライズした文字列を <code>$response-&gt;getBody()-&gt;write($json)</code> に書き込み、<code>Content-Type: application/json</code> ヘッダを付与します。</li>
+<li><strong>大容量ファイルのストリーミング配信（<code>StreamFactoryInterface::createStreamFromFile()</code>）</strong>: 数十 MB 以上の CSV や ZIP ファイルを <code>file_get_contents()</code> で一括読み込みすると PHP の <code>memory_limit</code> を圧迫します。代わりに <code>$streamFactory-&gt;createStreamFromFile($path, 'rb')</code> で生成したストリームを <code>$response-&gt;withBody($fileStream)</code> でセットします。</li>
+<li><strong><code>Slim\ResponseEmitter</code> の送出メカニズム</strong>: <code>$app-&gt;run()</code> の最終段階で呼び出される <code>ResponseEmitter::emit()</code> は、まず全レスポンスヘッダを送出し（この際、<code>Set-Cookie</code> ヘッダだけは複数クッキーが上書きされないよう個別に <code>replace: false</code> で送出します）、続いて <code>HTTP/1.1 200 OK</code> ステータス行を送出した後、ボディストリームを <strong><code>$responseChunkSize = 4096</code> バイト</strong>単位で順次読み出してクライアントへフラッシュします。</li>
+</ul>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\StreamFactoryInterface</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/api/v1/exports/{filename:[a-z0-9_-]+\.csv}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span>
+    <span class="k">array</span> <span class="nv">$args</span>
+<span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$container</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$filePath</span> <span class="o">=</span> <span class="s1">'/var/data/exports/'</span> <span class="o">.</span> <span class="nv">$args</span><span class="p">[</span><span class="s1">'filename'</span><span class="p">];</span>
+
+    <span class="sd">/** @var StreamFactoryInterface $streamFactory */</span>
+    <span class="nv">$streamFactory</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">StreamFactoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+    <span class="nv">$fileStream</span> <span class="o">=</span> <span class="nv">$streamFactory</span><span class="o">-&gt;</span><span class="na">createStreamFromFile</span><span class="p">(</span><span class="nv">$filePath</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nv">$response</span>
+        <span class="o">-&gt;</span><span class="na">withStatus</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'text/csv; charset=utf-8'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Disposition'</span><span class="p">,</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'attachment; filename="%s"'</span><span class="p">,</span> <span class="nv">$args</span><span class="p">[</span><span class="s1">'filename'</span><span class="p">]))</span>
+        <span class="o">-&gt;</span><span class="na">withBody</span><span class="p">(</span><span class="nv">$fileStream</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<p>PSR-7 メッセージの不変性、<code>BodyParsingMiddleware</code>、およびストリーム送出の仕組みを理解したら、次ページの <strong><a href="middleware_pipeline.html">PSR-15 同心円 LIFO ミドルウェアパイプライン</a></strong> に進み、アプリケーション・ルートグループ・ルートの 3 階層にわたるミドルウェアの実行順序と標準ユーティリティミドルウェアの配置ルールを確認しましょう。また、各クラスの詳細な API 仕様は <strong><a href="https://slim.drawlib.com/api/">Slim 4 API リファレンス</a></strong> および <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 内部アーキテクチャ解説</a></strong> を参照してください。</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式ガイドであり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

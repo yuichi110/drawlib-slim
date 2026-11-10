@@ -1,0 +1,2002 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Renderers — Slim 4 API Reference (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('drawlib-theme');
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    
+    <link rel="icon" href="../_assets/favicon.png">
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/06_error_renderers.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/06_error_renderers.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/06_error_renderers.html">
+    
+    
+    
+    <meta name="description" content="The Slim\Error and Slim\Error\Renderers namespaces define the base AbstractErrorRenderer and four concrete formatters implementing ErrorRendererInterface.…">
+    <link rel="canonical" href="https://slim.drawlib.com/api/en/06_error_renderers.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 API Reference">
+    <meta property="og:title" content="Error Renderers — Slim 4 API Reference">
+    <meta property="og:description" content="The Slim\Error and Slim\Error\Renderers namespaces define the base AbstractErrorRenderer and four concrete formatters implementing ErrorRendererInterface.…">
+    <meta property="og:url" content="https://slim.drawlib.com/api/en/06_error_renderers.html">
+    <meta property="og:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Error Renderers — Slim 4 API Reference">
+    <meta name="twitter:description" content="The Slim\Error and Slim\Error\Renderers namespaces define the base AbstractErrorRenderer and four concrete formatters implementing ErrorRendererInterface.…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    
+    
+    
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">API REFERENCE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial API Reference for <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">API Reference</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar" id="catalog-sidebar">
+            <div class="sidebar-header has-subbar">
+                <a href="index.html" class="site-title">
+                    Slim 4 API Reference
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle light/dark mode">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation menu">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-subbar">
+                
+                
+                <a href="index.html" class="sidebar-version-badge">
+                    <span class="sidebar-version-dot"></span>
+                    <span>API Reference · v4.15.3</span>
+                </a>
+                
+                
+                
+                <a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer" class="sidebar-github-link" aria-label="Repository" title="View Upstream Slim 4 Repository">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+                
+            </div>
+            
+
+            <div class="sidebar-menu">
+                <div class="catalog-sidebar-toolbar">
+                    <div class="catalog-filter-box">
+                        <svg class="catalog-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input id="catalog-filter-input" type="search" class="catalog-filter-input" placeholder="Filter items..." autocomplete="off" spellcheck="false" aria-label="Filter items...">
+                        <kbd class="catalog-filter-kbd">/</kbd>
+                    </div>
+                    <div class="catalog-toolbar-meta">
+                        <span class="catalog-toolbar-label">Categories &amp; Items</span>
+                        <button type="button" id="catalog-expand-toggle" class="catalog-expand-btn" data-expand-label="Expand All" data-collapse-label="Collapse All">Collapse All</button>
+                    </div>
+                </div>
+
+                <nav class="catalog-sidebar-nav" id="catalog-sidebar-nav" aria-label="Catalog Navigation">
+                    
+                    
+                    
+                    <details class="catalog-nav-group" data-cat="Slim 4 Package &amp; Namespace Overview" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="00_overview.html" class="catalog-nav-cat-link is-prose-cat">Slim 4 Package &amp; Namespace Overview</a>
+                            
+                            <span class="catalog-nav-count">10</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Architecture &amp; PSR Standards Compliance">
+                                <a href="00_overview.html#architecture-psr-standards-compliance" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Architecture &amp; PSR Standards Compliance</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\">
+                                <a href="00_overview.html#slim" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory">
+                                <a href="00_overview.html#slim-factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory\Psr17">
+                                <a href="00_overview.html#slim-factory-psr17" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Routing">
+                                <a href="00_overview.html#slim-routing" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Middleware">
+                                <a href="00_overview.html#slim-middleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Handlers">
+                                <a href="00_overview.html#slim-handlers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Error\Renderers">
+                                <a href="00_overview.html#slim-error-renderers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Exception">
+                                <a href="00_overview.html#slim-exception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Interfaces">
+                                <a href="00_overview.html#slim-interfaces" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Core Application &amp; Bootstrap Factories" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="01_app_and_factories.html" class="catalog-nav-cat-link is-prose-cat">Core Application &amp; Bootstrap Factories</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\App">
+                                <a href="01_app_and_factories.html#slim-app" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\App</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\AppFactory">
+                                <a href="01_app_and_factories.html#slim-factory-appfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\AppFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\ServerRequestCreatorFactory">
+                                <a href="01_app_and_factories.html#slim-factory-serverrequestcreatorfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\ServerRequestCreatorFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\CallableResolver">
+                                <a href="01_app_and_factories.html#slim-callableresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\CallableResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\MiddlewareDispatcher">
+                                <a href="01_app_and_factories.html#slim-middlewaredispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\MiddlewareDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\ResponseEmitter">
+                                <a href="01_app_and_factories.html#slim-responseemitter" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\ResponseEmitter</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Logger">
+                                <a href="01_app_and_factories.html#slim-logger" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Logger</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="PSR-17 Factory Auto-Discovery &amp; Providers" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="02_psr17_providers.html" class="catalog-nav-cat-link is-prose-cat">PSR-17 Factory Auto-Discovery &amp; Providers</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix">
+                                <a href="02_psr17_providers.html#psr-17-auto-discovery-priority-vendor-mapping-matrix" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17FactoryProvider">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factoryprovider" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17FactoryProvider</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-psr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\ServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-serverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\ServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpServerRequestCreator">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttpserverrequestcreator" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-slimhttppsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\NyholmPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-nyholmpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\NyholmPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\GuzzlePsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-guzzlepsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\GuzzlePsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\LaminasDiactorosPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-laminasdiactorospsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\HttpSoftPsr17Factory">
+                                <a href="02_psr17_providers.html#slim-factory-psr17-httpsoftpsr17factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\HttpSoftPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Routing (Slim\Routing)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="03_routing.html" class="catalog-nav-cat-link is-prose-cat">Routing (Slim\Routing)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollectorProxy">
+                                <a href="03_routing.html#slim-routing-routecollectorproxy" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollectorProxy</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollector">
+                                <a href="03_routing.html#slim-routing-routecollector" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollector</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Route">
+                                <a href="03_routing.html#slim-routing-route" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Route</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteGroup">
+                                <a href="03_routing.html#slim-routing-routegroup" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteGroup</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteContext">
+                                <a href="03_routing.html#slim-routing-routecontext" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteContext</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteParser">
+                                <a href="03_routing.html#slim-routing-routeparser" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteParser</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteResolver">
+                                <a href="03_routing.html#slim-routing-routeresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteRunner">
+                                <a href="03_routing.html#slim-routing-routerunner" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteRunner</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Dispatcher">
+                                <a href="03_routing.html#slim-routing-dispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Dispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\FastRouteDispatcher">
+                                <a href="03_routing.html#slim-routing-fastroutedispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\FastRouteDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RoutingResults">
+                                <a href="03_routing.html#slim-routing-routingresults" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RoutingResults</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Middleware (Slim\Middleware)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="04_middleware.html" class="catalog-nav-cat-link is-prose-cat">Middleware (Slim\Middleware)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\RoutingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-routingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\RoutingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ErrorMiddleware">
+                                <a href="04_middleware.html#slim-middleware-errormiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ErrorMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\BodyParsingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-bodyparsingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\BodyParsingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ContentLengthMiddleware">
+                                <a href="04_middleware.html#slim-middleware-contentlengthmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ContentLengthMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\MethodOverrideMiddleware">
+                                <a href="04_middleware.html#slim-middleware-methodoverridemiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\MethodOverrideMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\OutputBufferingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-outputbufferingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\OutputBufferingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Handlers &amp; Invocation Strategies" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="05_handlers_and_strategies.html" class="catalog-nav-cat-link is-prose-cat">Handlers &amp; Invocation Strategies</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Summary of Classes">
+                                <a href="05_handlers_and_strategies.html#summary-of-classes" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Summary of Classes</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\ErrorHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\ErrorHandler</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="Route Callback Invocation Strategies">
+                                <a href="05_handlers_and_strategies.html#route-callback-invocation-strategies" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Route Callback Invocation Strategies</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponse">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponse" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponse</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponseargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseNamedArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponsenamedargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseNamedArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requesthandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestHandler</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group is-current-page" data-cat="Error Renderers" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="06_error_renderers.html" class="catalog-nav-cat-link is-prose-cat">Error Renderers</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Summary of Error Renderers">
+                                <a href="#summary-of-error-renderers" class="catalog-nav-sublink is-prose-sublink" data-target="summary-of-error-renderers">
+                                    
+                                    <span class="catalog-nav-sym-text">Summary of Error Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\AbstractErrorRenderer">
+                                <a href="#slim-error-abstracterrorrenderer" class="catalog-nav-sublink is-prose-sublink" data-target="slim-error-abstracterrorrenderer">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\AbstractErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\JsonErrorRenderer">
+                                <a href="#slim-error-renderers-jsonerrorrenderer" class="catalog-nav-sublink is-prose-sublink" data-target="slim-error-renderers-jsonerrorrenderer">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\JsonErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\HtmlErrorRenderer">
+                                <a href="#slim-error-renderers-htmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink" data-target="slim-error-renderers-htmlerrorrenderer">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\HtmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\XmlErrorRenderer">
+                                <a href="#slim-error-renderers-xmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink" data-target="slim-error-renderers-xmlerrorrenderer">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\XmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\PlainTextErrorRenderer">
+                                <a href="#slim-error-renderers-plaintexterrorrenderer" class="catalog-nav-sublink is-prose-sublink" data-target="slim-error-renderers-plaintexterrorrenderer">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\PlainTextErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="HTTP Exceptions (Slim\Exception\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="07_exceptions.html" class="catalog-nav-cat-link is-prose-cat">HTTP Exceptions (Slim\Exception\*)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpException">
+                                <a href="07_exceptions.html#slim-exception-httpexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpSpecializedException">
+                                <a href="07_exceptions.html#slim-exception-httpspecializedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpSpecializedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpBadRequestException">
+                                <a href="07_exceptions.html#slim-exception-httpbadrequestexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpBadRequestException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpUnauthorizedException">
+                                <a href="07_exceptions.html#slim-exception-httpunauthorizedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpUnauthorizedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpForbiddenException">
+                                <a href="07_exceptions.html#slim-exception-httpforbiddenexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpForbiddenException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotFoundException">
+                                <a href="07_exceptions.html#slim-exception-httpnotfoundexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotFoundException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpMethodNotAllowedException">
+                                <a href="07_exceptions.html#slim-exception-httpmethodnotallowedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpMethodNotAllowedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpGoneException">
+                                <a href="07_exceptions.html#slim-exception-httpgoneexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpGoneException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpTooManyRequestsException">
+                                <a href="07_exceptions.html#slim-exception-httptoomanyrequestsexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpTooManyRequestsException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpInternalServerErrorException">
+                                <a href="07_exceptions.html#slim-exception-httpinternalservererrorexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpInternalServerErrorException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotImplementedException">
+                                <a href="07_exceptions.html#slim-exception-httpnotimplementedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotImplementedException</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Contract Interfaces (Slim\Interfaces\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="08_interfaces.html" class="catalog-nav-cat-link is-prose-cat">Contract Interfaces (Slim\Interfaces\*)</a>
+                            
+                            <span class="catalog-nav-count">17</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\AdvancedCallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-advancedcallableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\AdvancedCallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\CallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-callableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\CallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\DispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-dispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\DispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorHandlerInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorhandlerinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorHandlerInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorRendererInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorrendererinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorRendererInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\InvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\InvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\MiddlewareDispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\MiddlewareDispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryProviderInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryproviderinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryProviderInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RequestHandlerInvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RequestHandlerInvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorProxyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorproxyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorProxyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteGroupInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routegroupinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteGroupInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteParserInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeparserinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteParserInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ServerRequestCreatorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ServerRequestCreatorInterface</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    
+                    <div id="catalog-nav-empty" class="catalog-nav-empty" hidden>No matching items found.</div>
+                </nav>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <div class="content-wrapper">
+            <div class="top-bar">
+                <div class="breadcrumbs">
+                    <a href="index.html" class="crumb">API Reference</a>
+                    <span class="crumb-separator">/</span>
+                    <span class="crumb active">Error Renderers</span>
+                </div>
+                
+                <div class="top-bar-right">
+                    
+                    
+                    <div class="lang-switcher" aria-label="Language switcher">
+                        <details class="lang-dropdown">
+                            <summary class="lang-dropdown-btn" aria-haspopup="listbox">
+                                <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span class="lang-current-label">English</span>
+                                <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </summary>
+                            <div class="lang-dropdown-menu" role="listbox">
+                                
+                                
+                                <span class="lang-option active" role="option" aria-selected="true">
+                                    <span>English</span>
+                                    <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </span>
+                                
+                                
+                                
+                                <a href="../ja/06_error_renderers.html" class="lang-option" role="option" hreflang="">
+                                    <span>日本語</span>
+                                </a>
+                                
+                                
+                            </div>
+                        </details>
+                    </div>
+                    
+                </div>
+                
+            </div>
+
+            <main class="main-content catalog-main-content">
+                <h1 class="catalog-page-title">Error Renderers</h1>
+<p>The <code>Slim\Error</code> and <code>Slim\Error\Renderers</code> namespaces define the base <a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a> and four concrete formatters implementing <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>ErrorRendererInterface</code></a>. Invoked by <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler"><code>ErrorHandler</code></a> based on the negotiated <code>Accept</code> header (or as the error logger formatter), each renderer serializes a <code>Throwable</code> into JSON, HTML, XML, or Plain Text while respecting the <code>displayErrorDetails</code> flag.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/06_error_renderers/p2_renderers_class_hierarchy.png" alt="06_error_renderers_1" />
+  <figcaption class="drawlib-caption">Slim\Error Class Hierarchy & Default MIME Content-Type Mappings</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">84</span><span class="p">)</span>
+
+<span class="c1"># Top Tier: ErrorRendererInterface</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">73</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">78</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mf">75.5</span><span class="p">),</span>
+    <span class="s2">"&lt;&lt;interface&gt;&gt; Slim</span><span class="se">\\</span><span class="s2">Interfaces</span><span class="se">\\</span><span class="s2">ErrorRendererInterface"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">),</span>
+    <span class="s2">"__invoke(Throwable exception, bool displayErrorDetails): string"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Middle Tier: AbstractErrorRenderer</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">92</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">((</span><span class="mi">52</span><span class="p">,</span> <span class="mi">48</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">95</span><span class="p">,</span> <span class="mf">52.5</span><span class="p">),</span>
+    <span class="s2">"abstract Slim</span><span class="se">\\</span><span class="s2">Error</span><span class="se">\\</span><span class="s2">AbstractErrorRenderer"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">95</span><span class="p">,</span> <span class="mf">47.0</span><span class="p">),</span>
+    <span class="s2">"getErrorTitle(Throwable) | getErrorDescription(Throwable)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">95</span><span class="p">,</span> <span class="mf">42.0</span><span class="p">),</span>
+    <span class="s2">"Uses HttpException title/description or defaultError* properties"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Bottom Tier: 4 Concrete Renderers</span>
+<span class="c1"># 1. JsonErrorRenderer</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">21.5</span><span class="p">),</span> <span class="s2">"JsonErrorRenderer"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">),</span> <span class="s2">"application/json"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">),</span> <span class="s2">"+json media types"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># 2. HtmlErrorRenderer</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">21.5</span><span class="p">),</span> <span class="s2">"HtmlErrorRenderer"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">),</span> <span class="s2">"text/html"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">68</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">),</span> <span class="s2">"(Default HTTP Fallback)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># 3. XmlErrorRenderer</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">112</span><span class="p">,</span> <span class="mf">21.5</span><span class="p">),</span> <span class="s2">"XmlErrorRenderer"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">112</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">),</span> <span class="s2">"application/xml, text/xml"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">112</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">),</span> <span class="s2">"+xml media types"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># 4. PlainTextErrorRenderer</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">155</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">155</span><span class="p">,</span> <span class="mf">21.5</span><span class="p">),</span> <span class="s2">"PlainTextErrorRenderer"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">155</span><span class="p">,</span> <span class="mf">16.0</span><span class="p">),</span> <span class="s2">"text/plain"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">155</span><span class="p">,</span> <span class="mf">10.5</span><span class="p">),</span> <span class="s2">"(Default Log Renderer)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Connectors</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">90</span><span class="p">,</span> <span class="mi">57</span><span class="p">),</span> <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mf">66.5</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">62</span><span class="p">,</span> <span class="mi">39</span><span class="p">),</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">80</span><span class="p">,</span> <span class="mi">39</span><span class="p">),</span> <span class="p">(</span><span class="mi">68</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">100</span><span class="p">,</span> <span class="mi">39</span><span class="p">),</span> <span class="p">(</span><span class="mi">112</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">118</span><span class="p">,</span> <span class="mi">39</span><span class="p">),</span> <span class="p">(</span><span class="mi">155</span><span class="p">,</span> <span class="mi">26</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="summary-of-error-renderers" class="catalog-section-heading"><span>Summary of Error Renderers</span><a class="header-anchor" href="#summary-of-error-renderers" aria-label="Permalink to Summary of Error Renderers">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Class</th>
+<th style="text-align:left">Namespace</th>
+<th style="text-align:left">Registered MIME Types</th>
+<th style="text-align:left">Exception Chain (<code>getPrevious()</code>)</th>
+<th style="text-align:left">Primary Output Structure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a></td>
+<td style="text-align:left"><code>Slim\Error</code></td>
+<td style="text-align:left"><em>(Abstract Base)</em></td>
+<td style="text-align:left">N/A</td>
+<td style="text-align:left">Resolves <code>HttpException</code> title/description or default error strings.</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-error-renderers-jsonerrorrenderer"><code>JsonErrorRenderer</code></a></td>
+<td style="text-align:left"><code>Slim\Error\Renderers</code></td>
+<td style="text-align:left"><code>application/json</code>, <code>*+json</code></td>
+<td style="text-align:left">Yes (<code>do ... while</code>)</td>
+<td style="text-align:left">Pretty-printed JSON object with <code>message</code> and optional <code>exception</code> array.</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-error-renderers-htmlerrorrenderer"><code>HtmlErrorRenderer</code></a></td>
+<td style="text-align:left"><code>Slim\Error\Renderers</code></td>
+<td style="text-align:left"><code>text/html</code> <em>(Default HTTP)</em></td>
+<td style="text-align:left">Primary <code>Throwable</code> only</td>
+<td style="text-align:left">Complete HTML5 page (<code>&lt;!doctype html&gt;</code>) with inline styles and stack trace.</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-error-renderers-xmlerrorrenderer"><code>XmlErrorRenderer</code></a></td>
+<td style="text-align:left"><code>Slim\Error\Renderers</code></td>
+<td style="text-align:left"><code>application/xml</code>, <code>text/xml</code>, <code>*+xml</code></td>
+<td style="text-align:left">Yes (<code>do ... while</code>)</td>
+<td style="text-align:left">UTF-8 XML document with <code>&lt;error&gt;</code>, <code>&lt;message&gt;</code> CDATA, and <code>&lt;exception&gt;</code> nodes.</td>
+</tr>
+<tr>
+<td style="text-align:left"><a href="#slim-error-renderers-plaintexterrorrenderer"><code>PlainTextErrorRenderer</code></a></td>
+<td style="text-align:left"><code>Slim\Error\Renderers</code></td>
+<td style="text-align:left"><code>text/plain</code> <em>(Default Logger)</em></td>
+<td style="text-align:left">Yes (<code>while</code>)</td>
+<td style="text-align:left">Multi-line text with title, <code>Type</code>/<code>Code</code>/<code>Message</code>/<code>File</code>/<code>Line</code>/<code>Trace</code>, and <code>Previous Error:</code> blocks.</td>
+</tr>
+</tbody>
+</table>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/06_error_renderers/p2_renderers_payload_flow.png" alt="06_error_renderers_2" />
+  <figcaption class="drawlib-caption">Error Renderer Output Modes: Production (displayErrorDetails = false) vs Debug (displayErrorDetails = true)</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">line</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">180</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">)</span>
+
+<span class="c1"># Input node</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">38</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">shield_warning</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">47.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">)</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">39.0</span><span class="p">),</span> <span class="s2">"Throwable Input"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">33.0</span><span class="p">),</span> <span class="s2">"HttpException or"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+<span class="n">text</span><span class="p">((</span><span class="mi">25</span><span class="p">,</span> <span class="mf">27.5</span><span class="p">),</span> <span class="s2">"Uncaught Error"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span>
+
+<span class="c1"># Top Branch: displayErrorDetails = false</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mi">56</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">63.5</span><span class="p">),</span>
+    <span class="s2">"Production Mode: displayErrorDetails = false"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">56.5</span><span class="p">),</span>
+    <span class="s2">"JSON / XML / Text: Outputs getErrorTitle(exception) only (no stack trace or file paths)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">),</span>
+    <span class="s2">"HTML: Renders &lt;h1&gt;getErrorTitle()&lt;/h1&gt; and &lt;p&gt;getErrorDescription()&lt;/p&gt;"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Bottom Branch: displayErrorDetails = true</span>
+<span class="n">rectangle</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">110</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">26</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">28.5</span><span class="p">),</span>
+    <span class="s2">"Diagnostic Mode: displayErrorDetails = true"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">21.5</span><span class="p">),</span>
+    <span class="s2">"JSON &amp; XML: Appends exception[] / &lt;exception&gt; chain (type, code, message, file, line)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">116</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">),</span>
+    <span class="s2">"PlainText &amp; HTML: Includes full Trace string (PlainText also walks getPrevious() chain)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># Connectors</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">43</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span> <span class="p">(</span><span class="mi">61</span><span class="p">,</span> <span class="mi">56</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">line</span><span class="p">((</span><span class="mi">43</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span> <span class="p">(</span><span class="mi">61</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">arrow_head</span><span class="o">=</span><span class="s2">"-&gt;"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentBold</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="slim-error-abstracterrorrenderer" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Error\AbstractErrorRenderer</span></code><a class="header-anchor" href="#slim-error-abstracterrorrenderer" aria-label="Permalink to Slim\Error\AbstractErrorRenderer">#</a></h2>
+<ul>
+<li><strong>Source</strong>: <code>Slim/Error/AbstractErrorRenderer.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Error</code></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>Slim\Interfaces\ErrorRendererInterface</code></a></li>
+</ul>
+<p><code>AbstractErrorRenderer</code> is the abstract base class extended by all built-in Slim error renderers. It provides default fallback title and description strings for generic <code>Throwable</code> instances, while automatically extracting specialized status titles and descriptions when the caught exception is an instance of <a href="07_exceptions.html#slim-exception-httpexception"><code>HttpException</code></a>.</p>
+<h3 id="class-signature">Class Signature<a class="header-anchor" href="#class-signature" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Error</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Interfaces\ErrorRendererInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">abstract</span> <span class="k">class</span> <span class="nc">AbstractErrorRenderer</span> <span class="k">implements</span> <span class="nx">ErrorRendererInterface</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nx">string</span> <span class="nv">$defaultErrorTitle</span> <span class="o">=</span> <span class="s1">'Slim Application Error'</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="nx">string</span> <span class="nv">$defaultErrorDescription</span> <span class="o">=</span> <span class="s1">'A website error has occurred. Sorry for the temporary inconvenience.'</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">getErrorTitle</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="k">protected</span> <span class="k">function</span> <span class="nf">getErrorDescription</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="properties">Properties<a class="header-anchor" href="#properties" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property</th>
+<th style="text-align:left">Visibility</th>
+<th style="text-align:left">Type</th>
+<th style="text-align:left">Default</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$defaultErrorTitle</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left"><code>'Slim Application Error'</code></td>
+<td style="text-align:left">Fallback error title returned by <code>getErrorTitle()</code> when <code>$exception</code> is not an <a href="07_exceptions.html#slim-exception-httpexception"><code>HttpException</code></a>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$defaultErrorDescription</code></td>
+<td style="text-align:left"><code>protected</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left"><code>'A website error has occurred. Sorry for the temporary inconvenience.'</code></td>
+<td style="text-align:left">Fallback error description returned by <code>getErrorDescription()</code> when <code>$exception</code> is not an <a href="07_exceptions.html#slim-exception-httpexception"><code>HttpException</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="methods-parameters">Methods &amp; Parameters<a class="header-anchor" href="#methods-parameters" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters &amp; Types</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>Throwable $exception</code>, <code>bool $displayErrorDetails</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Abstract contract inherited from <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>ErrorRendererInterface</code></a>; implemented by concrete subclasses.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getErrorTitle</code></td>
+<td style="text-align:left"><code>Throwable $exception</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Protected. Returns <code>$exception-&gt;getTitle()</code> if <code>$exception instanceof HttpException</code>, otherwise returns <code>$this-&gt;defaultErrorTitle</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getErrorDescription</code></td>
+<td style="text-align:left"><code>Throwable $exception</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Protected. Returns <code>$exception-&gt;getDescription()</code> if <code>$exception instanceof HttpException</code>, otherwise returns <code>$this-&gt;defaultErrorDescription</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example">Usage Example<a class="header-anchor" href="#usage-example" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">CustomProblemJsonRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="nx">string</span> <span class="nv">$defaultErrorTitle</span> <span class="o">=</span> <span class="s1">'Internal Server Error'</span><span class="p">;</span>
+    <span class="k">protected</span> <span class="nx">string</span> <span class="nv">$defaultErrorDescription</span> <span class="o">=</span> <span class="s1">'An unexpected server error occurred.'</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span>
+    <span class="p">{</span>
+        <span class="nv">$payload</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorTitle</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+            <span class="s1">'detail'</span> <span class="o">=&gt;</span> <span class="nv">$displayErrorDetails</span>
+                <span class="o">?</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">()</span>
+                <span class="o">:</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorDescription</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+        <span class="p">];</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nb">json_encode</span><span class="p">(</span><span class="nv">$payload</span><span class="p">,</span> <span class="nx">JSON_PRETTY_PRINT</span> <span class="o">|</span> <span class="nx">JSON_UNESCAPED_SLASHES</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="k">false</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+<span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">getDefaultErrorHandler</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">registerErrorRenderer</span><span class="p">(</span>
+    <span class="s1">'application/problem+json'</span><span class="p">,</span>
+    <span class="nx">CustomProblemJsonRenderer</span><span class="o">::</span><span class="na">class</span>
+<span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-error-renderers-jsonerrorrenderer" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Error\Renderers\JsonErrorRenderer</span></code><a class="header-anchor" href="#slim-error-renderers-jsonerrorrenderer" aria-label="Permalink to Slim\Error\Renderers\JsonErrorRenderer">#</a></h2>
+<ul>
+<li><strong>Source</strong>: <code>Slim/Error/Renderers/JsonErrorRenderer.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Error\Renderers</code></li>
+<li><strong>Extends</strong>: <a href="#slim-error-abstracterrorrenderer"><code>Slim\Error\AbstractErrorRenderer</code></a></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>Slim\Interfaces\ErrorRendererInterface</code></a></li>
+</ul>
+<p><code>JsonErrorRenderer</code> formats uncaught exceptions into a pretty-printed JSON object (<code>JSON_INVALID_UTF8_SUBSTITUTE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES</code>). In <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler"><code>ErrorHandler</code></a>, it is registered for <code>'application/json'</code> as well as any vendor media type matching <code>/\+json/</code> (such as <code>'application/problem+json'</code> or <code>'application/vnd.api+json'</code>).</p>
+<p>When <code>$displayErrorDetails</code> is <code>false</code>, the JSON payload contains only <code>{&quot;message&quot;: &quot;&lt;ErrorTitle&gt;&quot;}</code>. When <code>$displayErrorDetails</code> is <code>true</code>, an <code>&quot;exception&quot;</code> array is appended containing the primary exception and every chained <code>$exception-&gt;getPrevious()</code> entry.</p>
+<h3 id="class-signature-2">Class Signature<a class="header-anchor" href="#class-signature-2" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Error\Renderers</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">JsonErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @return array&lt;string|int&gt;</span>
+<span class="sd">     */</span>
+    <span class="k">private</span> <span class="k">function</span> <span class="nf">formatExceptionFragment</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="properties-2">Properties<a class="header-anchor" href="#properties-2" aria-label="Permalink">#</a></h3>
+<p>Inherits <code>$defaultErrorTitle</code> and <code>$defaultErrorDescription</code> from <a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a>.</p>
+<h3 id="methods-parameters-2">Methods &amp; Parameters<a class="header-anchor" href="#methods-parameters-2" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters &amp; Types</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>Throwable $exception</code>, <code>bool $displayErrorDetails</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Builds <code>['message' =&gt; $this-&gt;getErrorTitle($exception)]</code>, appends <code>['exception' =&gt; [...]]</code> across the <code>getPrevious()</code> chain when <code>$displayErrorDetails</code> is <code>true</code>, and encodes to JSON.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>formatExceptionFragment</code></td>
+<td style="text-align:left"><code>Throwable $exception</code></td>
+<td style="text-align:left"><code>array&lt;string, string|int&gt;</code></td>
+<td style="text-align:left">Private helper returning <code>['type' =&gt; get_class($exception), 'code' =&gt; $code, 'message' =&gt; $exception-&gt;getMessage(), 'file' =&gt; $exception-&gt;getFile(), 'line' =&gt; $exception-&gt;getLine()]</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-2">Usage Example<a class="header-anchor" href="#usage-example-2" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">RuntimeException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\JsonErrorRenderer</span><span class="p">;</span>
+
+<span class="nv">$renderer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">JsonErrorRenderer</span><span class="p">();</span>
+<span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">RuntimeException</span><span class="p">(</span><span class="s1">'Database connection timed out'</span><span class="p">,</span> <span class="mi">1045</span><span class="p">);</span>
+
+<span class="c1">// 1. Production output ($displayErrorDetails = false):</span>
+<span class="c1">// {</span>
+<span class="c1">//     "message": "Slim Application Error"</span>
+<span class="c1">// }</span>
+<span class="nv">$prodJson</span> <span class="o">=</span> <span class="nv">$renderer</span><span class="p">(</span><span class="nv">$exception</span><span class="p">,</span> <span class="k">false</span><span class="p">);</span>
+
+<span class="c1">// 2. Detailed output ($displayErrorDetails = true):</span>
+<span class="c1">// {</span>
+<span class="c1">//     "message": "Slim Application Error",</span>
+<span class="c1">//     "exception": [</span>
+<span class="c1">//         {</span>
+<span class="c1">//             "type": "RuntimeException",</span>
+<span class="c1">//             "code": 1045,</span>
+<span class="c1">//             "message": "Database connection timed out",</span>
+<span class="c1">//             "file": "/app/src/Database.php",</span>
+<span class="c1">//             "line": 42</span>
+<span class="c1">//         }</span>
+<span class="c1">//     ]</span>
+<span class="c1">// }</span>
+<span class="nv">$debugJson</span> <span class="o">=</span> <span class="nv">$renderer</span><span class="p">(</span><span class="nv">$exception</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-error-renderers-htmlerrorrenderer" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Error\Renderers\HtmlErrorRenderer</span></code><a class="header-anchor" href="#slim-error-renderers-htmlerrorrenderer" aria-label="Permalink to Slim\Error\Renderers\HtmlErrorRenderer">#</a></h2>
+<ul>
+<li><strong>Source</strong>: <code>Slim/Error/Renderers/HtmlErrorRenderer.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Error\Renderers</code></li>
+<li><strong>Extends</strong>: <a href="#slim-error-abstracterrorrenderer"><code>Slim\Error\AbstractErrorRenderer</code></a></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>Slim\Interfaces\ErrorRendererInterface</code></a></li>
+</ul>
+<p><code>HtmlErrorRenderer</code> is Slim's default HTTP error renderer (<code>$defaultErrorRenderer = HtmlErrorRenderer::class</code>), registered for <code>'text/html'</code>. It outputs a standalone HTML5 document with minimal inline CSS and a <code>Go Back</code> history link (<code>onclick=&quot;window.history.go(-1)&quot;</code>).</p>
+<p>When <code>$displayErrorDetails</code> is <code>false</code>, it escapes <code>getErrorDescription($exception)</code> with <code>htmlspecialchars(..., ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')</code> inside a <code>&lt;p&gt;</code> tag. When <code>$displayErrorDetails</code> is <code>true</code>, it renders a <code>&lt;h2&gt;Details&lt;/h2&gt;</code> section (<code>Type</code>, <code>Code</code>, <code>Message</code>, <code>File</code>, <code>Line</code>) followed by <code>&lt;h2&gt;Trace&lt;/h2&gt;&lt;pre&gt;...&lt;/pre&gt;</code> for the caught <code>$exception</code>.</p>
+<h3 id="class-signature-3">Class Signature<a class="header-anchor" href="#class-signature-3" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Error\Renderers</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">HtmlErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">renderHtmlBody</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$title</span> <span class="o">=</span> <span class="s1">''</span><span class="p">,</span> <span class="nx">string</span> <span class="nv">$html</span> <span class="o">=</span> <span class="s1">''</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="k">private</span> <span class="k">function</span> <span class="nf">renderExceptionFragment</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="properties-3">Properties<a class="header-anchor" href="#properties-3" aria-label="Permalink">#</a></h3>
+<p>Inherits <code>$defaultErrorTitle</code> and <code>$defaultErrorDescription</code> from <a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a>.</p>
+<h3 id="methods-parameters-3">Methods &amp; Parameters<a class="header-anchor" href="#methods-parameters-3" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters &amp; Types</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>Throwable $exception</code>, <code>bool $displayErrorDetails</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Builds the inner HTML body (either detailed exception metadata + stack trace or escaped error description) and wraps it via <code>renderHtmlBody()</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>renderHtmlBody</code></td>
+<td style="text-align:left"><code>string $title = ''</code>, <code>string $html = ''</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Public helper that escapes <code>$title</code> and returns a complete <code>&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;...&lt;/html&gt;</code> document containing <code>&lt;h1&gt;{$title}&lt;/h1&gt;</code>, <code>&lt;div&gt;{$html}&lt;/div&gt;</code>, and a <code>Go Back</code> link.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>renderExceptionFragment</code></td>
+<td style="text-align:left"><code>Throwable $exception</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Private helper formatting <code>Type</code>, <code>Code</code>, HTML-encoded <code>Message</code>, <code>File</code>, <code>Line</code>, and <code>&lt;pre&gt;</code> stack trace for <code>$exception</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-3">Usage Example<a class="header-anchor" href="#usage-example-3" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\HtmlErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpNotFoundException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+<span class="nv">$renderer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HtmlErrorRenderer</span><span class="p">();</span>
+
+<span class="c1">// Render a custom HTML error page using renderHtmlBody() directly</span>
+<span class="nv">$customHtml</span> <span class="o">=</span> <span class="nv">$renderer</span><span class="o">-&gt;</span><span class="na">renderHtmlBody</span><span class="p">(</span>
+    <span class="s1">'404 Not Found'</span><span class="p">,</span>
+    <span class="s1">'&lt;p&gt;The requested resource could not be located on this server.&lt;/p&gt;'</span>
+<span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-error-renderers-xmlerrorrenderer" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Error\Renderers\XmlErrorRenderer</span></code><a class="header-anchor" href="#slim-error-renderers-xmlerrorrenderer" aria-label="Permalink to Slim\Error\Renderers\XmlErrorRenderer">#</a></h2>
+<ul>
+<li><strong>Source</strong>: <code>Slim/Error/Renderers/XmlErrorRenderer.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Error\Renderers</code></li>
+<li><strong>Extends</strong>: <a href="#slim-error-abstracterrorrenderer"><code>Slim\Error\AbstractErrorRenderer</code></a></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>Slim\Interfaces\ErrorRendererInterface</code></a></li>
+</ul>
+<p><code>XmlErrorRenderer</code> serializes exceptions into a UTF-8 XML document (<code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;</code>) rooted at <code>&lt;error&gt;</code>. In <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler"><code>ErrorHandler</code></a>, it is registered for both <code>'application/xml'</code> and <code>'text/xml'</code>, and also matches vendor media types ending in <code>+xml</code> via <code>/\+(json|xml)/</code>.</p>
+<p>Text fields (<code>&lt;message&gt;</code>) are wrapped in CDATA sections via <code>createCdataSection()</code>, which safely splits any embedded <code>]]&gt;</code> sequence into <code>]]]]&gt;&lt;![CDATA[&gt;</code>. When <code>$displayErrorDetails</code> is <code>true</code>, it iterates through <code>$exception</code> and all <code>$exception-&gt;getPrevious()</code> causes, emitting an <code>&lt;exception&gt;</code> block for each.</p>
+<h3 id="class-signature-4">Class Signature<a class="header-anchor" href="#class-signature-4" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Error\Renderers</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">XmlErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="k">private</span> <span class="k">function</span> <span class="nf">createCdataSection</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$content</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="properties-4">Properties<a class="header-anchor" href="#properties-4" aria-label="Permalink">#</a></h3>
+<p>Inherits <code>$defaultErrorTitle</code> and <code>$defaultErrorDescription</code> from <a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a>.</p>
+<h3 id="methods-parameters-4">Methods &amp; Parameters<a class="header-anchor" href="#methods-parameters-4" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters &amp; Types</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>Throwable $exception</code>, <code>bool $displayErrorDetails</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Generates an XML <code>&lt;error&gt;</code> payload with a <code>&lt;message&gt;</code> CDATA element and, when <code>$displayErrorDetails</code> is <code>true</code>, one <code>&lt;exception&gt;</code> element per chained <code>Throwable</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>createCdataSection</code></td>
+<td style="text-align:left"><code>string $content</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Private helper that wraps <code>$content</code> in <code>&lt;![CDATA[...]]&gt;</code> after escaping <code>]]&gt;</code> sequences.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-4">Usage Example<a class="header-anchor" href="#usage-example-4" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">RuntimeException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\XmlErrorRenderer</span><span class="p">;</span>
+
+<span class="nv">$renderer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">XmlErrorRenderer</span><span class="p">();</span>
+<span class="nv">$xml</span> <span class="o">=</span> <span class="nv">$renderer</span><span class="p">(</span><span class="k">new</span> <span class="nx">RuntimeException</span><span class="p">(</span><span class="s1">'Invalid XML payload'</span><span class="p">,</span> <span class="mi">422</span><span class="p">),</span> <span class="k">true</span><span class="p">);</span>
+
+<span class="cm">/*</span>
+<span class="cm">Outputs:</span>
+<span class="cm">&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;</span>
+<span class="cm">&lt;error&gt;</span>
+<span class="cm">  &lt;message&gt;&lt;![CDATA[Slim Application Error]]&gt;&lt;/message&gt;</span>
+<span class="cm">  &lt;exception&gt;</span>
+<span class="cm">    &lt;type&gt;RuntimeException&lt;/type&gt;</span>
+<span class="cm">    &lt;code&gt;422&lt;/code&gt;</span>
+<span class="cm">    &lt;message&gt;&lt;![CDATA[Invalid XML payload]]&gt;&lt;/message&gt;</span>
+<span class="cm">    &lt;file&gt;/app/index.php&lt;/file&gt;</span>
+<span class="cm">    &lt;line&gt;18&lt;/line&gt;</span>
+<span class="cm">  &lt;/exception&gt;</span>
+<span class="cm">&lt;/error&gt;</span>
+<span class="cm">*/</span>
+</code></pre>
+<hr />
+<h2 id="slim-error-renderers-plaintexterrorrenderer" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Error\Renderers\PlainTextErrorRenderer</span></code><a class="header-anchor" href="#slim-error-renderers-plaintexterrorrenderer" aria-label="Permalink to Slim\Error\Renderers\PlainTextErrorRenderer">#</a></h2>
+<ul>
+<li><strong>Source</strong>: <code>Slim/Error/Renderers/PlainTextErrorRenderer.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Error\Renderers</code></li>
+<li><strong>Extends</strong>: <a href="#slim-error-abstracterrorrenderer"><code>Slim\Error\AbstractErrorRenderer</code></a></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-errorrendererinterface"><code>Slim\Interfaces\ErrorRendererInterface</code></a></li>
+</ul>
+<p><code>PlainTextErrorRenderer</code> formats exceptions as human-readable plain text. It serves a dual role in <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler"><code>ErrorHandler</code></a>:</p>
+<ol>
+<li>Registered in <code>$errorRenderers['text/plain']</code> for HTTP clients requesting <code>Accept: text/plain</code>.</li>
+<li>Configured as the default <code>$logErrorRenderer</code> used by <code>ErrorHandler::writeToErrorLog()</code> to format entries sent to PSR-3 <a href="01_app_and_factories.html#slim-logger"><code>LoggerInterface</code></a>.</li>
+</ol>
+<p>When <code>$displayErrorDetails</code> (or <code>$logErrorDetails</code> for logging) is <code>true</code>, it outputs <code>Type</code>, <code>Code</code>, <code>Message</code>, <code>File</code>, <code>Line</code>, and <code>Trace</code> for the primary exception, followed by <code>Previous Error:</code> sections for every chained <code>$exception-&gt;getPrevious()</code>.</p>
+<h3 id="class-signature-5">Class Signature<a class="header-anchor" href="#class-signature-5" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">Slim\Error\Renderers</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">PlainTextErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+
+    <span class="k">private</span> <span class="k">function</span> <span class="nf">formatExceptionFragment</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+<h3 id="properties-5">Properties<a class="header-anchor" href="#properties-5" aria-label="Permalink">#</a></h3>
+<p>Inherits <code>$defaultErrorTitle</code> and <code>$defaultErrorDescription</code> from <a href="#slim-error-abstracterrorrenderer"><code>AbstractErrorRenderer</code></a>.</p>
+<h3 id="methods-parameters-5">Methods &amp; Parameters<a class="header-anchor" href="#methods-parameters-5" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters &amp; Types</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__invoke</code></td>
+<td style="text-align:left"><code>Throwable $exception</code>, <code>bool $displayErrorDetails</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Returns <code>&quot;{$this-&gt;getErrorTitle($exception)}\n&quot;</code>, appending <code>formatExceptionFragment()</code> for <code>$exception</code> and each <code>$exception-&gt;getPrevious()</code> when <code>$displayErrorDetails</code> is <code>true</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>formatExceptionFragment</code></td>
+<td style="text-align:left"><code>Throwable $exception</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Private helper formatting <code>Type:</code>, <code>Code:</code>, <code>Message:</code>, <code>File:</code>, <code>Line:</code>, and <code>Trace:</code> lines for a single <code>Throwable</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-5">Usage Example<a class="header-anchor" href="#usage-example-5" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">use</span> <span class="nx">RuntimeException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Error\Renderers\PlainTextErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// Use PlainTextErrorRenderer explicitly or customize error logging</span>
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="k">false</span><span class="p">,</span> <span class="k">true</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+<span class="nv">$errorHandler</span> <span class="o">=</span> <span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">getDefaultErrorHandler</span><span class="p">();</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">setLogErrorRenderer</span><span class="p">(</span><span class="nx">PlainTextErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+<span class="nv">$renderer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">PlainTextErrorRenderer</span><span class="p">();</span>
+<span class="nv">$logEntry</span> <span class="o">=</span> <span class="nv">$renderer</span><span class="p">(</span><span class="k">new</span> <span class="nx">RuntimeException</span><span class="p">(</span><span class="s1">'Cache backend unreachable'</span><span class="p">,</span> <span class="mi">503</span><span class="p">),</span> <span class="k">true</span><span class="p">);</span>
+</code></pre>
+
+
+                
+                <nav class="catalog-pager" aria-label="Catalog Page Navigation">
+                    
+                    <a href="05_handlers_and_strategies.html" class="catalog-pager-card is-prev">
+                        <span class="catalog-pager-dir">&larr; Previous</span>
+                        <span class="catalog-pager-title">Handlers &amp; Invocation Strategies</span>
+                    </a>
+                    
+                    
+                    <a href="07_exceptions.html" class="catalog-pager-card is-next">
+                        <span class="catalog-pager-dir">Next &rarr;</span>
+                        <span class="catalog-pager-title">HTTP Exceptions (Slim\Exception\*)</span>
+                    </a>
+                    
+                </nav>
+                
+            </main>
+
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial API reference — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    if (!current) {
+                        current = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    }
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('drawlib-theme', next); } catch (e) {}
+                });
+            }
+
+            var menuBtn = document.getElementById('menu-toggle');
+            var sidebar = document.getElementById('catalog-sidebar');
+            var backdrop = document.getElementById('sidebar-backdrop');
+            function closeMenu() {
+                if (sidebar) sidebar.classList.remove('is-open');
+                if (backdrop) backdrop.classList.remove('is-open');
+            }
+            if (menuBtn && sidebar && backdrop) {
+                menuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('is-open');
+                    backdrop.classList.toggle('is-open');
+                });
+                backdrop.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.catalog-nav-cat-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+
+            if (sidebar) {
+                try {
+                    var savedScroll = sessionStorage.getItem('drawlib-catalog-sidebar-scroll');
+                    if (savedScroll !== null) {
+                        sidebar.scrollTop = parseInt(savedScroll, 10) || 0;
+                    }
+                    sidebar.addEventListener('scroll', function() {
+                        try { sessionStorage.setItem('drawlib-catalog-sidebar-scroll', String(sidebar.scrollTop)); } catch (e) {}
+                    }, { passive: true });
+                } catch (e) {}
+            }
+
+            var groups = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-group'));
+            var expandBtn = document.getElementById('catalog-expand-toggle');
+            function updateExpandBtnLabel() {
+                if (!expandBtn || groups.length === 0) return;
+                var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                var expandText = expandBtn.getAttribute('data-expand-label') || 'Expand All';
+                var collapseText = expandBtn.getAttribute('data-collapse-label') || 'Collapse All';
+                expandBtn.textContent = allOpen ? collapseText : expandText;
+            }
+            if (expandBtn) {
+                updateExpandBtnLabel();
+                expandBtn.addEventListener('click', function() {
+                    var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                    var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                    visibleGroups.forEach(function(g) { g.open = !allOpen; });
+                    updateExpandBtnLabel();
+                });
+                groups.forEach(function(g) {
+                    g.addEventListener('toggle', updateExpandBtnLabel);
+                });
+            }
+
+            var filterInput = document.getElementById('catalog-filter-input');
+            var emptyNotice = document.getElementById('catalog-nav-empty');
+            var savedOpenState = null;
+
+            if (filterInput) {
+                filterInput.addEventListener('input', function() {
+                    var q = filterInput.value.trim().toLowerCase();
+                    if (q && !savedOpenState) {
+                        savedOpenState = groups.map(function(g) { return g.open; });
+                    }
+                    var anyMatch = false;
+                    groups.forEach(function(g, idx) {
+                        var catText = (g.getAttribute('data-cat') || '').toLowerCase();
+                        var catMatches = q !== '' && catText.indexOf(q) !== -1;
+                        var items = Array.prototype.slice.call(g.querySelectorAll('.catalog-nav-subitem'));
+                        var visibleCount = 0;
+
+                        items.forEach(function(li) {
+                            var symText = (li.getAttribute('data-sym') || '').toLowerCase();
+                            var show = (q === '') || catMatches || symText.indexOf(q) !== -1;
+                            li.hidden = !show;
+                            if (show) visibleCount += 1;
+                        });
+
+                        if (q === '') {
+                            g.hidden = false;
+                            if (savedOpenState && typeof savedOpenState[idx] === 'boolean') {
+                                g.open = savedOpenState[idx];
+                            }
+                            anyMatch = true;
+                        } else if (catMatches || visibleCount > 0) {
+                            g.hidden = false;
+                            g.open = true;
+                            anyMatch = true;
+                        } else {
+                            g.hidden = true;
+                        }
+                    });
+
+                    if (q === '') {
+                        savedOpenState = null;
+                    }
+                    if (emptyNotice) {
+                        emptyNotice.hidden = anyMatch;
+                    }
+                    updateExpandBtnLabel();
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === '/' && document.activeElement !== filterInput) {
+                        var tag = document.activeElement ? document.activeElement.tagName : '';
+                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+                            e.preventDefault();
+                            filterInput.focus();
+                        }
+                    } else if (e.key === 'Escape' && document.activeElement === filterInput) {
+                        filterInput.value = '';
+                        filterInput.dispatchEvent(new Event('input'));
+                        filterInput.blur();
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                document.querySelectorAll('.lang-dropdown[open]').forEach(function(dd) {
+                    if (!dd.contains(e.target)) {
+                        dd.removeAttribute('open');
+                    }
+                });
+            });
+
+            var activeLinks = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-sublink[data-target]'));
+            if (activeLinks.length > 0 && 'IntersectionObserver' in window) {
+                var linkBySlug = {};
+                var headings = [];
+                activeLinks.forEach(function(a) {
+                    var slug = a.getAttribute('data-target');
+                    var el = slug ? document.getElementById(slug) : null;
+                    if (slug && el) {
+                        linkBySlug[slug] = a;
+                        headings.push(el);
+                    }
+                    a.addEventListener('click', closeMenu);
+                });
+
+                function setActiveSlug(slug) {
+                    activeLinks.forEach(function(a) {
+                        if (a.getAttribute('data-target') === slug) {
+                            a.classList.add('is-active');
+                        } else {
+                            a.classList.remove('is-active');
+                        }
+                    });
+                }
+
+                if (window.location.hash) {
+                    var initSlug = decodeURIComponent(window.location.hash.slice(1));
+                    if (linkBySlug[initSlug]) setActiveSlug(initSlug);
+                } else if (headings.length > 0) {
+                    setActiveSlug(headings[0].id);
+                }
+
+                var visibleIds = {};
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        visibleIds[entry.target.id] = entry.isIntersecting;
+                    });
+                    for (var i = 0; i < headings.length; i++) {
+                        if (visibleIds[headings[i].id]) {
+                            setActiveSlug(headings[i].id);
+                            break;
+                        }
+                    }
+                }, { rootMargin: '-90px 0px -65% 0px', threshold: [0, 1] });
+
+                headings.forEach(function(h) { observer.observe(h); });
+            }
+        })();
+    </script>
+</body>
+</html>

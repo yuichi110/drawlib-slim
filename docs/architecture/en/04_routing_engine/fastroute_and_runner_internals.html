@@ -1,0 +1,778 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastRoute Compilation, RouteRunner &amp; Invocation Strategies Internals — Slim 4 Architecture Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    
+    
+    
+    <meta name="description" content="Slim 4&#x27;s routing engine spans 15 source files (953 LOC) across Slim\Routing\ (11 classes), Slim\Middleware\RoutingMiddleware (1 class), and…">
+    <link rel="canonical" href="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 Architecture">
+    <meta property="og:title" content="FastRoute Compilation, RouteRunner &amp; Invocation Strategies Internals — Slim 4 Architecture">
+    <meta property="og:description" content="Slim 4&#x27;s routing engine spans 15 source files (953 LOC) across Slim\Routing\ (11 classes), Slim\Middleware\RoutingMiddleware (1 class), and…">
+    <meta property="og:url" content="https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html">
+    <meta property="og:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastRoute Compilation, RouteRunner &amp; Invocation Strategies Internals — Slim 4 Architecture">
+    <meta name="twitter:description" content="Slim 4&#x27;s routing engine spans 15 source files (953 LOC) across Slim\Routing\ (11 classes), Slim\Middleware\RoutingMiddleware (1 class), and…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Internal Architecture Guide to <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">Architecture</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 Architecture">
+                    
+                    Slim 4 Architecture
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Architecture Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Package Topology &amp; Layers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_package_and_layers/module_hierarchy.html" >5-Tier Module Hierarchy &amp; Coupling</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Bootstrap &amp; PSR-17 Auto-Discovery</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_bootstrap_and_psr17/app_factory_internals.html" >AppFactory &amp; Psr17FactoryProvider Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Middleware Onion &amp; CallableResolver</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_middleware_and_resolver/middleware_dispatcher_internals.html" >MiddlewareDispatcher &amp; CallableResolver Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. FastRoute &amp; RouteRunner Engine</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="fastroute_and_runner_internals.html" >FastRouteDispatcher, RouteRunner &amp; Strategies</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Error Subsystem &amp; Renderers</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_error_subsystem/error_middleware_and_renderers.html" >ErrorMiddleware, ErrorHandler &amp; Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. SAPI Response Emission</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_sapi_emission/response_emitter_internals.html" >ResponseEmitter &amp; OutputBuffering Internals</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 User Guide<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Diagnostic Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Slim Framework Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Architecture</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">FastRoute Compilation, RouteRunner &amp; Invocation Strategies Internals</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="fastroute_and_runner_internals.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/04_routing_engine/fastroute_and_runner_internals.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>FastRoute Compilation, RouteRunner &amp; Invocation Strategies Internals</h1>
+<p>Slim 4's routing engine spans <strong><code>15</code> source files (<code>953</code> LOC)</strong> across <code>Slim\Routing\*</code> (<code>11</code> classes), <code>Slim\Middleware\RoutingMiddleware</code> (<code>1</code> class), and <code>Slim\Handlers\Strategies\*</code> (<code>4</code> classes). Its central architectural insight is <strong>splitting route resolution into two decoupled PSR-15 phases</strong>: <code>RoutingMiddleware</code> performs FastRoute regex matching and attaches immutable <code>RouteContext</code> attributes to <code>ServerRequestInterface</code>, while <code>RouteRunner</code> sits at the innermost core of the application middleware stack to execute <code>RouteGroup</code> middlewares, route-specific middlewares, and the route's <code>InvocationStrategyInterface</code>.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_routing_engine/fastroute_and_runner_internals/fastroute_dispatch_and_runner_flow.png" alt="fastroute_and_runner_internals_1" />
+  <figcaption class="drawlib-caption">Two-Phase Routing Architecture: RoutingMiddleware + FastRouteDispatcher Matching vs RouteRunner + Route::run() Execution</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">94</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Phase 1 — Route Registration &amp; FastRoute Dispatch</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Phase 1 · FastRoute Matching &amp; RouteContext"</span><span class="p">,</span>
+    <span class="s2">"RouteCollector -&gt; FastRouteDispatcher -&gt; RoutingMiddleware"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">match_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteCollector::map() &amp; group()"</span><span class="p">,</span>
+    <span class="s2">"Assigns 'route</span><span class="si">{N}</span><span class="s2">' ID &amp; snapshots active $this-&gt;routeGroups stack"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Reg"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">list_bullets</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteResolver::computeRoutingResults()"</span><span class="p">,</span>
+    <span class="s2">"Applies rawurldecode($uri) &amp; leading '/' normalization [L40-46]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"URI"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">link</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"FastRouteDispatcher::dispatch()"</span><span class="p">,</span>
+    <span class="s2">"Probes staticRouteMap -&gt; variableRouteData -&gt; HEAD/GET -&gt; '*' -&gt; 405/404"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Regex"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">magnifying_glass</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RoutingMiddleware::performRouting()"</span><span class="p">,</span>
+    <span class="s2">"Injects __routeParser__, __routingResults__, __route__ (or throws 404/405)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Attr"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">tag</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">match_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: Phase 2 — RouteRunner, Group Onion &amp; Strategy Invocation</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Phase 2 · RouteRunner, Group Onion &amp; Strategy"</span><span class="p">,</span>
+    <span class="s2">"RouteRunner::handle() -&gt; Route::run() -&gt; Route::handle()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">exec_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RouteRunner::handle($request) [L57]"</span><span class="p">,</span>
+    <span class="s2">"Fallback performRouting() if needed; injects __basePath__ attribute"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">compass</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Route::appendGroupMiddlewareToRoute() [L327]"</span><span class="p">,</span>
+    <span class="s2">"Lazily wraps inner dispatcher with array_reverse($this-&gt;groups) once"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Route::handle($request) &amp; CallableResolver"</span><span class="p">,</span>
+    <span class="s2">"Resolves callable via resolveRoute() &amp; checks RequestHandler strategy"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plugs_connected</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"InvocationStrategy::__invoke() [L362]"</span><span class="p">,</span>
+    <span class="s2">"RequestResponse | RequestResponseArgs | NamedArgs | RequestHandler"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Run 4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">exec_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2>1. Route Collection &amp; Prefix Group Stack (<code>RouteCollectorProxy</code> &amp; <code>RouteCollector</code>)</h2>
+<h3>How Nested <code>group()</code> Calls Accumulate Prefixes and Group Stacks</h3>
+<p>When user code defines nested route groups:</p>
+<pre><code class="language-php"><span class="x">$app-&gt;group('/v1', function (RouteCollectorProxy $group) {</span>
+<span class="x">    $group-&gt;group('/users', function (RouteCollectorProxy $users) {</span>
+<span class="x">        $users-&gt;get('/{id}', UserController::class . ':show');</span>
+<span class="x">    })-&gt;add(UserScopeMiddleware::class);</span>
+<span class="x">})-&gt;add(ApiVersionMiddleware::class);</span>
+</code></pre>
+<p>Three mechanisms in <code>RouteCollectorProxy</code> (<code>Slim/Routing/RouteCollectorProxy.php</code>), <code>RouteCollector</code> (<code>Slim/Routing/RouteCollector.php</code>), and <code>RouteGroup</code> (<code>Slim/Routing/RouteGroup.php</code>) collaborate synchronously during registration:</p>
+<ol>
+<li><strong>Prefix Concatenation (<code>Slim/Routing/RouteCollectorProxy.php:165-180</code>)</strong>:
+Every <code>RouteCollectorProxy</code> holds <code>protected string $groupPattern</code> (defaulting to <code>''</code> on <code>Slim\App</code>). When <code>$proxy-&gt;group($pattern, $callable)</code> is called, it prepends <code>$pattern = $this-&gt;groupPattern . $pattern</code> and delegates to <code>$this-&gt;routeCollector-&gt;group($pattern, $callable)</code>.</li>
+<li><strong>Push/Pop Group Stack (<code>Slim/Routing/RouteCollector.php:230-239</code>)</strong>:
+<code>RouteCollector::group()</code> creates a new <code>RouteGroup</code> with a child <code>RouteCollectorProxy</code> bound to the concatenated <code>$pattern</code>, pushes <code>$routeGroup</code> onto <code>$this-&gt;routeGroups[]</code>, executes <code>$routeGroup-&gt;collectRoutes()</code>, and immediately pops <code>$this-&gt;routeGroups</code> via <code>array_pop($this-&gt;routeGroups)</code>:<pre><code class="language-php"><span class="x">// Slim/Routing/RouteCollector.php:230-239</span>
+<span class="x">public function group(string $pattern, $callable): RouteGroupInterface</span>
+<span class="x">{</span>
+<span class="x">    $routeGroup = $this-&gt;createGroup($pattern, $callable);</span>
+<span class="x">    $this-&gt;routeGroups[] = $routeGroup;</span>
+
+<span class="x">    $routeGroup-&gt;collectRoutes();</span>
+<span class="x">    array_pop($this-&gt;routeGroups);</span>
+
+<span class="x">    return $routeGroup;</span>
+<span class="x">}</span>
+</code></pre>
+</li>
+<li><strong>Route Identifier &amp; Group Snapshot (<code>Slim/Routing/RouteCollector.php:268-300</code>)</strong>:
+Any <code>$users-&gt;get(...)</code> call inside <code>collectRoutes()</code> invokes <code>RouteCollector::map()</code>, which passes a <strong>copy</strong> of the currently active <code>$this-&gt;routeGroups</code> array (<code>[RouteGroup('/v1'), RouteGroup('/v1/users')]</code>) and <code>$this-&gt;routeCounter</code> into <code>new Route(...)</code> (<code>Slim/Routing/Route.php:120-141</code>). The route receives deterministic identifier <code>'route' . $identifier</code> (e.g. <code>'route0'</code>, <code>'route1'</code>) and stores <code>$this-&gt;routes['route0'] = $route</code>.</li>
+</ol>
+<hr />
+<h2>2. <code>Dispatcher</code> &amp; <code>FastRouteDispatcher</code>: Customizing Nikic FastRoute</h2>
+<h3>Lazy FastRoute Compilation &amp; Disk Cache (<code>Slim/Routing/Dispatcher.php:24-58</code>)</h3>
+<p><code>Slim\Routing\Dispatcher</code> does <strong>not</strong> compile FastRoute regex tables during <code>$app-&gt;get()</code> registration. Instead, <code>Dispatcher::createDispatcher()</code> compiles routes lazily on the first <code>dispatch()</code> or <code>getAllowedMethods()</code> call:</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Dispatcher.php:30-54</span>
+<span class="x">$routeDefinitionCallback = function (FastRouteCollector $r): void {</span>
+<span class="x">    $basePath = $this-&gt;routeCollector-&gt;getBasePath();</span>
+
+<span class="x">    foreach ($this-&gt;routeCollector-&gt;getRoutes() as $route) {</span>
+<span class="x">        $r-&gt;addRoute($route-&gt;getMethods(), $basePath . $route-&gt;getPattern(), $route-&gt;getIdentifier());</span>
+<span class="x">    }</span>
+<span class="x">};</span>
+
+<span class="x">$cacheFile = $this-&gt;routeCollector-&gt;getCacheFile();</span>
+<span class="x">if ($cacheFile) {</span>
+<span class="x">    $dispatcher = \FastRoute\cachedDispatcher($routeDefinitionCallback, [</span>
+<span class="x">        'dataGenerator' =&gt; GroupCountBased::class,</span>
+<span class="x">        'dispatcher' =&gt; FastRouteDispatcher::class,</span>
+<span class="x">        'routeParser' =&gt; new Std(),</span>
+<span class="x">        'cacheFile' =&gt; $cacheFile,</span>
+<span class="x">    ]);</span>
+<span class="x">} else {</span>
+<span class="x">    $dispatcher = \FastRoute\simpleDispatcher($routeDefinitionCallback, [</span>
+<span class="x">        'dataGenerator' =&gt; GroupCountBased::class,</span>
+<span class="x">        'dispatcher' =&gt; FastRouteDispatcher::class,</span>
+<span class="x">        'routeParser' =&gt; new Std(),</span>
+<span class="x">    ]);</span>
+<span class="x">}</span>
+</code></pre>
+<p>Notice that FastRoute's handler payload is the <strong>string identifier</strong> <code>$route-&gt;getIdentifier()</code> (<code>'route0'</code>), not the PHP closure or controller object! Because <code>'route0'</code> is a plain string, <code>\FastRoute\cachedDispatcher()</code> can serialize the entire compiled static map and chunked regex array to <code>$cacheFile</code> using <code>var_export()</code> (<code>&lt;?php return ...;</code>), allowing production PHP-FPM workers to load compiled regex tables straight from OPcache with zero route parsing overhead.</p>
+<h3>Why <code>FastRouteDispatcher</code> Overrides <code>GroupCountBased</code> (<code>Slim/Routing/FastRouteDispatcher.php:15-116</code>)</h3>
+<p><code>Slim\Routing\FastRouteDispatcher</code> subclasses <code>FastRoute\Dispatcher\GroupCountBased</code> and completely replaces <code>dispatch($httpMethod, $uri)</code> (lines 33–59) and adds <code>getAllowedMethods(string $uri)</code> (lines 92–115):</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/FastRouteDispatcher.php:33-59</span>
+<span class="x">public function dispatch($httpMethod, $uri): array</span>
+<span class="x">{</span>
+<span class="x">    $routingResults = $this-&gt;routingResults($httpMethod, $uri);</span>
+<span class="x">    if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">        return $routingResults;</span>
+<span class="x">    }</span>
+
+<span class="x">    // For HEAD requests, attempt fallback to GET</span>
+<span class="x">    if ($httpMethod === 'HEAD') {</span>
+<span class="x">        $routingResults = $this-&gt;routingResults('GET', $uri);</span>
+<span class="x">        if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">            return $routingResults;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    // If nothing else matches, try fallback routes</span>
+<span class="x">    $routingResults = $this-&gt;routingResults('*', $uri);</span>
+<span class="x">    if ($routingResults[0] === self::FOUND) {</span>
+<span class="x">        return $routingResults;</span>
+<span class="x">    }</span>
+
+<span class="x">    if (!empty($this-&gt;getAllowedMethods($uri))) {</span>
+<span class="x">        return [self::METHOD_NOT_ALLOWED, null, []];</span>
+<span class="x">    }</span>
+
+<span class="x">    return [self::NOT_FOUND, null, []];</span>
+<span class="x">}</span>
+</code></pre>
+<ol>
+<li><strong>$O(1)$ Static Map vs Chunked Variable Regex (<code>routingResults()</code>, lines 67–85)</strong>:
+First checks <code>isset($this-&gt;staticRouteMap[$httpMethod][$uri])</code> in $O(1)$ hash time. If not a static route, calls <code>$this-&gt;dispatchVariableRoute($this-&gt;variableRouteData[$httpMethod], $uri)</code> (inherited from FastRoute <code>GroupCountBased</code>, which matches chunked combined regexes in groups of ~10 routes).</li>
+<li><strong>RFC 2616 <code>HEAD -&gt; GET</code> Fallback (lines 41–46)</strong>:
+If an incoming <code>HEAD</code> request has no explicit <code>HEAD</code> route, <code>FastRouteDispatcher</code> automatically retries <code>routingResults('GET', $uri)</code>. Later, at the end of <code>Slim\App::handle()</code> (<code>Slim/App.php:218-222</code>), Slim strips the response body (<code>$response-&gt;withBody($emptyBody)</code>) so <code>HEAD</code> responses never leak body bytes.</li>
+<li><strong>Wildcard <code>'*'</code> Method Fallback (lines 49–52)</strong>:
+Supports catch-all routes registered with <code>$app-&gt;map(['*'], ...)</code>.</li>
+<li><strong>Single-URI Memoization in <code>getAllowedMethods(string $uri)</code> (lines 92–115)</strong>:
+When a route is not found for <code>$httpMethod</code>, line 54 calls <code>$this-&gt;getAllowedMethods($uri)</code>. To prevent scanning all static and variable route tables twice (once in <code>dispatch()</code> at line 54 to detect <code>METHOD_NOT_ALLOWED</code>, and a second time when <code>RoutingMiddleware</code> calls <code>$routingResults-&gt;getAllowedMethods()</code> at <code>Slim/Middleware/RoutingMiddleware.php:80</code>), <code>FastRouteDispatcher</code> caches the last queried URI in <code>private ?string $allowedMethodsUri</code> and <code>private array $allowedMethods</code> (lines 20–25, 94–96, 112–114)!</li>
+</ol>
+<hr />
+<h2>3. <code>RoutingMiddleware</code>, <code>RouteContext</code> &amp; <code>Route::run()</code> Group Onion</h2>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_routing_engine/fastroute_and_runner_internals/route_group_middleware_onion.png" alt="fastroute_and_runner_internals_2" />
+  <figcaption class="drawlib-caption">Route::appendGroupMiddlewareToRoute() Lazy Onion Assembly & 4 Handler Invocation Strategies</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: Route::appendGroupMiddlewareToRoute()</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Route::appendGroupMiddlewareToRoute()"</span><span class="p">,</span>
+    <span class="s2">"Slim/Routing/Route.php:315-337 (array_reverse)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_in_line_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">grp_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. Inner Dispatcher (inner = this-&gt;middlewareDispatcher)"</span><span class="p">,</span>
+    <span class="s2">"Contains Route-level middlewares (route-&gt;add) wrapping Route"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Inner"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">play_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. New Outer MiddlewareDispatcher(inner)"</span><span class="p">,</span>
+    <span class="s2">"Seeds new dispatcher with inner as its kernel [L329-330]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Wrap"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. foreach (array_reverse(this-&gt;groups) as group)"</span><span class="p">,</span>
+    <span class="s2">"Appends inner RouteGroup first, then outer RouteGroup last [L332-334]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Reverse"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_down_up</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. Resulting Execution Order"</span><span class="p">,</span>
+    <span class="s2">"Outer Group MW -&gt; Inner Group MW -&gt; Route MW -&gt; Route::handle()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Order"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grp_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: 4 Handler Invocation Strategies</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"4 Built-In Handler Invocation Strategies"</span><span class="p">,</span>
+    <span class="s2">"Slim/Handlers/Strategies/*.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">strat_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponse (Default Strategy)"</span><span class="p">,</span>
+    <span class="s2">"Sets req-&gt;withAttribute(k, v) &amp; calls fn(req, res, args)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Default"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">star</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponseArgs"</span><span class="p">,</span>
+    <span class="s2">"Unpacks positional values: fn(req, res, ...array_values(args))"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Pos"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">list_numbers</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestResponseNamedArgs (PHP 8.0+)"</span><span class="p">,</span>
+    <span class="s2">"Unpacks associative keys as named args: fn(req, res, ...args)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Named"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RequestHandler (PSR-15 Auto-Switch)"</span><span class="p">,</span>
+    <span class="s2">"Auto-selected in Route::handle() [L353] for RequestHandlerInterface"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"PSR-15"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">strat_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3>Why <code>Route::appendGroupMiddlewareToRoute()</code> Reverses <code>$this-&gt;groups</code> (<code>Slim/Routing/Route.php:327-337</code>)</h3>
+<p>When a route is created inside nested groups (<code>OuterGroup -&gt; InnerGroup -&gt; Route</code>), developers register route-level middlewares (<code>$route-&gt;add(...)</code>) before the enclosing <code>group()</code> callbacks finish returning (<code>$outerGroup-&gt;add(...)</code> executes <strong>after</strong> <code>collectRoutes()</code> completes!).
+Therefore, <code>Route</code> cannot attach group middlewares inside <code>Route::__construct()</code>. Instead, on the first call to <code>Route::run()</code> (<code>Slim/Routing/Route.php:315-322</code>), <code>appendGroupMiddlewareToRoute()</code> wraps the route's existing <code>$this-&gt;middlewareDispatcher</code> (<code>$inner</code>) inside a brand-new <code>MiddlewareDispatcher($inner)</code> and iterates <code>array_reverse($this-&gt;groups)</code>:</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Route.php:327-337</span>
+<span class="x">protected function appendGroupMiddlewareToRoute(): void</span>
+<span class="x">{</span>
+<span class="x">    $inner = $this-&gt;middlewareDispatcher;</span>
+<span class="x">    $this-&gt;middlewareDispatcher = new MiddlewareDispatcher($inner, $this-&gt;callableResolver, $this-&gt;container);</span>
+
+<span class="x">    foreach (array_reverse($this-&gt;groups) as $group) {</span>
+<span class="x">        $group-&gt;appendMiddlewareToDispatcher($this-&gt;middlewareDispatcher);</span>
+<span class="x">    }</span>
+
+<span class="x">    $this-&gt;groupMiddlewareAppended = true;</span>
+<span class="x">}</span>
+</code></pre>
+<p>Because <code>MiddlewareDispatcher::add()</code> is LIFO, adding <code>InnerGroup</code>'s middlewares first and <code>OuterGroup</code>'s middlewares second causes <code>OuterGroup</code> to wrap <code>InnerGroup</code>, which wraps <code>$inner</code> (the <code>Route</code>'s own middlewares), which wraps <code>Route::handle()</code>!</p>
+<h3>Automatic PSR-15 <code>RequestHandler</code> Strategy Switching (<code>Slim/Routing/Route.php:342-363</code>)</h3>
+<p>At the very center of <code>Route::run()</code>, <code>Route::handle(ServerRequestInterface $request)</code> resolves <code>$this-&gt;callable</code> via <code>CallableResolver::resolveRoute()</code> and inspects whether the resolved callable is a <code>[RequestHandlerInterface, 'handle']</code> pair:</p>
+<pre><code class="language-php"><span class="x">// Slim/Routing/Route.php:342-363</span>
+<span class="x">public function handle(ServerRequestInterface $request): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    if ($this-&gt;callableResolver instanceof AdvancedCallableResolverInterface) {</span>
+<span class="x">        $callable = $this-&gt;callableResolver-&gt;resolveRoute($this-&gt;callable);</span>
+<span class="x">    } else {</span>
+<span class="x">        $callable = $this-&gt;callableResolver-&gt;resolve($this-&gt;callable);</span>
+<span class="x">    }</span>
+<span class="x">    $strategy = $this-&gt;invocationStrategy;</span>
+
+<span class="x">    $strategyImplements = class_implements($strategy);</span>
+
+<span class="x">    if (</span>
+<span class="x">        is_array($callable)</span>
+<span class="x">        &amp;&amp; $callable[0] instanceof RequestHandlerInterface</span>
+<span class="x">        &amp;&amp; !in_array(RequestHandlerInvocationStrategyInterface::class, $strategyImplements)</span>
+<span class="x">    ) {</span>
+<span class="x">        $strategy = new RequestHandler();</span>
+<span class="x">    }</span>
+
+<span class="x">    $response = $this-&gt;responseFactory-&gt;createResponse();</span>
+<span class="x">    return $strategy($callable, $request, $response, $this-&gt;arguments);</span>
+<span class="x">}</span>
+</code></pre>
+<p>Even when the application's default strategy is <code>RequestResponse</code>, lines 353–359 automatically switch to <code>new RequestHandler()</code> whenever a route target implements PSR-15 <code>RequestHandlerInterface</code>, invoking <code>$callable($request)</code> directly without requiring the user to reconfigure the route's invocation strategy.</p>
+<p>Continue to <strong><a href="../05_error_subsystem/error_middleware_and_renderers.html">Chapter 5: ErrorMiddleware, ErrorHandler &amp; Renderers</a></strong> to trace how exceptions thrown during routing or handler execution are intercepted, negotiated, and rendered.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial internal architecture guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

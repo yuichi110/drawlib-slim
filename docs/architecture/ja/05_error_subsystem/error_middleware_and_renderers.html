@@ -1,0 +1,770 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErrorMiddleware・ErrorHandler・コンテンツ交渉レンダラの内部実装 — Slim 4 Architecture Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html">
+    
+    
+    
+    <meta name="description" content="Slim 4 は例外処理をフレームワーク中核の PSR-15 サブシステムとして設計しており、Slim\Middleware\ErrorMiddleware（Slim/Middleware/ErrorMiddleware.php）、Slim\Handlers\ErrorHandler（Slim/Handlers/Er…">
+    <link rel="canonical" href="https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 内部構造">
+    <meta property="og:title" content="ErrorMiddleware・ErrorHandler・コンテンツ交渉レンダラの内部実装 — Slim 4 内部構造">
+    <meta property="og:description" content="Slim 4 は例外処理をフレームワーク中核の PSR-15 サブシステムとして設計しており、Slim\Middleware\ErrorMiddleware（Slim/Middleware/ErrorMiddleware.php）、Slim\Handlers\ErrorHandler（Slim/Handlers/Er…">
+    <meta property="og:url" content="https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html">
+    <meta property="og:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    <meta property="og:locale" content="ja_JP">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ErrorMiddleware・ErrorHandler・コンテンツ交渉レンダラの内部実装 — Slim 4 内部構造">
+    <meta name="twitter:description" content="Slim 4 は例外処理をフレームワーク中核の PSR-15 サブシステムとして設計しており、Slim\Middleware\ErrorMiddleware（Slim/Middleware/ErrorMiddleware.php）、Slim\Handlers\ErrorHandler（Slim/Handlers/Er…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/architecture/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            
+            <span class="demo-banner-text">
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）内部アーキテクチャ解説（非公式）
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">Architecture</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 内部構造">
+                    
+                    Slim 4 内部構造
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >アーキテクチャ全体像</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. パッケージ階層と境界設計</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_package_and_layers/module_hierarchy.html" >5層モジュール構造と依存関係分析</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. ブートストラップと PSR-17 自動検出</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_bootstrap_and_psr17/app_factory_internals.html" >AppFactory と Psr17FactoryProvider 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. ミドルウェア玉ねぎ構造と Callable 解決</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_middleware_and_resolver/middleware_dispatcher_internals.html" >MiddlewareDispatcher と CallableResolver 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. FastRoute と RouteRunner エンジン</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_routing_engine/fastroute_and_runner_internals.html" >FastRouteDispatcher・RouteRunner・実行戦略</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. 例外処理サブシステムとレンダラ</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="error_middleware_and_renderers.html" >ErrorMiddleware・ErrorHandler・レンダラ群</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. SAPI レスポンス送出機構</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_sapi_emission/response_emitter_internals.html" >ResponseEmitter と OutputBuffering 内部実装</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">関連ガイド &amp; 公式リンク</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 ユーザーガイド<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API リファレンス<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 診断レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 公式ドキュメント<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub リポジトリ<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Architecture</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">ErrorMiddleware・ErrorHandler・コンテンツ交渉レンダラの内部実装</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">日本語</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="../../en/05_error_subsystem/error_middleware_and_renderers.html" class="lang-option" lang="en" hreflang="en" >
+                                <span>English</span>
+                                
+                            </a>
+                            
+                            <a href="error_middleware_and_renderers.html" class="lang-option active" lang="ja" hreflang="ja" aria-current="page">
+                                <span>日本語</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>ErrorMiddleware・ErrorHandler・コンテンツ交渉レンダラの内部実装</h1>
+<p>Slim 4 は例外処理をフレームワーク中核の PSR-15 サブシステムとして設計しており、<code>Slim\Middleware\ErrorMiddleware</code>（<code>Slim/Middleware/ErrorMiddleware.php</code>）、<code>Slim\Handlers\ErrorHandler</code>（<code>Slim/Handlers/ErrorHandler.php</code>）、<code>Slim\Error\AbstractErrorRenderer</code>（<code>Slim/Error/AbstractErrorRenderer.php</code>）、<code>Slim\Error\Renderers\*</code> 配下の 4 種の具象レンダラ（<code>Html</code>、<code>Json</code>、<code>PlainText</code>、<code>Xml</code>）、および PSR-3 フォールバックロガー <code>Slim\Logger</code>（<code>Slim/Logger.php</code>）の**計 <code>7</code> ファイル（<code>416</code> LOC）**で構成されています。</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_error_subsystem/error_middleware_and_renderers/error_middleware_negotiation_flow_ja.png" alt="error_middleware_and_renderers_1" />
+  <figcaption class="drawlib-caption">ErrorMiddleware::process() の Throwable 捕捉・ハンドラ解決と ErrorHandler の Accept コンテンツネゴシエーション</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">94</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: ErrorMiddleware Interception &amp; 4-Tier Handler Resolution</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"1. ErrorMiddleware::process() とハンドラ解決"</span><span class="p">,</span>
+    <span class="s2">"Slim/Middleware/ErrorMiddleware.php:74-138"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_warning</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">em_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">em_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"try { handler-&gt;handle(req) } catch (Throwable)"</span><span class="p">,</span>
+    <span class="s2">"HttpException 時は req = e-&gt;getRequest() で属性付 Request を復元 [L85]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Catch"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">warning_octagon</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">em_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. 完全一致検索: this-&gt;handlers[type] [L105]"</span><span class="p">,</span>
+    <span class="s2">"登録された例外クラス名に対する O(1) ハッシュ検索"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"H1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">magnifying_glass</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">em_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. サブクラス検索: this-&gt;subClassHandlers [L109]"</span><span class="p">,</span>
+    <span class="s2">"完全一致を確認後、is_subclass_of(type, class) で親階層を走査 [L114]"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"H2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_fork</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">em_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. フォールバック: getDefaultErrorHandler() [L127]"</span><span class="p">,</span>
+    <span class="s2">"標準の Slim</span><span class="se">\\</span><span class="s2">Handlers</span><span class="se">\\</span><span class="s2">ErrorHandler を遅延生成し CallableResolver で解決"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Default"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">em_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: ErrorHandler::__invoke() Status, Logging &amp; Accept Negotiation</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"2. ErrorHandler::__invoke() と Accept 交渉"</span><span class="p">,</span>
+    <span class="s2">"Slim/Handlers/ErrorHandler.php:116-225, 294-316"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">sliders_horizontal</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">))</span>
+
+<span class="n">eh_steps</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">eh_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"determineStatusCode() [L152-163]"</span><span class="p">,</span>
+    <span class="s2">"OPTIONS -&gt; 200 | HttpException -&gt; $e-&gt;getCode() | その他 -&gt; 500"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Status"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">hash</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">eh_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"determineContentType($request) [L172-209]"</span><span class="p">,</span>
+    <span class="s2">"array_intersect(Accept) + text/plain 優先度調整 + /</span><span class="se">\\</span><span class="s2">+(json|xml)/ 正規表現"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Accept"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">funnel</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">eh_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"writeToErrorLog() -&gt; LoggerInterface [L263-292]"</span><span class="p">,</span>
+    <span class="s2">"PlainTextErrorRenderer で整形し $this-&gt;logger-&gt;error() へ出力"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"PSR-3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_text</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">eh_steps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"respond() と 405 Allow ヘッダ付与 [L294-316]"</span><span class="p">,</span>
+    <span class="s2">"Content-Type 設定・405 時の Allow ヘッダ注入・描画ボディ書込"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Emit"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">eh_steps</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2>1. <code>ErrorMiddleware</code>：例外境界と4段階のハンドラ解決</h2>
+<p><code>$app-&gt;addErrorMiddleware($displayErrorDetails, $logErrors, $logErrorDetails, $logger)</code>（<code>Slim/App.php:145-161</code>）をミドルウェア登録の最後に呼び出すことで、<code>ErrorMiddleware</code> は <code>MiddlewareDispatcher::$tip</code> の最外殻に配置されます。</p>
+<h3><code>process()</code>・<code>handleException()</code>・<code>getErrorHandler()</code>（<code>Slim/Middleware/ErrorMiddleware.php:74-120</code>）</h3>
+<pre><code class="language-php"><span class="x">// Slim/Middleware/ErrorMiddleware.php:74-120</span>
+<span class="x">public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    try {</span>
+<span class="x">        return $handler-&gt;handle($request);</span>
+<span class="x">    } catch (Throwable $e) {</span>
+<span class="x">        return $this-&gt;handleException($request, $e);</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+
+<span class="x">public function handleException(ServerRequestInterface $request, Throwable $exception): ResponseInterface</span>
+<span class="x">{</span>
+<span class="x">    if ($exception instanceof HttpException) {</span>
+<span class="x">        $request = $exception-&gt;getRequest();</span>
+<span class="x">    }</span>
+
+<span class="x">    $exceptionType = get_class($exception);</span>
+<span class="x">    $handler = $this-&gt;getErrorHandler($exceptionType);</span>
+
+<span class="x">    /** @var ResponseInterface */</span>
+<span class="x">    return $handler($request, $exception, $this-&gt;displayErrorDetails, $this-&gt;logErrors, $this-&gt;logErrorDetails);</span>
+<span class="x">}</span>
+</code></pre>
+<p><code>getErrorHandler(string $type)</code>（103〜120 行目）は、キャッチした例外のクラス名 <code>$exceptionType = get_class($exception)</code> に対して<strong>4段階の優先順位</strong>でハンドラを検索し、最終的に <code>$this-&gt;callableResolver-&gt;resolve(...)</code> で呼び出し可能な形式へ解決します。</p>
+<ol>
+<li><strong>完全一致マップ（<code>isset($this-&gt;handlers[$type])</code>、105 行目）</strong>: <code>setErrorHandler($type, $handler, false)</code>（デフォルトの <code>$handleSubclasses = false</code>）で登録されたクラス名を $O(1)$ で検索します。</li>
+<li><strong>サブクラスマップの完全一致（<code>isset($this-&gt;subClassHandlers[$type])</code>、109 行目）</strong>: <code>$handleSubclasses = true</code> で登録された基底クラス自身がスローされた場合に $O(1)$ でヒットします。</li>
+<li><strong>親クラス階層のポリモーフィック走査（<code>is_subclass_of($type, $class)</code>、113〜117 行目）</strong>: <code>$this-&gt;subClassHandlers</code> をループし、<code>is_subclass_of($type, $class)</code> を判定します。たとえば <code>setErrorHandler(HttpSpecializedException::class, $myHandler, true)</code> と登録すれば、<code>400</code>〜<code>501</code> の全 9 種の HTTP 例外を一括して捕捉できます。</li>
+<li><strong>デフォルト <code>ErrorHandler</code> へのフォールバック（<code>getDefaultErrorHandler()</code>、119・127〜138 行目）</strong>: <code>new ErrorHandler($this-&gt;callableResolver, $this-&gt;responseFactory, $this-&gt;logger)</code> を遅延生成して返します。</li>
+</ol>
+<hr />
+<h2>2. <code>ErrorHandler::__invoke()</code>：ステータス決定・<code>Allow</code> ヘッダ・<code>Accept</code> 交渉</h2>
+<h3>なぜ <code>determineStatusCode()</code> は <code>OPTIONS</code> メソッドに対して <code>200</code> を返すのか？（<code>Slim/Handlers/ErrorHandler.php:152-163</code>）</h3>
+<pre><code class="language-php"><span class="x">// Slim/Handlers/ErrorHandler.php:152-163</span>
+<span class="x">protected function determineStatusCode(): int</span>
+<span class="x">{</span>
+<span class="x">    if ($this-&gt;method === 'OPTIONS') {</span>
+<span class="x">        return 200;</span>
+<span class="x">    }</span>
+
+<span class="x">    if ($this-&gt;exception instanceof HttpException) {</span>
+<span class="x">        return $this-&gt;exception-&gt;getCode();</span>
+<span class="x">    }</span>
+
+<span class="x">    return 500;</span>
+<span class="x">}</span>
+</code></pre>
+<p>なぜ例外処理中にリクエストメソッドが <code>OPTIONS</code> だと HTTP <code>200</code> を返すのでしょうか？ブラウザが CORS プリフライトリクエストとして <code>OPTIONS /api/users</code> を送信した際、アプリケーション側に <code>$app-&gt;get('/api/users', ...)</code> と <code>$app-&gt;post('/api/users', ...)</code> しか定義されていないと、<code>RoutingMiddleware</code> は許可メソッド <code>['GET', 'POST']</code> を保持した <code>HttpMethodNotAllowedException</code>（<code>405</code>）をスローします。このとき <code>ErrorHandler</code> が <code>OPTIONS</code> に対してステータスコード <code>200</code> を選択しつつ、<code>respond()</code>（303〜306 行目）で <code>Allow: GET, POST</code> ヘッダを付与することで、明示的な <code>OPTIONS</code> ルートを書かなくても CORS ミドルウェアと連携してプリフライト応答を正常に完結できる設計になっています。</p>
+<h3><code>Accept</code> ヘッダによるコンテンツネゴシエーション（<code>Slim/Handlers/ErrorHandler.php:172-209</code>）</h3>
+<p><code>forceContentType()</code>（146〜150 行目）で MIME タイプが強制固定されていない限り、<code>determineContentType(ServerRequestInterface $request)</code> は <code>$this-&gt;errorRenderers</code> に登録された 5 つのキー（<code>'application/json'</code>、<code>'application/xml'</code>、<code>'text/xml'</code>、<code>'text/html'</code>、<code>'text/plain'</code>）と <code>Accept</code> ヘッダを照合します。</p>
+<pre><code class="language-php"><span class="x">// Slim/Handlers/ErrorHandler.php:172-209</span>
+<span class="x">protected function determineContentType(ServerRequestInterface $request): ?string</span>
+<span class="x">{</span>
+<span class="x">    $acceptHeader = $request-&gt;getHeaderLine('Accept');</span>
+<span class="x">    $selectedContentTypes = array_intersect(</span>
+<span class="x">        explode(',', $acceptHeader),</span>
+<span class="x">        array_keys($this-&gt;errorRenderers)</span>
+<span class="x">    );</span>
+<span class="x">    $count = count($selectedContentTypes);</span>
+
+<span class="x">    if ($count) {</span>
+<span class="x">        $current = current($selectedContentTypes);</span>
+
+<span class="x">        if ($current === 'text/plain' &amp;&amp; $count &gt; 1) {</span>
+<span class="x">            $next = next($selectedContentTypes);</span>
+<span class="x">            if (is_string($next)) {</span>
+<span class="x">                return $next;</span>
+<span class="x">            }</span>
+<span class="x">        }</span>
+
+<span class="x">        if (is_string($current)) {</span>
+<span class="x">            return $current;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    if (preg_match('/\+(json|xml)/', $acceptHeader, $matches)) {</span>
+<span class="x">        $mediaType = 'application/' . $matches[1];</span>
+<span class="x">        if (array_key_exists($mediaType, $this-&gt;errorRenderers)) {</span>
+<span class="x">            return $mediaType;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    return null;</span>
+<span class="x">}</span>
+</code></pre>
+<p>ここには3つの精巧なルールが組み込まれています。</p>
+<ol>
+<li><strong>カンマ分割と <code>array_intersect()</code>（175〜178 行目）</strong>: クライアントの <code>Accept</code> ヘッダ順序を保ったまま、登録済みレンダラとの共通集合を抽出します。</li>
+<li><strong><code>text/plain</code> よりも構造化フォーマットを優先する特例（188〜193 行目）</strong>: クライアントが <code>Accept: text/plain,application/json</code> のように複数の MIME タイプを送ってきた場合、先頭が <code>'text/plain'</code> であれば <code>next($selectedContentTypes)</code> を呼び出して 2 番目の <code>'application/json'</code> 等を優先採用します。</li>
+<li><strong>RFC 6839 構造化構文サフィックス正規表現（<code>/\+(json|xml)/</code>、201〜206 行目）</strong>: <code>application/problem+json</code> や <code>application/vnd.api+json</code>、<code>application/atom+xml</code> などの拡張メディアタイプを正規表現で検出し、自動的に <code>'application/json'</code> または <code>'application/xml'</code> のレンダラへマッピングします。いずれにも一致しない場合は <code>null</code> を返し、デフォルトの <code>HtmlErrorRenderer</code>（<code>'text/html'</code>）が使用されます。</li>
+</ol>
+<hr />
+<h2>3. <code>AbstractErrorRenderer</code>・例外チェーン走査・PSR-3 ロギング</h2>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_error_subsystem/error_middleware_and_renderers/error_renderers_and_logger_matrix_ja.png" alt="error_middleware_and_renderers_2" />
+  <figcaption class="drawlib-caption">AbstractErrorRenderer サブクラス群（JSON・XML・HTML・PlainText）と PSR-3 Logger / Slim\Logger フォールバック</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="c1"># Left Panel: 4 Built-In Error Renderers</span>
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"4種の標準 ErrorRenderer 実装クラス"</span><span class="p">,</span>
+    <span class="s2">"Slim/Error/Renderers/*ErrorRenderer.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">102.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">102.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">ren_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ren_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"JsonErrorRenderer (application/json)"</span><span class="p">,</span>
+    <span class="s2">"$e-&gt;getPrevious() チェーンを走査し JSON_INVALID_UTF8_SUBSTITUTE で直列化"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"JSON"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ren_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"XmlErrorRenderer (application/xml, text/xml)"</span><span class="p">,</span>
+    <span class="s2">"$e-&gt;getPrevious() チェーンを走査しメッセージを &lt;![CDATA[...]]&gt; でエスケープ"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"XML"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ren_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"HtmlErrorRenderer (text/html — デフォルト)"</span><span class="p">,</span>
+    <span class="s2">"htmlspecialchars(ENT_QUOTES | ENT_SUBSTITUTE) と htmlentities() で XSS 防止"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"HTML"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">browser</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ren_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"PlainTextErrorRenderer (text/plain &amp; ログ出力)"</span><span class="p">,</span>
+    <span class="s2">"$e-&gt;getPrevious() と getTraceAsString() を連結してテキスト整形"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"TEXT"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_text</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ren_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="c1"># Right Panel: AbstractErrorRenderer &amp; PSR-3 Logger Pipeline</span>
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"AbstractErrorRenderer と PSR-3 ログ出力"</span><span class="p">,</span>
+    <span class="s2">"AbstractErrorRenderer.php &amp; Slim/Logger.php"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">terminal_window</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">110.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">110.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">log_list</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.6</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.3</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">log_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"getErrorTitle() &amp; getErrorDescription()"</span><span class="p">,</span>
+    <span class="s2">"HttpException の title / description または汎用 500 文言を取得"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Title"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">text_t</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">log_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"writeToErrorLog() [ErrorHandler.php:263]"</span><span class="p">,</span>
+    <span class="s2">"this-&gt;logErrorRenderer (e, this-&gt;logErrorDetails) を呼び出し"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Render"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">note_pencil</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">log_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"開発者向け Tips 文言の付与 [L270-273]"</span><span class="p">,</span>
+    <span class="s2">"!displayErrorDetails 時に displayErrorDetails 設定のヒントを追記"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Tip"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightbulb</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">log_list</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"PSR-3 LoggerInterface / Slim</span><span class="se">\\</span><span class="s2">Logger [L30]"</span><span class="p">,</span>
+    <span class="s2">"this-&gt;logger-&gt;error(error) から error_log((string)msg) へ送出"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Sink"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">broadcast</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">log_list</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3>4種の標準 ErrorRenderer 実装クラスの比較（<code>Slim/Error/Renderers/*</code>）</h3>
+<p>4つのレンダラはすべて抽象基底クラス <code>Slim\Error\AbstractErrorRenderer</code>（<code>Slim/Error/AbstractErrorRenderer.php:23-46</code>）を継承し、<code>getErrorTitle(Throwable $e)</code> と <code>getErrorDescription(Throwable $e)</code>（<code>HttpException</code> であればその <code>$title</code> / <code>$description</code>、一般例外であれば <code>'Slim Application Error'</code>）を共有します。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">レンダラクラス</th>
+<th style="text-align:left">対象 MIME タイプ</th>
+<th style="text-align:left"><code>$displayErrorDetails = false</code> 時の出力</th>
+<th style="text-align:left"><code>$displayErrorDetails = true</code> 時の例外チェーン走査とエスケープ処理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>JsonErrorRenderer</code>（全 <code>60</code> 行）</td>
+<td style="text-align:left"><code>application/json</code>（<code>+json</code>）</td>
+<td style="text-align:left"><code>{&quot;message&quot;: &quot;&lt;title&gt;&quot;}</code></td>
+<td style="text-align:left"><code>do { ... } while ($exception = $exception-&gt;getPrevious())</code>（34〜36 行目）で親例外チェーンを配列化し、<code>JSON_INVALID_UTF8_SUBSTITUTE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES</code> でエンコード。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>XmlErrorRenderer</code>（全 <code>55</code> 行）</td>
+<td style="text-align:left"><code>application/xml</code>, <code>text/xml</code>（<code>+xml</code>）</td>
+<td style="text-align:left"><code>&lt;error&gt;&lt;message&gt;&lt;![CDATA[...]]&gt;&lt;/message&gt;&lt;/error&gt;</code></td>
+<td style="text-align:left"><code>$exception-&gt;getPrevious()</code> チェーンを <code>&lt;exception&gt;</code> 要素として連ね、<code>createCdataSection()</code>（52 行目）で <code>str_replace(']]&gt;', ']]]]&gt;&lt;![CDATA[&gt;', $content)</code> による CDATA 分割エスケープを実施。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HtmlErrorRenderer</code>（全 <code>95</code> 行）</td>
+<td style="text-align:left"><code>text/html</code>（デフォルト）</td>
+<td style="text-align:left"><code>&lt;h1&gt;&lt;title&gt;&lt;/h1&gt;&lt;p&gt;&lt;description&gt;&lt;/p&gt;</code> の HTML5 文書</td>
+<td style="text-align:left"><code>renderExceptionFragment($exception)</code> で <code>Type</code>・<code>Code</code>・<code>Message</code>・<code>File</code>・<code>Line</code>・<code>Trace</code> を <code>htmlentities()</code> エスケープして出力し、タイトルには <code>htmlspecialchars(..., ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')</code> を適用。</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>PlainTextErrorRenderer</code>（全 <code>60</code> 行）</td>
+<td style="text-align:left"><code>text/plain</code>（および <code>$logErrorRenderer</code> 既定値）</td>
+<td style="text-align:left"><code>&quot;&lt;title&gt;\n&quot;</code></td>
+<td style="text-align:left"><code>formatExceptionFragment($exception)</code>（<code>Trace: %s</code> 含む）を出力し、<code>while ($exception = $exception-&gt;getPrevious())</code>（32〜35 行目）で <code>&quot;\nPrevious Error:\n&quot;</code> セクションを連結。</td>
+</tr>
+</tbody>
+</table>
+<h3>クライアント出力とサーバーログ出力の独立制御（<code>writeToErrorLog()</code> と <code>Slim\Logger</code>）</h3>
+<p><code>ErrorMiddleware</code> が <code>$displayErrorDetails</code>（HTTP レスポンスへの詳細表示）と <code>$logErrorDetails</code>（サーバーログへの詳細出力）を別々の引数として受け取るのは、本番環境で**「クライアントには内部スタックトレースを隠蔽しつつ（<code>$displayErrorDetails = false</code>）、サーバー側のエラーログには完全な例外チェーンとトレースを記録する（<code>$logErrors = true, $logErrorDetails = true</code>）」**ためです。</p>
+<p><code>ErrorHandler::writeToErrorLog()</code>（<code>Slim/Handlers/ErrorHandler.php:263-276</code>）は <code>$this-&gt;logErrorRenderer</code>（デフォルトは <code>PlainTextErrorRenderer::class</code>）を呼び出し、<code>$this-&gt;logger-&gt;error($error)</code> へ委譲します。コンストラクタで PSR-3 <code>LoggerInterface</code>（Monolog 等）が注入されていない場合は、<code>getDefaultLogger()</code>（289〜292 行目）が <code>new Slim\Logger()</code>（<code>Slim/Logger.php:19-32</code>、<code>Psr\Log\AbstractLogger</code> を継承して PHP 標準の <code>error_log((string) $message)</code> を呼ぶ 33 行の軽量クラス）へフォールバックします。</p>
+<p>続いて最終章 <strong><a href="../06_sapi_emission/response_emitter_internals.html">第6章: ResponseEmitter と OutputBuffering 内部実装</a></strong> に進み、不変の PSR-7 <code>ResponseInterface</code> オブジェクトから PHP SAPI 出力ストリームへの送出機構を解剖します。</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework は Josh Lockhart および Slim Framework チームによって開発・保守されています（MIT License）。本サイトは非公式の内部アーキテクチャ解説であり、公式プロジェクトとは提携していません。公式ドキュメントは <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a> をご参照ください。
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

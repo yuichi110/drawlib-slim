@@ -1,0 +1,2026 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSR-17 Factory Auto-Discovery &amp; Providers — Slim 4 API Reference (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('drawlib-theme');
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-theme', savedTheme);
+                } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
+    
+    <link rel="icon" href="../_assets/favicon.png">
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/api/en/02_psr17_providers.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/api/ja/02_psr17_providers.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/api/en/02_psr17_providers.html">
+    
+    
+    
+    <meta name="description" content="Reference for all 10 classes in Slim\Factory\Psr17\*: Psr17FactoryProvider, Psr17Factory, ServerRequestCreator, SlimHttpServerRequestCreator…">
+    <link rel="canonical" href="https://slim.drawlib.com/api/en/02_psr17_providers.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 API Reference">
+    <meta property="og:title" content="PSR-17 Factory Auto-Discovery &amp; Providers — Slim 4 API Reference">
+    <meta property="og:description" content="Reference for all 10 classes in Slim\Factory\Psr17\*: Psr17FactoryProvider, Psr17Factory, ServerRequestCreator, SlimHttpServerRequestCreator…">
+    <meta property="og:url" content="https://slim.drawlib.com/api/en/02_psr17_providers.html">
+    <meta property="og:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PSR-17 Factory Auto-Discovery &amp; Providers — Slim 4 API Reference">
+    <meta name="twitter:description" content="Reference for all 10 classes in Slim\Factory\Psr17\*: Psr17FactoryProvider, Psr17Factory, ServerRequestCreator, SlimHttpServerRequestCreator…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/api/_assets/ogp.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    
+    
+    
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">API REFERENCE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial API Reference for <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <a href="https://slim.drawlib.com/">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">API Reference</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar" id="catalog-sidebar">
+            <div class="sidebar-header has-subbar">
+                <a href="index.html" class="site-title">
+                    Slim 4 API Reference
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle color theme" title="Toggle light/dark mode">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation menu">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-subbar">
+                
+                
+                <a href="index.html" class="sidebar-version-badge">
+                    <span class="sidebar-version-dot"></span>
+                    <span>API Reference · v4.15.3</span>
+                </a>
+                
+                
+                
+                <a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer" class="sidebar-github-link" aria-label="Repository" title="View Upstream Slim 4 Repository">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+                
+            </div>
+            
+
+            <div class="sidebar-menu">
+                <div class="catalog-sidebar-toolbar">
+                    <div class="catalog-filter-box">
+                        <svg class="catalog-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input id="catalog-filter-input" type="search" class="catalog-filter-input" placeholder="Filter items..." autocomplete="off" spellcheck="false" aria-label="Filter items...">
+                        <kbd class="catalog-filter-kbd">/</kbd>
+                    </div>
+                    <div class="catalog-toolbar-meta">
+                        <span class="catalog-toolbar-label">Categories &amp; Items</span>
+                        <button type="button" id="catalog-expand-toggle" class="catalog-expand-btn" data-expand-label="Expand All" data-collapse-label="Collapse All">Collapse All</button>
+                    </div>
+                </div>
+
+                <nav class="catalog-sidebar-nav" id="catalog-sidebar-nav" aria-label="Catalog Navigation">
+                    
+                    
+                    
+                    <details class="catalog-nav-group" data-cat="Slim 4 Package &amp; Namespace Overview" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="00_overview.html" class="catalog-nav-cat-link is-prose-cat">Slim 4 Package &amp; Namespace Overview</a>
+                            
+                            <span class="catalog-nav-count">10</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Architecture &amp; PSR Standards Compliance">
+                                <a href="00_overview.html#architecture-psr-standards-compliance" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Architecture &amp; PSR Standards Compliance</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\">
+                                <a href="00_overview.html#slim" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory">
+                                <a href="00_overview.html#slim-factory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Factory\Psr17">
+                                <a href="00_overview.html#slim-factory-psr17" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Routing">
+                                <a href="00_overview.html#slim-routing" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Middleware">
+                                <a href="00_overview.html#slim-middleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Handlers">
+                                <a href="00_overview.html#slim-handlers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Error\Renderers">
+                                <a href="00_overview.html#slim-error-renderers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Exception">
+                                <a href="00_overview.html#slim-exception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="package Slim\Interfaces">
+                                <a href="00_overview.html#slim-interfaces" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-method">package</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Core Application &amp; Bootstrap Factories" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="01_app_and_factories.html" class="catalog-nav-cat-link is-prose-cat">Core Application &amp; Bootstrap Factories</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\App">
+                                <a href="01_app_and_factories.html#slim-app" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\App</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\AppFactory">
+                                <a href="01_app_and_factories.html#slim-factory-appfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\AppFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\ServerRequestCreatorFactory">
+                                <a href="01_app_and_factories.html#slim-factory-serverrequestcreatorfactory" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\ServerRequestCreatorFactory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\CallableResolver">
+                                <a href="01_app_and_factories.html#slim-callableresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\CallableResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\MiddlewareDispatcher">
+                                <a href="01_app_and_factories.html#slim-middlewaredispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\MiddlewareDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\ResponseEmitter">
+                                <a href="01_app_and_factories.html#slim-responseemitter" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\ResponseEmitter</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Logger">
+                                <a href="01_app_and_factories.html#slim-logger" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Logger</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group is-current-page" data-cat="PSR-17 Factory Auto-Discovery &amp; Providers" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="02_psr17_providers.html" class="catalog-nav-cat-link is-prose-cat">PSR-17 Factory Auto-Discovery &amp; Providers</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix">
+                                <a href="#psr-17-auto-discovery-priority-vendor-mapping-matrix" class="catalog-nav-sublink is-prose-sublink" data-target="psr-17-auto-discovery-priority-vendor-mapping-matrix">
+                                    
+                                    <span class="catalog-nav-sym-text">PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17FactoryProvider">
+                                <a href="#slim-factory-psr17-psr17factoryprovider" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-psr17factoryprovider">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17FactoryProvider</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\Psr17Factory">
+                                <a href="#slim-factory-psr17-psr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-psr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\Psr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\ServerRequestCreator">
+                                <a href="#slim-factory-psr17-serverrequestcreator" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-serverrequestcreator">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\ServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpServerRequestCreator">
+                                <a href="#slim-factory-psr17-slimhttpserverrequestcreator" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-slimhttpserverrequestcreator">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpServerRequestCreator</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimPsr17Factory">
+                                <a href="#slim-factory-psr17-slimpsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-slimpsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\SlimHttpPsr17Factory">
+                                <a href="#slim-factory-psr17-slimhttppsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-slimhttppsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\SlimHttpPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\NyholmPsr17Factory">
+                                <a href="#slim-factory-psr17-nyholmpsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-nyholmpsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\NyholmPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\GuzzlePsr17Factory">
+                                <a href="#slim-factory-psr17-guzzlepsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-guzzlepsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\GuzzlePsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\LaminasDiactorosPsr17Factory">
+                                <a href="#slim-factory-psr17-laminasdiactorospsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-laminasdiactorospsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Factory\Psr17\HttpSoftPsr17Factory">
+                                <a href="#slim-factory-psr17-httpsoftpsr17factory" class="catalog-nav-sublink is-prose-sublink" data-target="slim-factory-psr17-httpsoftpsr17factory">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Factory\Psr17\HttpSoftPsr17Factory</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Routing (Slim\Routing)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="03_routing.html" class="catalog-nav-cat-link is-prose-cat">Routing (Slim\Routing)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollectorProxy">
+                                <a href="03_routing.html#slim-routing-routecollectorproxy" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollectorProxy</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteCollector">
+                                <a href="03_routing.html#slim-routing-routecollector" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteCollector</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Route">
+                                <a href="03_routing.html#slim-routing-route" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Route</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteGroup">
+                                <a href="03_routing.html#slim-routing-routegroup" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteGroup</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteContext">
+                                <a href="03_routing.html#slim-routing-routecontext" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteContext</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteParser">
+                                <a href="03_routing.html#slim-routing-routeparser" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteParser</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteResolver">
+                                <a href="03_routing.html#slim-routing-routeresolver" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteResolver</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RouteRunner">
+                                <a href="03_routing.html#slim-routing-routerunner" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RouteRunner</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\Dispatcher">
+                                <a href="03_routing.html#slim-routing-dispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\Dispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\FastRouteDispatcher">
+                                <a href="03_routing.html#slim-routing-fastroutedispatcher" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\FastRouteDispatcher</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Routing\RoutingResults">
+                                <a href="03_routing.html#slim-routing-routingresults" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Routing\RoutingResults</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Middleware (Slim\Middleware)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="04_middleware.html" class="catalog-nav-cat-link is-prose-cat">Middleware (Slim\Middleware)</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\RoutingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-routingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\RoutingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ErrorMiddleware">
+                                <a href="04_middleware.html#slim-middleware-errormiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ErrorMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\BodyParsingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-bodyparsingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\BodyParsingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\ContentLengthMiddleware">
+                                <a href="04_middleware.html#slim-middleware-contentlengthmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\ContentLengthMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\MethodOverrideMiddleware">
+                                <a href="04_middleware.html#slim-middleware-methodoverridemiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\MethodOverrideMiddleware</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Middleware\OutputBufferingMiddleware">
+                                <a href="04_middleware.html#slim-middleware-outputbufferingmiddleware" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Middleware\OutputBufferingMiddleware</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Handlers &amp; Invocation Strategies" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="05_handlers_and_strategies.html" class="catalog-nav-cat-link is-prose-cat">Handlers &amp; Invocation Strategies</a>
+                            
+                            <span class="catalog-nav-count">7</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Summary of Classes">
+                                <a href="05_handlers_and_strategies.html#summary-of-classes" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Summary of Classes</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\ErrorHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-errorhandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\ErrorHandler</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="Route Callback Invocation Strategies">
+                                <a href="05_handlers_and_strategies.html#route-callback-invocation-strategies" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Route Callback Invocation Strategies</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponse">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponse" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponse</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponseargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestResponseNamedArgs">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requestresponsenamedargs" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestResponseNamedArgs</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Handlers\Strategies\RequestHandler">
+                                <a href="05_handlers_and_strategies.html#slim-handlers-strategies-requesthandler" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Handlers\Strategies\RequestHandler</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Error Renderers" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="06_error_renderers.html" class="catalog-nav-cat-link is-prose-cat">Error Renderers</a>
+                            
+                            <span class="catalog-nav-count">6</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="Summary of Error Renderers">
+                                <a href="06_error_renderers.html#summary-of-error-renderers" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-nav-sym-text">Summary of Error Renderers</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\AbstractErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-abstracterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\AbstractErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\JsonErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-jsonerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\JsonErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\HtmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-htmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\HtmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\XmlErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-xmlerrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\XmlErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Error\Renderers\PlainTextErrorRenderer">
+                                <a href="06_error_renderers.html#slim-error-renderers-plaintexterrorrenderer" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Error\Renderers\PlainTextErrorRenderer</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="HTTP Exceptions (Slim\Exception\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="07_exceptions.html" class="catalog-nav-cat-link is-prose-cat">HTTP Exceptions (Slim\Exception\*)</a>
+                            
+                            <span class="catalog-nav-count">11</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpException">
+                                <a href="07_exceptions.html#slim-exception-httpexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpSpecializedException">
+                                <a href="07_exceptions.html#slim-exception-httpspecializedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpSpecializedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpBadRequestException">
+                                <a href="07_exceptions.html#slim-exception-httpbadrequestexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpBadRequestException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpUnauthorizedException">
+                                <a href="07_exceptions.html#slim-exception-httpunauthorizedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpUnauthorizedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpForbiddenException">
+                                <a href="07_exceptions.html#slim-exception-httpforbiddenexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpForbiddenException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotFoundException">
+                                <a href="07_exceptions.html#slim-exception-httpnotfoundexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotFoundException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpMethodNotAllowedException">
+                                <a href="07_exceptions.html#slim-exception-httpmethodnotallowedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpMethodNotAllowedException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpGoneException">
+                                <a href="07_exceptions.html#slim-exception-httpgoneexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpGoneException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpTooManyRequestsException">
+                                <a href="07_exceptions.html#slim-exception-httptoomanyrequestsexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpTooManyRequestsException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpInternalServerErrorException">
+                                <a href="07_exceptions.html#slim-exception-httpinternalservererrorexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpInternalServerErrorException</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="class Slim\Exception\HttpNotImplementedException">
+                                <a href="07_exceptions.html#slim-exception-httpnotimplementedexception" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">class</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Exception\HttpNotImplementedException</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    <details class="catalog-nav-group" data-cat="Contract Interfaces (Slim\Interfaces\*)" open>
+                        <summary class="catalog-nav-summary">
+                            <svg class="catalog-nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            <a href="08_interfaces.html" class="catalog-nav-cat-link is-prose-cat">Contract Interfaces (Slim\Interfaces\*)</a>
+                            
+                            <span class="catalog-nav-count">17</span>
+                            
+                        </summary>
+                        
+                        <ul class="catalog-nav-sublist">
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\AdvancedCallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-advancedcallableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\AdvancedCallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\CallableResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-callableresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\CallableResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\DispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-dispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\DispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorHandlerInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorhandlerinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorHandlerInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ErrorRendererInterface">
+                                <a href="08_interfaces.html#slim-interfaces-errorrendererinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ErrorRendererInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\InvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-invocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\InvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\MiddlewareDispatcherInterface">
+                                <a href="08_interfaces.html#slim-interfaces-middlewaredispatcherinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\MiddlewareDispatcherInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\Psr17FactoryProviderInterface">
+                                <a href="08_interfaces.html#slim-interfaces-psr17factoryproviderinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\Psr17FactoryProviderInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RequestHandlerInvocationStrategyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-requesthandlerinvocationstrategyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RequestHandlerInvocationStrategyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteCollectorProxyInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routecollectorproxyinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteCollectorProxyInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteGroupInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routegroupinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteGroupInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteParserInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeparserinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteParserInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\RouteResolverInterface">
+                                <a href="08_interfaces.html#slim-interfaces-routeresolverinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\RouteResolverInterface</span>
+                                </a>
+                            </li>
+                            
+                            <li class="catalog-nav-subitem" data-sym="interface Slim\Interfaces\ServerRequestCreatorInterface">
+                                <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface" class="catalog-nav-sublink is-prose-sublink">
+                                    
+                                    <span class="catalog-badge catalog-badge-class">interface</span>
+                                    
+                                    <span class="catalog-nav-sym-text">Slim\Interfaces\ServerRequestCreatorInterface</span>
+                                </a>
+                            </li>
+                            
+                        </ul>
+                        
+                    </details>
+                    
+                    
+                    <div id="catalog-nav-empty" class="catalog-nav-empty" hidden>No matching items found.</div>
+                </nav>
+            </div>
+        </aside>
+        <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+        <div class="content-wrapper">
+            <div class="top-bar">
+                <div class="breadcrumbs">
+                    <a href="index.html" class="crumb">API Reference</a>
+                    <span class="crumb-separator">/</span>
+                    <span class="crumb active">PSR-17 Factory Auto-Discovery &amp; Providers</span>
+                </div>
+                
+                <div class="top-bar-right">
+                    
+                    
+                    <div class="lang-switcher" aria-label="Language switcher">
+                        <details class="lang-dropdown">
+                            <summary class="lang-dropdown-btn" aria-haspopup="listbox">
+                                <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                                <span class="lang-current-label">English</span>
+                                <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </summary>
+                            <div class="lang-dropdown-menu" role="listbox">
+                                
+                                
+                                <span class="lang-option active" role="option" aria-selected="true">
+                                    <span>English</span>
+                                    <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </span>
+                                
+                                
+                                
+                                <a href="../ja/02_psr17_providers.html" class="lang-option" role="option" hreflang="">
+                                    <span>日本語</span>
+                                </a>
+                                
+                                
+                            </div>
+                        </details>
+                    </div>
+                    
+                </div>
+                
+            </div>
+
+            <main class="main-content catalog-main-content">
+                <h1 class="catalog-page-title">PSR-17 Factory Auto-Discovery &amp; Providers</h1>
+<p>Reference for all 10 classes in <code>Slim\Factory\Psr17\*</code>: <a href="#slim-factory-psr17-psr17factoryprovider"><code>Psr17FactoryProvider</code></a>, <a href="#slim-factory-psr17-psr17factory"><code>Psr17Factory</code></a>, <a href="#slim-factory-psr17-serverrequestcreator"><code>ServerRequestCreator</code></a>, <a href="#slim-factory-psr17-slimhttpserverrequestcreator"><code>SlimHttpServerRequestCreator</code></a>, <a href="#slim-factory-psr17-slimpsr17factory"><code>SlimPsr17Factory</code></a>, <a href="#slim-factory-psr17-slimhttppsr17factory"><code>SlimHttpPsr17Factory</code></a>, <a href="#slim-factory-psr17-nyholmpsr17factory"><code>NyholmPsr17Factory</code></a>, <a href="#slim-factory-psr17-guzzlepsr17factory"><code>GuzzlePsr17Factory</code></a>, <a href="#slim-factory-psr17-laminasdiactorospsr17factory"><code>LaminasDiactorosPsr17Factory</code></a>, and <a href="#slim-factory-psr17-httpsoftpsr17factory"><code>HttpSoftPsr17Factory</code></a>.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/02_psr17_providers/psr17_class_hierarchy.png" alt="02_psr17_providers_1" />
+  <figcaption class="drawlib-caption">Slim\Factory\Psr17\* — Class Hierarchy, Provider Registry & Decorator Architecture (10 Classes)</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.diagrams.architecture</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArchitectureDiagram</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">NodeGroup</span><span class="p">,</span> <span class="n">PhosphorIcon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">162</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">78</span><span class="p">)</span>
+
+<span class="n">d</span> <span class="o">=</span> <span class="n">ArchitectureDiagram</span><span class="p">(</span>
+    <span class="n">node_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="p">,</span>
+    <span class="n">node_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">edge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_width</span><span class="o">=</span><span class="mf">1.4</span><span class="p">),</span>
+    <span class="n">edge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Muted</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.5</span><span class="p">),</span>
+    <span class="n">node_card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">reg_grp</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">NodeGroup</span><span class="p">(</span>
+        <span class="s2">"1. Registry &amp; Base Adapter"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">41</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">valign</span><span class="o">=</span><span class="s2">"top"</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">provider</span> <span class="o">=</span> <span class="n">reg_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"Psr17FactoryProvider</span><span class="se">\n</span><span class="s2">(Priority List [5])"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">LIST_NUMBERS</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">20.5</span><span class="p">,</span> <span class="mi">46</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">base_fac</span> <span class="o">=</span> <span class="n">reg_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"Psr17Factory</span><span class="se">\n</span><span class="s2">(abstract base)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">CUBE</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">20.5</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">sub_grp</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">NodeGroup</span><span class="p">(</span>
+        <span class="s2">"2. Concrete Vendor Adapters (6)"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">valign</span><span class="o">=</span><span class="s2">"top"</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_slim</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"1. SlimPsr17Factory</span><span class="se">\n</span><span class="s2">(slim/psr7)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_httpsoft</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"2. HttpSoftPsr17Factory</span><span class="se">\n</span><span class="s2">(httpsoft/*)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_nyholm</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"3. NyholmPsr17Factory</span><span class="se">\n</span><span class="s2">(nyholm/psr7*)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_laminas</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"4. LaminasDiactoros</span><span class="se">\n</span><span class="s2">(laminas-diactoros)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">31</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_guzzle</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"5. GuzzlePsr17Factory</span><span class="se">\n</span><span class="s2">(guzzlehttp/psr7)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">f_slimhttp</span> <span class="o">=</span> <span class="n">sub_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span><span class="s2">"SlimHttpPsr17Factory</span><span class="se">\n</span><span class="s2">(slim/http Decorator)"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">req_grp</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">NodeGroup</span><span class="p">(</span>
+        <span class="s2">"3. Request Creators"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">68</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">valign</span><span class="o">=</span><span class="s2">"top"</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">124</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">req_creator</span> <span class="o">=</span> <span class="n">req_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"ServerRequestCreator</span><span class="se">\n</span><span class="s2">(Closure::fromCallable)"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">GLOBE</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">46</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">req_dec</span> <span class="o">=</span> <span class="n">req_grp</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Node</span><span class="p">(</span>
+        <span class="s2">"SlimHttpServer</span><span class="se">\n</span><span class="s2">RequestCreator"</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">SHIELD_CHECK</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">AccentFlat</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">provider</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">base_fac</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"iterates"</span><span class="p">)</span>
+<span class="n">base_fac</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">f_nyholm</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"extends"</span><span class="p">)</span>
+<span class="n">f_httpsoft</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">req_creator</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"creates"</span><span class="p">)</span>
+<span class="n">req_creator</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">req_dec</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"decorates"</span><span class="p">)</span>
+
+<span class="n">d</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="psr-17-auto-discovery-priority-vendor-mapping-matrix" class="catalog-section-heading"><span>PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix</span><a class="header-anchor" href="#psr-17-auto-discovery-priority-vendor-mapping-matrix" aria-label="Permalink to PSR-17 Auto-Discovery Priority &amp; Vendor Mapping Matrix">#</a></h2>
+<p>When <a href="01_app_and_factories.html#slim-factory-appfactory"><code>AppFactory::determineResponseFactory()</code></a> or <a href="01_app_and_factories.html#slim-factory-serverrequestcreatorfactory"><code>ServerRequestCreatorFactory::determineServerRequestCreator()</code></a> runs without an explicit factory, it iterates <code>Psr17FactoryProvider::getFactories()</code> in order and picks the <strong>first</strong> provider whose vendor classes exist in the autoloader:</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../images/02_psr17_providers/psr17_discovery_priority_pipeline.png" alt="02_psr17_providers_2" />
+  <figcaption class="drawlib-caption">PSR-17 Auto-Discovery Order & Vendor Class Configuration Matrix</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Table</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">164</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">62</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Muted</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.5</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. SlimPsr17"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"slim/psr7</span><span class="se">\n</span><span class="s2">(Priority #1)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.5</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"2. HttpSoft"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"httpsoft/*</span><span class="se">\n</span><span class="s2">(Priority #2)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"3. Nyholm"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"nyholm/psr7*</span><span class="se">\n</span><span class="s2">(Priority #3)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"4. Laminas"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"diactoros</span><span class="se">\n</span><span class="s2">(Priority #4)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"5. Guzzle"</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">"guzzlehttp/psr7</span><span class="se">\n</span><span class="s2">(Priority #5)"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">45</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mi">156</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+<span class="n">tbl</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+    <span class="n">cell_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">header_cell_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">header_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">border_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">MutedThin</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">tbl</span><span class="o">.</span><span class="n">draw_flexible</span><span class="p">(</span>
+    <span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">41</span><span class="p">),</span>
+    <span class="n">column_widths</span><span class="o">=</span><span class="p">[</span><span class="mi">36</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">26</span><span class="p">],</span>
+    <span class="n">row_heights</span><span class="o">=</span><span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+    <span class="n">data</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="s2">"Provider Class"</span><span class="p">,</span> <span class="s2">"responseFactoryClass"</span><span class="p">,</span> <span class="s2">"serverRequestCreatorClass"</span><span class="p">,</span> <span class="s2">"Creator Method"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"SlimPsr17Factory"</span><span class="p">,</span> <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Psr7</span><span class="se">\\</span><span class="s2">Factory</span><span class="se">\\</span><span class="s2">ResponseFactory"</span><span class="p">,</span> <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Psr7</span><span class="se">\\</span><span class="s2">Factory</span><span class="se">\\</span><span class="s2">ServerRequestFactory"</span><span class="p">,</span> <span class="s2">"createFromGlobals"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"HttpSoftPsr17Factory"</span><span class="p">,</span> <span class="s2">"HttpSoft</span><span class="se">\\</span><span class="s2">Message</span><span class="se">\\</span><span class="s2">ResponseFactory"</span><span class="p">,</span> <span class="s2">"HttpSoft</span><span class="se">\\</span><span class="s2">ServerRequest</span><span class="se">\\</span><span class="s2">ServerRequestCreator"</span><span class="p">,</span> <span class="s2">"createFromGlobals"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"NyholmPsr17Factory"</span><span class="p">,</span> <span class="s2">"Nyholm</span><span class="se">\\</span><span class="s2">Psr7</span><span class="se">\\</span><span class="s2">Factory</span><span class="se">\\</span><span class="s2">Psr17Factory"</span><span class="p">,</span> <span class="s2">"Nyholm</span><span class="se">\\</span><span class="s2">Psr7Server</span><span class="se">\\</span><span class="s2">ServerRequestCreator"</span><span class="p">,</span> <span class="s2">"fromGlobals"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"LaminasDiactorosPsr17Factory"</span><span class="p">,</span> <span class="s2">"Laminas</span><span class="se">\\</span><span class="s2">Diactoros</span><span class="se">\\</span><span class="s2">ResponseFactory"</span><span class="p">,</span> <span class="s2">"Laminas</span><span class="se">\\</span><span class="s2">Diactoros</span><span class="se">\\</span><span class="s2">ServerRequestFactory"</span><span class="p">,</span> <span class="s2">"fromGlobals"</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"GuzzlePsr17Factory"</span><span class="p">,</span> <span class="s2">"GuzzleHttp</span><span class="se">\\</span><span class="s2">Psr7</span><span class="se">\\</span><span class="s2">HttpFactory"</span><span class="p">,</span> <span class="s2">"GuzzleHttp</span><span class="se">\\</span><span class="s2">Psr7</span><span class="se">\\</span><span class="s2">ServerRequest"</span><span class="p">,</span> <span class="s2">"fromGlobals"</span><span class="p">],</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<hr />
+<h2 id="slim-factory-psr17-psr17factoryprovider" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\Psr17FactoryProvider</span></code><a class="header-anchor" href="#slim-factory-psr17-psr17factoryprovider" aria-label="Permalink to Slim\Factory\Psr17\Psr17FactoryProvider">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/Psr17FactoryProvider.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-psr17factoryproviderinterface"><code>Slim\Interfaces\Psr17FactoryProviderInterface</code></a></li>
+</ul>
+<p><code>Psr17FactoryProvider</code> maintains the ordered static list of <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface"><code>Psr17FactoryInterface</code></a> class names probed during automatic PSR-17 factory discovery. Calling <code>addFactory()</code> prepends a custom factory class to the front of <code>static::$factories</code> via <code>array_unshift()</code>, giving it highest priority over the 5 built-in providers.</p>
+<h3 id="php-class-signature-slim-factory-psr17-psr17factoryprovider">PHP Class Signature (<code>Slim\Factory\Psr17\Psr17FactoryProvider</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-psr17factoryprovider" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Slim\Interfaces\Psr17FactoryProviderInterface;</span>
+
+<span class="x">class Psr17FactoryProvider implements Psr17FactoryProviderInterface</span>
+<span class="x">{</span>
+<span class="x">    /**</span>
+<span class="x">     * @var string[]</span>
+<span class="x">     */</span>
+<span class="x">    protected static array $factories = [</span>
+<span class="x">        SlimPsr17Factory::class,</span>
+<span class="x">        HttpSoftPsr17Factory::class,</span>
+<span class="x">        NyholmPsr17Factory::class,</span>
+<span class="x">        LaminasDiactorosPsr17Factory::class,</span>
+<span class="x">        GuzzlePsr17Factory::class,</span>
+<span class="x">    ];</span>
+
+<span class="x">    public static function getFactories(): array;</span>
+<span class="x">    public static function setFactories(array $factories): void;</span>
+<span class="x">    public static function addFactory(string $factory): void;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="static-properties-methods-slim-factory-psr17-psr17factoryprovider">Static Properties &amp; Methods (<code>Slim\Factory\Psr17\Psr17FactoryProvider</code>)<a class="header-anchor" href="#static-properties-methods-slim-factory-psr17-psr17factoryprovider" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Member / Method</th>
+<th style="text-align:left">Parameters / Type</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$factories</code></td>
+<td style="text-align:left"><code>protected static string[]</code></td>
+<td style="text-align:left"><code>string[]</code></td>
+<td style="text-align:left">Ordered list of <code>Psr17Factory</code> class names (<code>SlimPsr17Factory</code>, <code>HttpSoftPsr17Factory</code>, <code>NyholmPsr17Factory</code>, <code>LaminasDiactorosPsr17Factory</code>, <code>GuzzlePsr17Factory</code>).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getFactories()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>string[]</code></td>
+<td style="text-align:left">Returns the current array of registered <code>Psr17FactoryInterface</code> class names.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>setFactories($factories)</code></td>
+<td style="text-align:left"><code>string[] $factories</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">Replaces the entire <code>$factories</code> array with a custom priority order.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>addFactory($factory)</code></td>
+<td style="text-align:left"><code>string $factory</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">Prepends <code>$factory</code> to the beginning of <code>static::$factories</code> (<code>array_unshift()</code>), giving it top discovery priority.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-slim-factory-psr17-psr17factoryprovider">Usage Example (<code>Slim\Factory\Psr17\Psr17FactoryProvider</code>)<a class="header-anchor" href="#usage-example-slim-factory-psr17-psr17factoryprovider" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\NyholmPsr17Factory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\Psr17FactoryProvider</span><span class="p">;</span>
+
+<span class="c1">// Force NyholmPsr17Factory to be checked first (or exclusively)</span>
+<span class="nx">Psr17FactoryProvider</span><span class="o">::</span><span class="na">setFactories</span><span class="p">([</span><span class="nx">NyholmPsr17Factory</span><span class="o">::</span><span class="na">class</span><span class="p">]);</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-psr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\Psr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-psr17factory" aria-label="Permalink to Slim\Factory\Psr17\Psr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/Psr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Modifiers</strong>: <code>abstract class</code></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-psr17factoryinterface"><code>Slim\Interfaces\Psr17FactoryInterface</code></a></li>
+</ul>
+<p><code>Psr17Factory</code> is the abstract template class inherited by all 6 vendor-specific PSR-17 factory adapters. Concrete subclasses need only declare four protected static strings (<code>$responseFactoryClass</code>, <code>$streamFactoryClass</code>, <code>$serverRequestCreatorClass</code>, <code>$serverRequestCreatorMethod</code>); <code>Psr17Factory</code> provides the shared <code>class_exists()</code> availability checks and factory instantiation logic.</p>
+<h3 id="php-class-signature-slim-factory-psr17-psr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\Psr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-psr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Psr\Http\Message\ResponseFactoryInterface;</span>
+<span class="x">use Psr\Http\Message\StreamFactoryInterface;</span>
+<span class="x">use RuntimeException;</span>
+<span class="x">use Slim\Interfaces\Psr17FactoryInterface;</span>
+<span class="x">use Slim\Interfaces\ServerRequestCreatorInterface;</span>
+
+<span class="x">abstract class Psr17Factory implements Psr17FactoryInterface</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass;</span>
+<span class="x">    protected static string $streamFactoryClass;</span>
+<span class="x">    protected static string $serverRequestCreatorClass;</span>
+<span class="x">    protected static string $serverRequestCreatorMethod;</span>
+
+<span class="x">    public static function getResponseFactory(): ResponseFactoryInterface;</span>
+<span class="x">    public static function getStreamFactory(): StreamFactoryInterface;</span>
+<span class="x">    public static function getServerRequestCreator(): ServerRequestCreatorInterface;</span>
+<span class="x">    public static function isResponseFactoryAvailable(): bool;</span>
+<span class="x">    public static function isStreamFactoryAvailable(): bool;</span>
+<span class="x">    public static function isServerRequestCreatorAvailable(): bool;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="static-properties-methods-slim-factory-psr17-psr17factory">Static Properties &amp; Methods (<code>Slim\Factory\Psr17\Psr17Factory</code>)<a class="header-anchor" href="#static-properties-methods-slim-factory-psr17-psr17factory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Member / Method</th>
+<th style="text-align:left">Parameters / Type</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$responseFactoryClass</code></td>
+<td style="text-align:left"><code>protected static string</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Fully-qualified vendor class name implementing <code>Psr\Http\Message\ResponseFactoryInterface</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$streamFactoryClass</code></td>
+<td style="text-align:left"><code>protected static string</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Fully-qualified vendor class name implementing <code>Psr\Http\Message\StreamFactoryInterface</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$serverRequestCreatorClass</code></td>
+<td style="text-align:left"><code>protected static string</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Fully-qualified vendor class name providing global request creation.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$serverRequestCreatorMethod</code></td>
+<td style="text-align:left"><code>protected static string</code></td>
+<td style="text-align:left"><code>string</code></td>
+<td style="text-align:left">Method name on <code>$serverRequestCreatorClass</code> (e.g. <code>'createFromGlobals'</code> or <code>'fromGlobals'</code>).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getResponseFactory()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>ResponseFactoryInterface</code></td>
+<td style="text-align:left">Instantiates <code>new static::$responseFactoryClass()</code> after verifying <code>isResponseFactoryAvailable()</code> and <code>instanceof ResponseFactoryInterface</code>. Throws <code>RuntimeException</code> on failure.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getStreamFactory()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>StreamFactoryInterface</code></td>
+<td style="text-align:left">Instantiates <code>new static::$streamFactoryClass()</code> after verifying <code>isStreamFactoryAvailable()</code> and <code>instanceof StreamFactoryInterface</code>. Throws <code>RuntimeException</code> on failure.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>getServerRequestCreator()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a></td>
+<td style="text-align:left">Returns <code>new ServerRequestCreator(static::$serverRequestCreatorClass, static::$serverRequestCreatorMethod)</code>. Throws <code>RuntimeException</code> if unavailable.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isResponseFactoryAvailable()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Returns <code>true</code> when <code>static::$responseFactoryClass</code> is non-empty and <code>class_exists()</code> succeeds.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isStreamFactoryAvailable()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Returns <code>true</code> when <code>static::$streamFactoryClass</code> is non-empty and <code>class_exists()</code> succeeds.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isServerRequestCreatorAvailable()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Returns <code>true</code> when both <code>static::$serverRequestCreatorClass</code> and <code>static::$serverRequestCreatorMethod</code> are non-empty and <code>class_exists()</code> succeeds.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="slim-factory-psr17-serverrequestcreator" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\ServerRequestCreator</span></code><a class="header-anchor" href="#slim-factory-psr17-serverrequestcreator" aria-label="Permalink to Slim\Factory\Psr17\ServerRequestCreator">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/ServerRequestCreator.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>Slim\Interfaces\ServerRequestCreatorInterface</code></a></li>
+</ul>
+<p><code>ServerRequestCreator</code> adapts third-party static or instance factory methods (such as <code>Slim\Psr7\Factory\ServerRequestFactory::createFromGlobals()</code> or <code>Nyholm\Psr7Server\ServerRequestCreator::fromGlobals()</code>) to Slim's uniform <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a> contract using <code>Closure::fromCallable([$this-&gt;serverRequestCreator, $this-&gt;serverRequestCreatorMethod])()</code>.</p>
+<h3 id="php-class-signature-slim-factory-psr17-serverrequestcreator">PHP Class Signature (<code>Slim\Factory\Psr17\ServerRequestCreator</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-serverrequestcreator" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Psr\Http\Message\ServerRequestInterface;</span>
+<span class="x">use Slim\Interfaces\ServerRequestCreatorInterface;</span>
+
+<span class="x">class ServerRequestCreator implements ServerRequestCreatorInterface</span>
+<span class="x">{</span>
+<span class="x">    /**</span>
+<span class="x">     * @var object|string</span>
+<span class="x">     */</span>
+<span class="x">    protected $serverRequestCreator;</span>
+
+<span class="x">    protected string $serverRequestCreatorMethod;</span>
+
+<span class="x">    /**</span>
+<span class="x">     * @param object|string $serverRequestCreator</span>
+<span class="x">     */</span>
+<span class="x">    public function __construct($serverRequestCreator, string $serverRequestCreatorMethod);</span>
+
+<span class="x">    public function createServerRequestFromGlobals(): ServerRequestInterface;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="constructor-methods-slim-factory-psr17-serverrequestcreator">Constructor &amp; Methods (<code>Slim\Factory\Psr17\ServerRequestCreator</code>)<a class="header-anchor" href="#constructor-methods-slim-factory-psr17-serverrequestcreator" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct(...)</code></td>
+<td style="text-align:left"><code>object|string $serverRequestCreator</code>, <code>string $serverRequestCreatorMethod</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">Stores the target class name (for static methods) or object instance (used by <code>NyholmPsr17Factory</code>) and the method name to invoke.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>createServerRequestFromGlobals()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>ServerRequestInterface</code></td>
+<td style="text-align:left">Wraps <code>[$this-&gt;serverRequestCreator, $this-&gt;serverRequestCreatorMethod]</code> via <code>Closure::fromCallable()</code> and invokes it with zero arguments to produce a <code>ServerRequestInterface</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-slim-factory-psr17-serverrequestcreator">Usage Example (<code>Slim\Factory\Psr17\ServerRequestCreator</code>)<a class="header-anchor" href="#usage-example-slim-factory-psr17-serverrequestcreator" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\ServerRequestCreator</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Psr7\Factory\ServerRequestFactory</span><span class="p">;</span>
+
+<span class="nv">$creator</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">ServerRequestCreator</span><span class="p">(</span><span class="nx">ServerRequestFactory</span><span class="o">::</span><span class="na">class</span><span class="p">,</span> <span class="s1">'createFromGlobals'</span><span class="p">);</span>
+<span class="nv">$request</span> <span class="o">=</span> <span class="nv">$creator</span><span class="o">-&gt;</span><span class="na">createServerRequestFromGlobals</span><span class="p">();</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-slimhttpserverrequestcreator" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\SlimHttpServerRequestCreator</span></code><a class="header-anchor" href="#slim-factory-psr17-slimhttpserverrequestcreator" aria-label="Permalink to Slim\Factory\Psr17\SlimHttpServerRequestCreator">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/SlimHttpServerRequestCreator.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Implements</strong>: <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>Slim\Interfaces\ServerRequestCreatorInterface</code></a></li>
+</ul>
+<p><code>SlimHttpServerRequestCreator</code> is a Decorator around any <a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a> that wraps the resulting PSR-7 <code>ServerRequestInterface</code> inside <code>Slim\Http\ServerRequest</code> (from the optional <code>slim/http</code> package), adding helper methods such as <code>$request-&gt;getParam()</code>, <code>$request-&gt;getQueryParam()</code>, and <code>$request-&gt;isXhr()</code>.</p>
+<h3 id="php-class-signature-slim-factory-psr17-slimhttpserverrequestcreator">PHP Class Signature (<code>Slim\Factory\Psr17\SlimHttpServerRequestCreator</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-slimhttpserverrequestcreator" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Psr\Http\Message\ServerRequestInterface;</span>
+<span class="x">use RuntimeException;</span>
+<span class="x">use Slim\Interfaces\ServerRequestCreatorInterface;</span>
+
+<span class="x">class SlimHttpServerRequestCreator implements ServerRequestCreatorInterface</span>
+<span class="x">{</span>
+<span class="x">    protected ServerRequestCreatorInterface $serverRequestCreator;</span>
+<span class="x">    protected static string $serverRequestDecoratorClass = 'Slim\Http\ServerRequest';</span>
+
+<span class="x">    public function __construct(ServerRequestCreatorInterface $serverRequestCreator);</span>
+<span class="x">    public function createServerRequestFromGlobals(): ServerRequestInterface;</span>
+<span class="x">    public static function isServerRequestDecoratorAvailable(): bool;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="constructor-methods-slim-factory-psr17-slimhttpserverrequestcreator">Constructor &amp; Methods (<code>Slim\Factory\Psr17\SlimHttpServerRequestCreator</code>)<a class="header-anchor" href="#constructor-methods-slim-factory-psr17-slimhttpserverrequestcreator" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>__construct($serverRequestCreator)</code></td>
+<td style="text-align:left"><code>ServerRequestCreatorInterface $serverRequestCreator</code></td>
+<td style="text-align:left"><code>void</code></td>
+<td style="text-align:left">Stores the inner <code>ServerRequestCreatorInterface</code> to decorate.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>createServerRequestFromGlobals()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>ServerRequestInterface</code></td>
+<td style="text-align:left">Verifies <code>isServerRequestDecoratorAvailable()</code>, calls <code>$this-&gt;serverRequestCreator-&gt;createServerRequestFromGlobals()</code>, and wraps the result in <code>new static::$serverRequestDecoratorClass($request)</code>. Throws <code>RuntimeException</code> if unavailable or invalid.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isServerRequestDecoratorAvailable()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Returns <code>class_exists('Slim\Http\ServerRequest')</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="slim-factory-psr17-slimpsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\SlimPsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-slimpsr17factory" aria-label="Permalink to Slim\Factory\Psr17\SlimPsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/SlimPsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Package</strong>: <code>slim/psr7</code> (<code>^1.6</code>) — <strong>Discovery Priority #1</strong></li>
+</ul>
+<p><code>SlimPsr17Factory</code> is the highest-priority PSR-17 adapter in <code>Psr17FactoryProvider</code>, binding Slim to the official <code>slim/psr7</code> package.</p>
+<h3 id="php-class-signature-slim-factory-psr17-slimpsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\SlimPsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-slimpsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">class SlimPsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'Slim\Psr7\Factory\ResponseFactory';</span>
+<span class="x">    protected static string $streamFactoryClass = 'Slim\Psr7\Factory\StreamFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorClass = 'Slim\Psr7\Factory\ServerRequestFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorMethod = 'createFromGlobals';</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="usage-example-slim-factory-psr17-slimpsr17factory">Usage Example (<code>Slim\Factory\Psr17\SlimPsr17Factory</code>)<a class="header-anchor" href="#usage-example-slim-factory-psr17-slimpsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\SlimPsr17Factory</span><span class="p">;</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">isResponseFactoryAvailable</span><span class="p">())</span> <span class="p">{</span>
+    <span class="nv">$responseFactory</span> <span class="o">=</span> <span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">getResponseFactory</span><span class="p">();</span>
+    <span class="nv">$streamFactory</span> <span class="o">=</span> <span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">getStreamFactory</span><span class="p">();</span>
+    <span class="nv">$request</span> <span class="o">=</span> <span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">getServerRequestCreator</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">createServerRequestFromGlobals</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-slimhttppsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\SlimHttpPsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-slimhttppsr17factory" aria-label="Permalink to Slim\Factory\Psr17\SlimHttpPsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/SlimHttpPsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Package</strong>: <code>slim/http</code> (<code>^1.3</code>)</li>
+</ul>
+<p><code>SlimHttpPsr17Factory</code> is a specialized decorator factory invoked by <a href="01_app_and_factories.html#slim-factory-appfactory"><code>AppFactory::attemptResponseFactoryDecoration()</code></a>. Unlike the 5 base PSR-17 providers, <code>slim/http</code> does not provide a standalone PSR-7 implementation; instead, <code>createDecoratedResponseFactory()</code> wraps any base <code>ResponseFactoryInterface</code> and <code>StreamFactoryInterface</code> inside <code>Slim\Http\Factory\DecoratedResponseFactory</code> so responses expose convenience helpers like <code>$response-&gt;withJson()</code>, <code>$response-&gt;withRedirect()</code>, and <code>$response-&gt;write()</code>.</p>
+<h3 id="php-class-signature-slim-factory-psr17-slimhttppsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\SlimHttpPsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-slimhttppsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Psr\Http\Message\ResponseFactoryInterface;</span>
+<span class="x">use Psr\Http\Message\StreamFactoryInterface;</span>
+<span class="x">use RuntimeException;</span>
+
+<span class="x">class SlimHttpPsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'Slim\Http\Factory\DecoratedResponseFactory';</span>
+
+<span class="x">    /**</span>
+<span class="x">     * @throws RuntimeException when the factory could not be instantiated</span>
+<span class="x">     */</span>
+<span class="x">    public static function createDecoratedResponseFactory(</span>
+<span class="x">        ResponseFactoryInterface $responseFactory,</span>
+<span class="x">        StreamFactoryInterface $streamFactory</span>
+<span class="x">    ): ResponseFactoryInterface;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="static-methods-slim-factory-psr17-slimhttppsr17factory">Static Methods (<code>Slim\Factory\Psr17\SlimHttpPsr17Factory</code>)<a class="header-anchor" href="#static-methods-slim-factory-psr17-slimhttppsr17factory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>createDecoratedResponseFactory(...)</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface $responseFactory</code>, <code>StreamFactoryInterface $streamFactory</code></td>
+<td style="text-align:left"><code>ResponseFactoryInterface</code></td>
+<td style="text-align:left">Instantiates <code>new Slim\Http\Factory\DecoratedResponseFactory($responseFactory, $streamFactory)</code> and verifies <code>instanceof ResponseFactoryInterface</code> (throwing <code>RuntimeException</code> on failure).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-example-slim-factory-psr17-slimhttppsr17factory">Usage Example (<code>Slim\Factory\Psr17\SlimHttpPsr17Factory</code>)<a class="header-anchor" href="#usage-example-slim-factory-psr17-slimhttppsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\SlimHttpPsr17Factory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\Psr17\SlimPsr17Factory</span><span class="p">;</span>
+
+<span class="nv">$decoratedFactory</span> <span class="o">=</span> <span class="nx">SlimHttpPsr17Factory</span><span class="o">::</span><span class="na">createDecoratedResponseFactory</span><span class="p">(</span>
+    <span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">getResponseFactory</span><span class="p">(),</span>
+    <span class="nx">SlimPsr17Factory</span><span class="o">::</span><span class="na">getStreamFactory</span><span class="p">()</span>
+<span class="p">);</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-nyholmpsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\NyholmPsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-nyholmpsr17factory" aria-label="Permalink to Slim\Factory\Psr17\NyholmPsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/NyholmPsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Packages</strong>: <code>nyholm/psr7</code> (<code>^1.8</code>) and <code>nyholm/psr7-server</code> (<code>^1.1</code>) — <strong>Discovery Priority #3</strong></li>
+</ul>
+<p><code>NyholmPsr17Factory</code> integrates Nyholm's high-performance PSR-7/PSR-17 implementation. Because <code>Nyholm\Psr7\Factory\Psr17Factory</code> implements all four PSR-17 factory interfaces (<code>ServerRequestFactoryInterface</code>, <code>UriFactoryInterface</code>, <code>UploadedFileFactoryInterface</code>, <code>StreamFactoryInterface</code>) in a single unified class, <code>NyholmPsr17Factory::getServerRequestCreator()</code> overrides the parent method to pass a single <code>$psr17Factory</code> instance four times into <code>new Nyholm\Psr7Server\ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory)</code>.</p>
+<h3 id="php-class-signature-slim-factory-psr17-nyholmpsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\NyholmPsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-nyholmpsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">use Slim\Interfaces\ServerRequestCreatorInterface;</span>
+
+<span class="x">class NyholmPsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'Nyholm\Psr7\Factory\Psr17Factory';</span>
+<span class="x">    protected static string $streamFactoryClass = 'Nyholm\Psr7\Factory\Psr17Factory';</span>
+<span class="x">    protected static string $serverRequestCreatorClass = 'Nyholm\Psr7Server\ServerRequestCreator';</span>
+<span class="x">    protected static string $serverRequestCreatorMethod = 'fromGlobals';</span>
+
+<span class="x">    public static function getServerRequestCreator(): ServerRequestCreatorInterface;</span>
+<span class="x">    public static function isServerRequestCreatorAvailable(): bool;</span>
+<span class="x">}</span>
+</code></pre>
+<h3 id="overridden-static-methods-slim-factory-psr17-nyholmpsr17factory">Overridden Static Methods (<code>Slim\Factory\Psr17\NyholmPsr17Factory</code>)<a class="header-anchor" href="#overridden-static-methods-slim-factory-psr17-nyholmpsr17factory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Method</th>
+<th style="text-align:left">Parameters</th>
+<th style="text-align:left">Return Type</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>getServerRequestCreator()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><a href="08_interfaces.html#slim-interfaces-serverrequestcreatorinterface"><code>ServerRequestCreatorInterface</code></a></td>
+<td style="text-align:left">Instantiates <code>Nyholm\Psr7\Factory\Psr17Factory</code>, injects it into <code>new Nyholm\Psr7Server\ServerRequestCreator(...)</code>, and wraps the instance in <code>new ServerRequestCreator($serverRequestCreator, 'fromGlobals')</code>.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>isServerRequestCreatorAvailable()</code></td>
+<td style="text-align:left"><em>(none)</em></td>
+<td style="text-align:left"><code>bool</code></td>
+<td style="text-align:left">Returns <code>true</code> only when both <code>Nyholm\Psr7Server\ServerRequestCreator</code> (<code>parent::isServerRequestCreatorAvailable()</code>) and <code>Nyholm\Psr7\Factory\Psr17Factory</code> exist.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="slim-factory-psr17-guzzlepsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\GuzzlePsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-guzzlepsr17factory" aria-label="Permalink to Slim\Factory\Psr17\GuzzlePsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/GuzzlePsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Package</strong>: <code>guzzlehttp/psr7</code> (<code>^2.6</code>) — <strong>Discovery Priority #5</strong></li>
+</ul>
+<p><code>GuzzlePsr17Factory</code> binds Slim to <code>guzzlehttp/psr7</code> (<code>GuzzleHttp\Psr7\HttpFactory</code> for response and stream creation, and <code>GuzzleHttp\Psr7\ServerRequest::fromGlobals()</code> for server request creation).</p>
+<h3 id="php-class-signature-slim-factory-psr17-guzzlepsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\GuzzlePsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-guzzlepsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">class GuzzlePsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'GuzzleHttp\Psr7\HttpFactory';</span>
+<span class="x">    protected static string $streamFactoryClass = 'GuzzleHttp\Psr7\HttpFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorClass = 'GuzzleHttp\Psr7\ServerRequest';</span>
+<span class="x">    protected static string $serverRequestCreatorMethod = 'fromGlobals';</span>
+<span class="x">}</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-laminasdiactorospsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-laminasdiactorospsr17factory" aria-label="Permalink to Slim\Factory\Psr17\LaminasDiactorosPsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/LaminasDiactorosPsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Package</strong>: <code>laminas/laminas-diactoros</code> (<code>^2.17 || ^3</code>) — <strong>Discovery Priority #4</strong></li>
+</ul>
+<p><code>LaminasDiactorosPsr17Factory</code> binds Slim to Laminas Diactoros (<code>Laminas\Diactoros\ResponseFactory</code>, <code>Laminas\Diactoros\StreamFactory</code>, and <code>Laminas\Diactoros\ServerRequestFactory::fromGlobals()</code>).</p>
+<h3 id="php-class-signature-slim-factory-psr17-laminasdiactorospsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\LaminasDiactorosPsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-laminasdiactorospsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">class LaminasDiactorosPsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'Laminas\Diactoros\ResponseFactory';</span>
+<span class="x">    protected static string $streamFactoryClass = 'Laminas\Diactoros\StreamFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorClass = 'Laminas\Diactoros\ServerRequestFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorMethod = 'fromGlobals';</span>
+<span class="x">}</span>
+</code></pre>
+<hr />
+<h2 id="slim-factory-psr17-httpsoftpsr17factory" class="catalog-symbol-heading"><span class="catalog-badge catalog-badge-class">class</span><code class="catalog-sig"><span class="catalog-sig-name">Slim\Factory\Psr17\HttpSoftPsr17Factory</span></code><a class="header-anchor" href="#slim-factory-psr17-httpsoftpsr17factory" aria-label="Permalink to Slim\Factory\Psr17\HttpSoftPsr17Factory">#</a></h2>
+<ul>
+<li><strong>Source File</strong>: <code>Slim/Factory/Psr17/HttpSoftPsr17Factory.php</code></li>
+<li><strong>Namespace</strong>: <code>Slim\Factory\Psr17</code></li>
+<li><strong>Extends</strong>: <a href="#slim-factory-psr17-psr17factory"><code>Slim\Factory\Psr17\Psr17Factory</code></a></li>
+<li><strong>Backed Packages</strong>: <code>httpsoft/http-message</code> (<code>^1.1</code>) and <code>httpsoft/http-server-request</code> (<code>^1.1</code>) — <strong>Discovery Priority #2</strong></li>
+</ul>
+<p><code>HttpSoftPsr17Factory</code> binds Slim to HttpSoft's lightweight PSR-7/PSR-17 implementation (<code>HttpSoft\Message\ResponseFactory</code>, <code>HttpSoft\Message\StreamFactory</code>, and <code>HttpSoft\ServerRequest\ServerRequestCreator::createFromGlobals()</code>).</p>
+<h3 id="php-class-signature-slim-factory-psr17-httpsoftpsr17factory">PHP Class Signature (<code>Slim\Factory\Psr17\HttpSoftPsr17Factory</code>)<a class="header-anchor" href="#php-class-signature-slim-factory-psr17-httpsoftpsr17factory" aria-label="Permalink">#</a></h3>
+<pre><code class="language-php"><span class="x">namespace Slim\Factory\Psr17;</span>
+
+<span class="x">class HttpSoftPsr17Factory extends Psr17Factory</span>
+<span class="x">{</span>
+<span class="x">    protected static string $responseFactoryClass = 'HttpSoft\Message\ResponseFactory';</span>
+<span class="x">    protected static string $streamFactoryClass = 'HttpSoft\Message\StreamFactory';</span>
+<span class="x">    protected static string $serverRequestCreatorClass = 'HttpSoft\ServerRequest\ServerRequestCreator';</span>
+<span class="x">    protected static string $serverRequestCreatorMethod = 'createFromGlobals';</span>
+<span class="x">}</span>
+</code></pre>
+
+
+                
+                <nav class="catalog-pager" aria-label="Catalog Page Navigation">
+                    
+                    <a href="01_app_and_factories.html" class="catalog-pager-card is-prev">
+                        <span class="catalog-pager-dir">&larr; Previous</span>
+                        <span class="catalog-pager-title">Core Application &amp; Bootstrap Factories</span>
+                    </a>
+                    
+                    
+                    <a href="03_routing.html" class="catalog-pager-card is-next">
+                        <span class="catalog-pager-dir">Next &rarr;</span>
+                        <span class="catalog-pager-title">Routing (Slim\Routing)</span>
+                    </a>
+                    
+                </nav>
+                
+            </main>
+
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial API reference — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var toggleBtn = document.getElementById('theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    if (!current) {
+                        current = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    }
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('drawlib-theme', next); } catch (e) {}
+                });
+            }
+
+            var menuBtn = document.getElementById('menu-toggle');
+            var sidebar = document.getElementById('catalog-sidebar');
+            var backdrop = document.getElementById('sidebar-backdrop');
+            function closeMenu() {
+                if (sidebar) sidebar.classList.remove('is-open');
+                if (backdrop) backdrop.classList.remove('is-open');
+            }
+            if (menuBtn && sidebar && backdrop) {
+                menuBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('is-open');
+                    backdrop.classList.toggle('is-open');
+                });
+                backdrop.addEventListener('click', closeMenu);
+            }
+
+            document.querySelectorAll('.catalog-nav-cat-link').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            });
+
+            if (sidebar) {
+                try {
+                    var savedScroll = sessionStorage.getItem('drawlib-catalog-sidebar-scroll');
+                    if (savedScroll !== null) {
+                        sidebar.scrollTop = parseInt(savedScroll, 10) || 0;
+                    }
+                    sidebar.addEventListener('scroll', function() {
+                        try { sessionStorage.setItem('drawlib-catalog-sidebar-scroll', String(sidebar.scrollTop)); } catch (e) {}
+                    }, { passive: true });
+                } catch (e) {}
+            }
+
+            var groups = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-group'));
+            var expandBtn = document.getElementById('catalog-expand-toggle');
+            function updateExpandBtnLabel() {
+                if (!expandBtn || groups.length === 0) return;
+                var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                var expandText = expandBtn.getAttribute('data-expand-label') || 'Expand All';
+                var collapseText = expandBtn.getAttribute('data-collapse-label') || 'Collapse All';
+                expandBtn.textContent = allOpen ? collapseText : expandText;
+            }
+            if (expandBtn) {
+                updateExpandBtnLabel();
+                expandBtn.addEventListener('click', function() {
+                    var visibleGroups = groups.filter(function(g) { return !g.hidden; });
+                    var allOpen = visibleGroups.length > 0 && visibleGroups.every(function(g) { return g.open; });
+                    visibleGroups.forEach(function(g) { g.open = !allOpen; });
+                    updateExpandBtnLabel();
+                });
+                groups.forEach(function(g) {
+                    g.addEventListener('toggle', updateExpandBtnLabel);
+                });
+            }
+
+            var filterInput = document.getElementById('catalog-filter-input');
+            var emptyNotice = document.getElementById('catalog-nav-empty');
+            var savedOpenState = null;
+
+            if (filterInput) {
+                filterInput.addEventListener('input', function() {
+                    var q = filterInput.value.trim().toLowerCase();
+                    if (q && !savedOpenState) {
+                        savedOpenState = groups.map(function(g) { return g.open; });
+                    }
+                    var anyMatch = false;
+                    groups.forEach(function(g, idx) {
+                        var catText = (g.getAttribute('data-cat') || '').toLowerCase();
+                        var catMatches = q !== '' && catText.indexOf(q) !== -1;
+                        var items = Array.prototype.slice.call(g.querySelectorAll('.catalog-nav-subitem'));
+                        var visibleCount = 0;
+
+                        items.forEach(function(li) {
+                            var symText = (li.getAttribute('data-sym') || '').toLowerCase();
+                            var show = (q === '') || catMatches || symText.indexOf(q) !== -1;
+                            li.hidden = !show;
+                            if (show) visibleCount += 1;
+                        });
+
+                        if (q === '') {
+                            g.hidden = false;
+                            if (savedOpenState && typeof savedOpenState[idx] === 'boolean') {
+                                g.open = savedOpenState[idx];
+                            }
+                            anyMatch = true;
+                        } else if (catMatches || visibleCount > 0) {
+                            g.hidden = false;
+                            g.open = true;
+                            anyMatch = true;
+                        } else {
+                            g.hidden = true;
+                        }
+                    });
+
+                    if (q === '') {
+                        savedOpenState = null;
+                    }
+                    if (emptyNotice) {
+                        emptyNotice.hidden = anyMatch;
+                    }
+                    updateExpandBtnLabel();
+                });
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === '/' && document.activeElement !== filterInput) {
+                        var tag = document.activeElement ? document.activeElement.tagName : '';
+                        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+                            e.preventDefault();
+                            filterInput.focus();
+                        }
+                    } else if (e.key === 'Escape' && document.activeElement === filterInput) {
+                        filterInput.value = '';
+                        filterInput.dispatchEvent(new Event('input'));
+                        filterInput.blur();
+                    }
+                });
+            }
+
+            document.addEventListener('click', function(e) {
+                document.querySelectorAll('.lang-dropdown[open]').forEach(function(dd) {
+                    if (!dd.contains(e.target)) {
+                        dd.removeAttribute('open');
+                    }
+                });
+            });
+
+            var activeLinks = Array.prototype.slice.call(document.querySelectorAll('.catalog-nav-sublink[data-target]'));
+            if (activeLinks.length > 0 && 'IntersectionObserver' in window) {
+                var linkBySlug = {};
+                var headings = [];
+                activeLinks.forEach(function(a) {
+                    var slug = a.getAttribute('data-target');
+                    var el = slug ? document.getElementById(slug) : null;
+                    if (slug && el) {
+                        linkBySlug[slug] = a;
+                        headings.push(el);
+                    }
+                    a.addEventListener('click', closeMenu);
+                });
+
+                function setActiveSlug(slug) {
+                    activeLinks.forEach(function(a) {
+                        if (a.getAttribute('data-target') === slug) {
+                            a.classList.add('is-active');
+                        } else {
+                            a.classList.remove('is-active');
+                        }
+                    });
+                }
+
+                if (window.location.hash) {
+                    var initSlug = decodeURIComponent(window.location.hash.slice(1));
+                    if (linkBySlug[initSlug]) setActiveSlug(initSlug);
+                } else if (headings.length > 0) {
+                    setActiveSlug(headings[0].id);
+                }
+
+                var visibleIds = {};
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        visibleIds[entry.target.id] = entry.isIntersecting;
+                    });
+                    for (var i = 0; i < headings.length; i++) {
+                        if (visibleIds[headings[i].id]) {
+                            setActiveSlug(headings[i].id);
+                            break;
+                        }
+                    }
+                }, { rootMargin: '-90px 0px -65% 0px', threshold: [0, 1] });
+
+                headings.forEach(function(h) { observer.observe(h); });
+            }
+        })();
+    </script>
+</body>
+</html>

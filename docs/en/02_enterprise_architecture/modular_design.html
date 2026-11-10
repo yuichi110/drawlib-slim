@@ -1,0 +1,936 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modular Design &amp; Action Controllers — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/02_enterprise_architecture/modular_design.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html">
+    
+    
+    
+    <meta name="description" content="While anonymous route closures inside public/index.php are ideal for prototypes, production Slim 4 (v4.15.3) applications scale by separating configuration…">
+    <link rel="canonical" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="Modular Design &amp; Action Controllers — Slim 4 User Guide">
+    <meta property="og:description" content="While anonymous route closures inside public/index.php are ideal for prototypes, production Slim 4 (v4.15.3) applications scale by separating configuration…">
+    <meta property="og:url" content="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html">
+    <meta property="og:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Modular Design &amp; Action Controllers — Slim 4 User Guide">
+    <meta name="twitter:description" content="While anonymous route closures inside public/index.php are ideal for prototypes, production Slim 4 (v4.15.3) applications scale by separating configuration…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">UNOFFICIAL GUIDE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Community User Guide for <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">Modular Design &amp; Action Controllers</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="modular_design.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/02_enterprise_architecture/modular_design.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>Modular Design &amp; Action Controllers</h1>
+<p>While anonymous route closures inside <code>public/index.php</code> are ideal for prototypes, production Slim 4 (<code>v4.15.3</code>) applications scale by separating configuration, HTTP transport, business logic, and persistence into explicit layers. By combining a modular directory structure (<code>config/</code>, <code>public/</code>, <code>src/Action/</code>, <code>src/Domain/</code>, <code>src/Middleware/</code>, <code>src/Responder/</code>) with the <strong>Action-Domain-Responder (ADR)</strong> pattern and <strong>Single-Action Controllers</strong>, your application remains fast to boot, easy to test in isolation, and completely decoupled from framework state.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/02_enterprise_architecture/modular_design/enterprise_directory_architecture.png" alt="modular_design_1" />
+  <figcaption class="drawlib-caption">Enterprise Slim 4 Directory Layout and Unidirectional Action-Domain-Responder (ADR) Flow</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.preset_colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">CssColors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span><span class="p">,</span> <span class="n">TreeNode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Modular Project Tree (slim4-app/)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">88.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">88.0</span><span class="p">)</span>
+
+<span class="n">TreeNode</span><span class="o">.</span><span class="n">register_drawing_item</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"dir_icon"</span><span class="p">,</span>
+    <span class="n">location</span><span class="o">=</span><span class="s2">"before"</span><span class="p">,</span>
+    <span class="n">padding_width</span><span class="o">=</span><span class="mf">4.2</span><span class="p">,</span>
+    <span class="n">function</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">folder</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Primary</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">icon_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Primary</span><span class="p">),</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"width"</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">TreeNode</span><span class="o">.</span><span class="n">register_drawing_item</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"php_icon"</span><span class="p">,</span>
+    <span class="n">location</span><span class="o">=</span><span class="s2">"before"</span><span class="p">,</span>
+    <span class="n">padding_width</span><span class="o">=</span><span class="mf">4.2</span><span class="p">,</span>
+    <span class="n">function</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Primary</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">icon_color</span><span class="o">=</span><span class="n">CssColors</span><span class="o">.</span><span class="n">ForestGreen</span><span class="p">),</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"width"</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">tree_root</span> <span class="o">=</span> <span class="n">TreeNode</span><span class="p">(</span>
+    <span class="s2">"slim4-enterprise/"</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">line_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Muted</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_width</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+    <span class="n">line_horizontal_margin</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span>
+    <span class="n">line_horizontal_length</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span>
+    <span class="n">line_vertical_margin</span><span class="o">=</span><span class="mf">5.9</span><span class="p">,</span>
+    <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">TreeNode</span><span class="p">(</span>
+            <span class="s2">"config/"</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"container.php &amp; settings.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"routes.php &amp; middleware.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"dir_icon"</span><span class="p">),</span>
+        <span class="n">TreeNode</span><span class="p">(</span>
+            <span class="s2">"public/index.php (Front Controller)"</span><span class="p">,</span>
+            <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+        <span class="n">TreeNode</span><span class="p">(</span>
+            <span class="s2">"src/"</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"Action/User/CreateUserAction.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"Domain/User/UserCreator.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"Domain/User/UserRepositoryInterface.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"Middleware/JwtAuthMiddleware.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+                <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"Responder/JsonResponder.php"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"php_icon"</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"dir_icon"</span><span class="p">),</span>
+        <span class="n">TreeNode</span><span class="p">(</span><span class="s2">"tests/Integration/"</span><span class="p">,</span> <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">))</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"dir_icon"</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span><span class="o">.</span><span class="n">set_drawing_item</span><span class="p">(</span><span class="s2">"dir_icon"</span><span class="p">)</span>
+
+<span class="n">tree_root</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">9.0</span><span class="p">,</span> <span class="mf">77.5</span><span class="p">))</span>
+
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Action-Domain-Responder (ADR) Flow"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">tree_structure</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">96.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">88.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">96.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">92.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">88.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_right</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span>
+    <span class="n">show_arrows</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">arrow_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">line_arrow_head_scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">line_width</span><span class="o">=</span><span class="mf">1.4</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. Action Controller (src/Action/)"</span><span class="p">,</span>
+    <span class="s2">"Extracts PSR-7 input into Command DTO"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"HTTP"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. Domain Service (src/Domain/)"</span><span class="p">,</span>
+    <span class="s2">"Pure PHP business logic (Zero PSR-7)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Domain"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">cube</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Repository Contract &amp; Storage"</span><span class="p">,</span>
+    <span class="s2">"Persists via UserRepositoryInterface"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Data"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">database</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. Responder (src/Responder/)"</span><span class="p">,</span>
+    <span class="s2">"Formats immutable PSR-7 JSON Response"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Output"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">rh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>Production Directory Structure &amp; Configuration Split</h2>
+<p>In a modular Slim 4 codebase, <code>public/index.php</code> never defines routes or container bindings directly. Instead, <code>config/</code> holds composable PHP files that return typed configuration closures (<code>callable(App): void</code> or <code>array&lt;string, mixed&gt;</code>), while <code>src/</code> isolates HTTP handlers from domain logic:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Path / Module</th>
+<th style="text-align:left">Responsibility</th>
+<th style="text-align:left">Allowed Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>public/index.php</code></td>
+<td style="text-align:left">SAPI entrypoint that boots the container and calls <code>$app-&gt;run()</code></td>
+<td style="text-align:left"><code>config/bootstrap.php</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>config/settings.php</code></td>
+<td style="text-align:left">Centralizes environment variables into a typed <code>AppSettings</code> object</td>
+<td style="text-align:left">Standard PHP types &amp; environment readers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>config/container.php</code></td>
+<td style="text-align:left">PSR-11 container definitions (<code>App::class</code>, interfaces, <code>LoggerInterface</code>)</td>
+<td style="text-align:left"><code>Psr\Container\ContainerInterface</code>, <code>Slim\Factory\AppFactory</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>config/middleware.php</code></td>
+<td style="text-align:left">Registers global PSR-15 middlewares and the Middleware Triad</td>
+<td style="text-align:left"><code>Slim\App</code>, <code>src/Middleware/*</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>config/routes.php</code></td>
+<td style="text-align:left">Registers route groups and maps URI patterns to <code>src/Action/*</code> classes</td>
+<td style="text-align:left"><code>Slim\App</code>, <code>Slim\Routing\RouteCollectorProxy</code>, <code>src/Action/*</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>src/Action/</code></td>
+<td style="text-align:left">Single-Action Controllers (<code>__invoke</code> or <code>RequestHandlerInterface</code>)</td>
+<td style="text-align:left">PSR-7, <code>src/Domain/*</code> services/DTOs, <code>src/Responder/*</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>src/Domain/</code></td>
+<td style="text-align:left">Domain Services, Value Objects, DTOs, and Repository Interfaces</td>
+<td style="text-align:left"><strong>Pure PHP only</strong> (No <code>Psr\Http\*</code> or <code>Slim\*</code> imports)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>src/Responder/</code></td>
+<td style="text-align:left">Reusable PSR-7 response formatters (<code>JsonResponder</code>)</td>
+<td style="text-align:left"><code>Psr\Http\Message\ResponseFactoryInterface</code>, <code>ResponseInterface</code></td>
+</tr>
+</tbody>
+</table>
+<p>By returning anonymous functions (<code>static function (App $app): void</code>) from <code>config/routes.php</code> and <code>config/middleware.php</code>, both your <code>public/index.php</code> front controller and your PHPUnit integration test suite can boot the exact same <code>Slim\App</code> instance without duplicating setup code:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="c1">// File: config/routes.php</span>
+<span class="k">use</span> <span class="nx">App\Action\Health\HealthCheckAction</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Action\User\CreateUserAction</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Action\User\GetUserAction</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Middleware\JwtAuthMiddleware</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\App</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Routing\RouteCollectorProxy</span><span class="p">;</span>
+
+<span class="k">return</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">App</span> <span class="nv">$app</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/health'</span><span class="p">,</span> <span class="nx">HealthCheckAction</span><span class="o">::</span><span class="na">class</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setName</span><span class="p">(</span><span class="s1">'health.check'</span><span class="p">);</span>
+
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">'/api/v1'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">RouteCollectorProxy</span> <span class="nv">$v1</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+        <span class="nv">$v1</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="nx">CreateUserAction</span><span class="o">::</span><span class="na">class</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setName</span><span class="p">(</span><span class="s1">'users.create'</span><span class="p">);</span>
+        <span class="nv">$v1</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/users/{id:[0-9]+}'</span><span class="p">,</span> <span class="nx">GetUserAction</span><span class="o">::</span><span class="na">class</span><span class="p">)</span><span class="o">-&gt;</span><span class="na">setName</span><span class="p">(</span><span class="s1">'users.get'</span><span class="p">);</span>
+    <span class="p">})</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nx">JwtAuthMiddleware</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre>
+<p>And <code>config/middleware.php</code> registers custom cross-cutting middlewares alongside Slim's built-in triad in deterministic LIFO order:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="c1">// File: config/middleware.php</span>
+<span class="k">use</span> <span class="nx">App\Support\AppSettings</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Log\LoggerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\App</span><span class="p">;</span>
+
+<span class="k">return</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">App</span> <span class="nv">$app</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+    <span class="nv">$container</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getContainer</span><span class="p">();</span>
+    <span class="nv">$settings</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">?-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">AppSettings</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+    <span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">?-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">LoggerInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+    <span class="c1">// 1. Inner: Parse JSON, form-urlencoded, and XML payloads</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+
+    <span class="c1">// 2. Middle: Compute FastRoute match and populate RouteContext</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+
+    <span class="c1">// 3. Outermost (Added LAST -&gt; Runs FIRST): Catch all Throwable exceptions</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span>
+        <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="nv">$settings</span> <span class="o">?</span> <span class="nv">$settings</span><span class="o">-&gt;</span><span class="na">displayErrorDetails</span> <span class="o">:</span> <span class="k">false</span><span class="p">,</span>
+        <span class="nx">logErrors</span><span class="o">:</span> <span class="nv">$settings</span> <span class="o">?</span> <span class="nv">$settings</span><span class="o">-&gt;</span><span class="na">logErrors</span> <span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+        <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="nv">$settings</span> <span class="o">?</span> <span class="nv">$settings</span><span class="o">-&gt;</span><span class="na">logErrorDetails</span> <span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+        <span class="nx">logger</span><span class="o">:</span> <span class="nv">$logger</span>
+    <span class="p">);</span>
+<span class="p">};</span>
+</code></pre>
+<h2>Action-Domain-Responder (ADR) &amp; Single-Action Controllers</h2>
+<p>Traditional MVC frameworks encourage grouping <code>index()</code>, <code>show()</code>, <code>store()</code>, <code>update()</code>, and <code>destroy()</code> into a single <code>UserController</code> class. Over time, that controller accumulates a bloated constructor injecting 8–10 services, even though any single HTTP request only executes one method and uses one or two of those dependencies.</p>
+<p>In Slim 4, the idiomatic pattern is the <strong>Single-Action Controller</strong> (part of the <strong>Action-Domain-Responder</strong> pattern): each HTTP endpoint maps to its own dedicated, <code>final readonly</code> class with a single <code>__invoke()</code> (or <code>handle()</code>) entry point.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/02_enterprise_architecture/modular_design/single_action_controller_flow.png" alt="modular_design_2" />
+  <figcaption class="drawlib-caption">Anti-Pattern (Fat Multi-Method Controller) vs Idiomatic Slim 4 Single-Action Controller & ADR Separation</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colors</span><span class="p">,</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">84</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">p_left</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Anti-Pattern · Fat Multi-Method Controller"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">warning_circle</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_left</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">76.0</span><span class="p">)</span>
+<span class="n">lx</span><span class="p">,</span> <span class="n">lw</span><span class="p">,</span> <span class="n">lh</span> <span class="o">=</span> <span class="n">p_left</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">76.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+
+<span class="n">cl_left</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Bloated Constructor Injection"</span><span class="p">,</span>
+    <span class="s2">"Injects Mailer &amp; PdfExporter on GET /users"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Issue 1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">warning</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"PSR-7 Leaks into Business Logic"</span><span class="p">,</span>
+    <span class="s2">"Passes ServerRequest into repositories"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Issue 2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">link_break</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_color</span><span class="o">=</span><span class="n">Colors</span><span class="o">.</span><span class="n">Gray4</span><span class="p">),</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Duplicated JSON Serialization"</span><span class="p">,</span>
+    <span class="s2">"Repeats json_encode() in every method"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Issue 3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">copy</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">lx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">p_right</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim 4 Best Practice · Single-Action ADR"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">p_right</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">76.0</span><span class="p">)</span>
+<span class="n">rx</span><span class="p">,</span> <span class="n">rw</span><span class="p">,</span> <span class="n">rh</span> <span class="o">=</span> <span class="n">p_right</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">76.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+
+<span class="n">cl_right</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"CreateUserAction::__invoke()"</span><span class="p">,</span>
+    <span class="s2">"Injects ONLY UserCreator &amp; JsonResponder"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Action"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lightning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"UserCreator::create(CreateUserCommand)"</span><span class="p">,</span>
+    <span class="s2">"Typed readonly DTO; reusable in CLI/queues"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Domain"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"JsonResponder::withJson(response, data, 201)"</span><span class="p">,</span>
+    <span class="s2">"Centralizes JSON flags &amp; Content-Type"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Responder"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">sparkle</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">rx</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">rw</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">lh</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h3>Implementing an Invokable Action Controller</h3>
+<p>When you register <code>$v1-&gt;post('/users', CreateUserAction::class)</code>, <code>Slim\CallableResolver</code> resolves <code>CreateUserAction</code> from the PSR-11 container and invokes its <code>__invoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface</code> method via the active route invocation strategy (<code>RequestResponse</code> by default).</p>
+<p>The Action controller performs three concise steps—extracting HTTP input into a typed command, invoking the Domain service, and delegating serialization to a <code>JsonResponder</code>:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Action\User</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Domain\User\CreateUserCommand</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Domain\User\UserCreator</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Responder\JsonResponder</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">CreateUserAction</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="nx">UserCreator</span> <span class="nv">$userCreator</span><span class="p">,</span>
+        <span class="k">private</span> <span class="nx">JsonResponder</span> <span class="nv">$responder</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, string&gt; $args</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span> <span class="k">array</span> <span class="nv">$args</span> <span class="o">=</span> <span class="p">[])</span><span class="o">:</span> <span class="nx">Response</span>
+    <span class="p">{</span>
+        <span class="nv">$body</span> <span class="o">=</span> <span class="p">(</span><span class="k">array</span><span class="p">)</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getParsedBody</span><span class="p">();</span>
+
+        <span class="nv">$command</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">CreateUserCommand</span><span class="p">(</span>
+            <span class="nx">email</span><span class="o">:</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">(</span><span class="nv">$body</span><span class="p">[</span><span class="s1">'email'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">''</span><span class="p">),</span>
+            <span class="nx">displayName</span><span class="o">:</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">(</span><span class="nv">$body</span><span class="p">[</span><span class="s1">'display_name'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">''</span><span class="p">),</span>
+        <span class="p">);</span>
+
+        <span class="nv">$user</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">userCreator</span><span class="o">-&gt;</span><span class="na">create</span><span class="p">(</span><span class="nv">$command</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">responder</span><span class="o">-&gt;</span><span class="na">withJson</span><span class="p">(</span><span class="nv">$response</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">id</span><span class="p">,</span>
+            <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">email</span><span class="p">,</span>
+            <span class="s1">'display_name'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">displayName</span><span class="p">,</span>
+        <span class="p">],</span> <span class="mi">201</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Extracting response serialization into a shared <code>JsonResponder</code> guarantees consistent <code>JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE</code> flags and <code>Content-Type: application/json</code> headers across every endpoint:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Responder</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">JsonResponder</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param array&lt;string, mixed&gt; $data</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">withJson</span><span class="p">(</span>
+        <span class="nx">ResponseInterface</span> <span class="nv">$response</span><span class="p">,</span>
+        <span class="k">array</span> <span class="nv">$data</span><span class="p">,</span>
+        <span class="nx">int</span> <span class="nv">$status</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+        <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">(</span>
+            <span class="nv">$data</span><span class="p">,</span>
+            <span class="nx">JSON_THROW_ON_ERROR</span> <span class="o">|</span> <span class="nx">JSON_UNESCAPED_SLASHES</span> <span class="o">|</span> <span class="nx">JSON_UNESCAPED_UNICODE</span>
+        <span class="p">);</span>
+
+        <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="nv">$response</span>
+            <span class="o">-&gt;</span><span class="na">withStatus</span><span class="p">(</span><span class="nv">$status</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json; charset=utf-8'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h3>Implementing PSR-15 RequestHandlerInterface Actions</h3>
+<p>In addition to <code>__invoke(Request, Response, array $args)</code>, Slim's <code>CallableResolver::resolveRoute()</code> (<code>Slim/CallableResolver.php:68-113</code>) natively checks <code>$toResolve instanceof RequestHandlerInterface</code> and binds <code>[$instance, 'handle']</code>. When paired with Slim's built-in <code>RequestHandler</code> invocation strategy (<code>new RequestHandler(true)</code>), your Action controllers can implement standard <strong>PSR-15 <code>RequestHandlerInterface</code></strong> directly:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Action\User</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Domain\User\UserReader</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Responder\JsonResponder</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseFactoryInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">GetUserAction</span> <span class="k">implements</span> <span class="nx">RequestHandlerInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="nx">UserReader</span> <span class="nv">$userReader</span><span class="p">,</span>
+        <span class="k">private</span> <span class="nx">ResponseFactoryInterface</span> <span class="nv">$responseFactory</span><span class="p">,</span>
+        <span class="k">private</span> <span class="nx">JsonResponder</span> <span class="nv">$responder</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">handle</span><span class="p">(</span><span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span>
+    <span class="p">{</span>
+        <span class="c1">// When RequestHandler(appendRouteArgumentsToRequestAttributes: true) is active,</span>
+        <span class="c1">// FastRoute URL parameters are attached as PSR-7 request attributes</span>
+        <span class="nv">$userId</span> <span class="o">=</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'id'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="nv">$user</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">userReader</span><span class="o">-&gt;</span><span class="na">getById</span><span class="p">(</span><span class="nv">$userId</span><span class="p">);</span>
+
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">responseFactory</span><span class="o">-&gt;</span><span class="na">createResponse</span><span class="p">();</span>
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">responder</span><span class="o">-&gt;</span><span class="na">withJson</span><span class="p">(</span><span class="nv">$response</span><span class="p">,</span> <span class="p">[</span>
+            <span class="s1">'id'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">id</span><span class="p">,</span>
+            <span class="s1">'email'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">email</span><span class="p">,</span>
+            <span class="s1">'display_name'</span> <span class="o">=&gt;</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">displayName</span><span class="p">,</span>
+        <span class="p">]);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<h2>Decoupling Domain Services &amp; Typed Configuration Objects</h2>
+<p>Two architectural boundaries keep enterprise Slim 4 codebases maintainable as they grow to hundreds of endpoints:</p>
+<ol>
+<li><strong>Keep PSR-7 Out of <code>src/Domain/</code></strong>: Never pass <code>ServerRequestInterface</code> into a Domain Service or Repository. Instead, pass immutable <code>readonly</code> DTOs (<code>CreateUserCommand</code>) and return typed Domain objects (<code>UserResult</code>). Because <code>UserCreator</code> depends only on <code>UserRepositoryInterface</code>, you can unit-test business rules in milliseconds without constructing HTTP requests, and call the exact same service from a Symfony Console CLI command or an async queue consumer.</li>
+<li><strong>Replace Scattered <code>$_ENV</code> Reads with Typed <code>AppSettings</code></strong>: Reading <code>$_ENV['APP_DEBUG']</code> or <code>getenv('DB_DSN')</code> directly inside controllers makes configuration impossible to mock in tests and prone to type coercion bugs. Define a single <code>readonly class AppSettings</code> populated in <code>config/settings.php</code> and inject it via your PSR-11 container:</li>
+</ol>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Domain\User</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">DomainException</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">CreateUserCommand</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">public</span> <span class="nx">string</span> <span class="nv">$email</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">string</span> <span class="nv">$displayName</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">UserCreator</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="nx">UserRepositoryInterface</span> <span class="nv">$users</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">create</span><span class="p">(</span><span class="nx">CreateUserCommand</span> <span class="nv">$command</span><span class="p">)</span><span class="o">:</span> <span class="nx">UserEntity</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">filter_var</span><span class="p">(</span><span class="nv">$command</span><span class="o">-&gt;</span><span class="na">email</span><span class="p">,</span> <span class="nx">FILTER_VALIDATE_EMAIL</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">DomainException</span><span class="p">(</span><span class="s1">'A valid email address is required.'</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">users</span><span class="o">-&gt;</span><span class="na">insert</span><span class="p">(</span><span class="nv">$command</span><span class="o">-&gt;</span><span class="na">email</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="nv">$command</span><span class="o">-&gt;</span><span class="na">displayName</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>And encapsulate environment variables inside an immutable <code>AppSettings</code> value object:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Support</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">readonly</span> <span class="k">class</span> <span class="nc">AppSettings</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">public</span> <span class="nx">string</span> <span class="nv">$appEnv</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">bool</span> <span class="nv">$logErrors</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">bool</span> <span class="nv">$logErrorDetails</span><span class="p">,</span>
+        <span class="k">public</span> <span class="o">?</span><span class="nx">string</span> <span class="nv">$routeCacheFile</span><span class="p">,</span>
+        <span class="k">public</span> <span class="nx">string</span> <span class="nv">$dbDsn</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">fromEnv</span><span class="p">(</span><span class="k">array</span> <span class="nv">$env</span><span class="p">)</span><span class="o">:</span> <span class="nx">self</span>
+    <span class="p">{</span>
+        <span class="nv">$isProd</span> <span class="o">=</span> <span class="p">(</span><span class="nv">$env</span><span class="p">[</span><span class="s1">'APP_ENV'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'production'</span><span class="p">)</span> <span class="o">===</span> <span class="s1">'production'</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="k">new</span> <span class="nx">self</span><span class="p">(</span>
+            <span class="nx">appEnv</span><span class="o">:</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">(</span><span class="nv">$env</span><span class="p">[</span><span class="s1">'APP_ENV'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'production'</span><span class="p">),</span>
+            <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="o">!</span><span class="nv">$isProd</span><span class="p">,</span>
+            <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+            <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+            <span class="nx">routeCacheFile</span><span class="o">:</span> <span class="nv">$isProd</span> <span class="o">?</span> <span class="no">__DIR__</span> <span class="o">.</span> <span class="s1">'/../../var/cache/routes.php'</span> <span class="o">:</span> <span class="k">null</span><span class="p">,</span>
+            <span class="nx">dbDsn</span><span class="o">:</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">(</span><span class="nv">$env</span><span class="p">[</span><span class="s1">'DB_DSN'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'sqlite::memory:'</span><span class="p">),</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Next, continue to <strong><a href="di_and_containers.html">PSR-11 DI &amp; Callable Resolution</a></strong> to see how <code>PHP-DI</code>, <code>AppFactory::createFromContainer()</code>, <code>Slim\CallableResolver</code>, and deferred middleware resolution wire these modular layers together automatically. You can also review <strong><a href="../01_getting_started/quickstart.html">Quickstart &amp; Middleware Triad</a></strong>, explore <strong><a href="../03_routing_and_handlers/routing_and_groups.html">FastRoute Patterns, Groups &amp; Caching</a></strong>, or inspect internal class contracts in the <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong> and <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 Internal Architecture</a></strong>.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

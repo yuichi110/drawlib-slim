@@ -1,0 +1,816 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSR-15 Concentric LIFO Pipeline — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/middleware_pipeline.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html">
+    
+    
+    
+    <meta name="description" content="Slim v4.15.3 implements its request processing pipeline as a concentric PSR-15 middleware onion powered by Slim\MiddlewareDispatcher. Every middleware wraps…">
+    <link rel="canonical" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="PSR-15 Concentric LIFO Pipeline — Slim 4 User Guide">
+    <meta property="og:description" content="Slim v4.15.3 implements its request processing pipeline as a concentric PSR-15 middleware onion powered by Slim\MiddlewareDispatcher. Every middleware wraps…">
+    <meta property="og:url" content="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html">
+    <meta property="og:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PSR-15 Concentric LIFO Pipeline — Slim 4 User Guide">
+    <meta name="twitter:description" content="Slim v4.15.3 implements its request processing pipeline as a concentric PSR-15 middleware onion powered by Slim\MiddlewareDispatcher. Every middleware wraps…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">UNOFFICIAL GUIDE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial Community User Guide for <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+            </span>
+            <span class="demo-banner-links">
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/architecture/">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item active">
+                                <a href="middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">PSR-15 Concentric LIFO Pipeline</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="middleware_pipeline.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/04_psr7_and_middleware/middleware_pipeline.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>PSR-15 Concentric LIFO Pipeline</h1>
+<p>Slim v4.15.3 implements its request processing pipeline as a <strong>concentric PSR-15 middleware onion</strong> powered by <code>Slim\MiddlewareDispatcher</code>. Every middleware wraps the next <code>Psr\Http\Server\RequestHandlerInterface</code> layer around the core <code>Slim\Routing\RouteRunner</code>. Understanding how <strong>Last-In, First-Out (LIFO)</strong> registration works—and how application, <code>RouteGroup</code>, and <code>Route</code> middlewares combine at runtime—is essential for ordering authentication, body parsing, method overriding, routing, and exception handling without subtle ordering bugs.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/middleware_pipeline/concentric_lifo_onion.png" alt="middleware_pipeline_1" />
+  <figcaption class="drawlib-caption">Slim v4.15.3 Concentric LIFO Middleware Onion — Inbound Request and Outbound Response Traversal Across App, Group, and Route Scopes</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">74</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim v4.15.3 — Concentric LIFO Middleware Onion (App -&gt; RouteGroup -&gt; Route -&gt; Handler)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">stack</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">184.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">66.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. App MW</span><span class="se">\n</span><span class="s2">(Added Last)"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Outermost (ErrorMW)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. App MW</span><span class="se">\n</span><span class="s2">(Added First)"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"RoutingMiddleware"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Outer -&gt; Inner</span><span class="se">\n</span><span class="s2">RouteGroup MW"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Group Scope Stack"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. Route Scoped</span><span class="se">\n</span><span class="s2">Middleware"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"$route-&gt;add() LIFO"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. Route Handler</span><span class="se">\n</span><span class="s2">Controller"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Innermost Core"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">38.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">176.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">51.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">arrow_right</span><span class="p">((</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"Inbound Request Path (Outside -&gt; In)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• Last app-&gt;add() runs 1st -&gt; First app-&gt;add()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• Outer Group -&gt; Inner Group -&gt; Route MW -&gt; Handler"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">141.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">arrow_left</span><span class="p">((</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">110.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"Outbound Response Path (Inside -&gt; Out)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• Handler returns Response -&gt; Route MW -&gt; Group MW"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• First app-&gt;add() -&gt; Last app-&gt;add() (Timing/CORS)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>How <code>MiddlewareDispatcher</code> Builds the Concentric LIFO Stack</h2>
+<p>When <code>Slim\App</code> is constructed, <code>MiddlewareDispatcher</code> initializes its internal <code>$this-&gt;tip</code> pointer to <code>Slim\Routing\RouteRunner</code>. Each time you call <code>$app-&gt;add($middleware)</code>, <code>MiddlewareDispatcher::seedMiddlewareStack()</code> wraps the current <code>$this-&gt;tip</code> inside a new anonymous <code>RequestHandlerInterface</code> node. Because each newly added middleware wraps the existing stack from the outside, <strong>the last middleware added via <code>$app-&gt;add()</code> becomes the outermost layer of the onion</strong>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Registration Order in Code</th>
+<th style="text-align:left">Layer Position in Onion</th>
+<th style="text-align:left">Inbound Request Execution Order</th>
+<th style="text-align:left">Outbound Response Execution Order</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>1.</code> <code>$app-&gt;add(MiddlewareA::class)</code></td>
+<td style="text-align:left">Innermost App Layer (wraps <code>RouteRunner</code>)</td>
+<td style="text-align:left"><strong>3rd</strong> (just before <code>RouteRunner</code>)</td>
+<td style="text-align:left"><strong>2nd</strong> (right after <code>RouteRunner</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>2.</code> <code>$app-&gt;add(MiddlewareB::class)</code></td>
+<td style="text-align:left">Middle App Layer (wraps <code>MiddlewareA</code>)</td>
+<td style="text-align:left"><strong>2nd</strong></td>
+<td style="text-align:left"><strong>3rd</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>3.</code> <code>$app-&gt;add(MiddlewareC::class)</code></td>
+<td style="text-align:left"><strong>Outermost App Layer</strong> (wraps <code>MiddlewareB</code>)</td>
+<td style="text-align:left"><strong>1st</strong> (first to inspect <code>$request</code>)</td>
+<td style="text-align:left"><strong>4th</strong> (last to inspect <code>$response</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left">Core <code>RouteRunner</code> + Route Handler</td>
+<td style="text-align:left">Center of the Onion</td>
+<td style="text-align:left"><strong>4th</strong> (produces <code>ResponseInterface</code>)</td>
+<td style="text-align:left"><strong>1st</strong> (returns <code>ResponseInterface</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2>Authoring PSR-15 Class &amp; Closure Middleware</h2>
+<p>Slim accepts three middleware formats in <code>$app-&gt;add()</code>, <code>$group-&gt;add()</code>, and <code>$route-&gt;add()</code>:</p>
+<ol>
+<li><strong>PSR-15 <code>MiddlewareInterface</code> Instance or Container Service String (<code>MyMiddleware::class</code>)</strong>: The recommended production pattern. When registered as a class-name string, <code>MiddlewareDispatcher</code> resolves the class lazily from your PSR-11 container only when that middleware layer is reached.</li>
+<li><strong>Invokable Class or Closure (<code>fn(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface</code>)</strong>: Handy for lightweight inline wiring or tests.</li>
+<li><strong>Callable String (<code>'App\Middleware\CustomMiddleware:process'</code>)</strong>: Resolved via <code>AdvancedCallableResolverInterface</code>.</li>
+</ol>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Middleware</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\MiddlewareInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span> <span class="k">as</span> <span class="nx">RequestHandler</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Psr7\Factory\ResponseFactory</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">RequestIdAndTimingMiddleware</span> <span class="k">implements</span> <span class="nx">MiddlewareInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">process</span><span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">RequestHandler</span> <span class="nv">$handler</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span>
+    <span class="p">{</span>
+        <span class="c1">// 1. Inbound pre-processing (before downstream layers and controller)</span>
+        <span class="nv">$startTime</span> <span class="o">=</span> <span class="nb">hrtime</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+        <span class="nv">$requestId</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'X-Request-Id'</span><span class="p">)</span> <span class="o">?:</span> <span class="nb">bin2hex</span><span class="p">(</span><span class="nb">random_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
+
+        <span class="c1">// Propagate correlation ID downstream via an immutable request attribute</span>
+        <span class="nv">$request</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">withAttribute</span><span class="p">(</span><span class="s1">'request_id'</span><span class="p">,</span> <span class="nv">$requestId</span><span class="p">);</span>
+
+        <span class="c1">// 2. Delegate to the next inner layer in the concentric onion</span>
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="c1">// 3. Outbound post-processing (after downstream layers return Response)</span>
+        <span class="nv">$elapsedMs</span> <span class="o">=</span> <span class="p">(</span><span class="nb">hrtime</span><span class="p">(</span><span class="k">true</span><span class="p">)</span> <span class="o">-</span> <span class="nv">$startTime</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1</span><span class="nx">_000_000</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="nv">$response</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-Request-Id'</span><span class="p">,</span> <span class="nv">$requestId</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-Response-Time-Ms'</span><span class="p">,</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'%.2f'</span><span class="p">,</span> <span class="nv">$elapsedMs</span><span class="p">));</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Short-circuiting example: returning a Response early without calling $handler-&gt;handle()</span>
+<span class="nv">$maintenanceGuard</span> <span class="o">=</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">RequestHandler</span> <span class="nv">$handler</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">((</span><span class="nv">$_ENV</span><span class="p">[</span><span class="s1">'MAINTENANCE_MODE'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'false'</span><span class="p">)</span> <span class="o">===</span> <span class="s1">'true'</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$response</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="nx">ResponseFactory</span><span class="p">())</span><span class="o">-&gt;</span><span class="na">createResponse</span><span class="p">(</span><span class="mi">503</span><span class="p">);</span>
+        <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="s1">'{"error":"Service temporarily under maintenance"}'</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nv">$response</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Retry-After'</span><span class="p">,</span> <span class="s1">'120'</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+<span class="p">};</span>
+</code></pre>
+<h2>Combined Execution Order: App, <code>RouteGroup</code> &amp; <code>Route</code> Scopes</h2>
+<p>A frequent architectural question is how application middlewares (<code>$app-&gt;add()</code>), nested group middlewares (<code>$group-&gt;add()</code>), and route middlewares (<code>$route-&gt;add()</code>) interact. Slim uses a <strong>two-stage dispatch model</strong>:</p>
+<ol>
+<li><strong>Stage 1 — Application <code>MiddlewareDispatcher</code></strong>: Executes all <code>$app-&gt;add()</code> middlewares in LIFO order until reaching <code>RouteRunner::handle()</code>.</li>
+<li><strong>Stage 2 — <code>Route::prepare()</code> Inside <code>RouteRunner</code></strong>: When <code>RouteRunner</code> invokes the matched <code>Route</code>, <code>Route::appendGroupMiddlewareToRoute()</code> walks the route's parent <code>RouteGroup</code> chain from innermost to outermost, appending each group's middlewares onto the route's internal middleware list. Because the <code>Route</code>'s own <code>MiddlewareDispatcher</code> wraps the route callable in LIFO order:
+<ul>
+<li><strong>Across Group Hierarchy</strong>: <strong>Outer <code>RouteGroup</code> middleware wraps Inner <code>RouteGroup</code> middleware</strong>, which wraps <strong><code>Route</code> middleware</strong>, which wraps the <strong>Route Handler</strong>.</li>
+<li><strong>Within the Same Scope</strong>: Multiple <code>$route-&gt;add()</code> calls on the same route (or multiple <code>$group-&gt;add()</code> calls on the same group) follow standard <strong>LIFO</strong> order (last added on that scope wraps earlier ones on that same scope).</li>
+</ul>
+</li>
+</ol>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span> <span class="k">as</span> <span class="nx">RequestHandler</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Routing\RouteCollectorProxy</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="nv">$trace</span> <span class="o">=</span> <span class="k">static</span> <span class="nx">fn</span><span class="p">(</span><span class="nx">string</span> <span class="nv">$label</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$req</span><span class="p">,</span> <span class="nx">RequestHandler</span> <span class="nv">$h</span><span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$label</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$res</span> <span class="o">=</span> <span class="nv">$h</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$req</span><span class="o">-&gt;</span><span class="na">withAttribute</span><span class="p">(</span><span class="s1">'trace'</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="nv">$req</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'trace'</span><span class="p">,</span> <span class="p">[]),</span> <span class="s2">"in:</span><span class="si">$label</span><span class="s2">"</span><span class="p">]));</span>
+    <span class="k">return</span> <span class="nv">$res</span><span class="o">-&gt;</span><span class="na">withAddedHeader</span><span class="p">(</span><span class="s1">'X-Trace-Out'</span><span class="p">,</span> <span class="nv">$label</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="c1">// App scope (LIFO: App2 runs before App1 on inbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'App1'</span><span class="p">));</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'App2'</span><span class="p">));</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">'/api'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">RouteCollectorProxy</span> <span class="nv">$api</span><span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$trace</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+    <span class="nv">$api</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">'/v1'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">RouteCollectorProxy</span> <span class="nv">$v1</span><span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$trace</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+        <span class="nv">$v1</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/ping'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+            <span class="c1">// Inbound trace order is:</span>
+            <span class="c1">// ["in:App2", "in:App1", "in:OuterGroup", "in:InnerGroup", "in:Route2", "in:Route1"]</span>
+            <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'inbound'</span> <span class="o">=&gt;</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'trace'</span><span class="p">)],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+            <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+            <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+        <span class="p">})</span>
+        <span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'Route1'</span><span class="p">))</span>
+        <span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'Route2'</span><span class="p">));</span>
+    <span class="p">})</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'InnerGroup'</span><span class="p">));</span>
+<span class="p">})</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nv">$trace</span><span class="p">(</span><span class="s1">'OuterGroup'</span><span class="p">));</span>
+</code></pre>
+<h2>Built-In Utility Middlewares &amp; Canonical Registration Order</h2>
+<p>Beyond <code>RoutingMiddleware</code>, <code>BodyParsingMiddleware</code>, and <code>ErrorMiddleware</code>, Slim v4.15.3 ships three additional PSR-15 utility middlewares in <code>Slim\Middleware\</code>:</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/middleware_pipeline/builtin_middlewares_placement.png" alt="middleware_pipeline_2" />
+  <figcaption class="drawlib-caption">Canonical Placement of All 6 Built-In Slim v4.15.3 Middlewares — LIFO Registration vs Runtime Inbound Order</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">78</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">left_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Outer Layers: Error, OutputBuffer &amp; ContentLength"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">left_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">70.0</span><span class="p">)</span>
+<span class="n">l_xy</span><span class="p">,</span> <span class="n">l_w</span><span class="p">,</span> <span class="n">l_h</span> <span class="o">=</span> <span class="n">left_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_left</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.4</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.9</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"ErrorMiddleware (Added 6th)"</span><span class="p">,</span>
+    <span class="s2">"Outermost try/catch boundary for all exceptions"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#1"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_warning</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"OutputBufferingMiddleware (Added 5th)"</span><span class="p">,</span>
+    <span class="s2">"Captures echo/print via ob_start() (APPEND/PREPEND)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">terminal_window</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"ContentLengthMiddleware (Added 4th)"</span><span class="p">,</span>
+    <span class="s2">"Sets Content-Length header from stream getSize()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">ruler</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">l_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">l_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">l_h</span><span class="p">)</span>
+
+<span class="n">right_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Inner Layers: BodyParsing, MethodOverride &amp; Routing"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.0</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">right_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">70.0</span><span class="p">)</span>
+<span class="n">r_xy</span><span class="p">,</span> <span class="n">r_w</span><span class="p">,</span> <span class="n">r_h</span> <span class="o">=</span> <span class="n">right_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_right</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.4</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.9</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"BodyParsingMiddleware (Added 3rd)"</span><span class="p">,</span>
+    <span class="s2">"Decodes JSON/Form/XML into getParsedBody()"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"MethodOverrideMiddleware (Added 2nd)"</span><span class="p">,</span>
+    <span class="s2">"Reads X-Http-Method-Override or POST _METHOD"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#5"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_clockwise</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RoutingMiddleware (Added 1st)"</span><span class="p">,</span>
+    <span class="s2">"Dispatches FastRoute using overridden HTTP verb"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"#6"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">compass</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">r_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">r_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">r_h</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Built-In Middleware (<code>Slim\Middleware\*</code>)</th>
+<th style="text-align:left">Key Constructor / Options</th>
+<th style="text-align:left">Required Placement in Pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong><code>RoutingMiddleware</code></strong></td>
+<td style="text-align:left"><code>new RoutingMiddleware($routeResolver, $routeParser)</code></td>
+<td style="text-align:left"><strong>Added 1st (Innermost)</strong>: Runs after <code>MethodOverrideMiddleware</code> and before <code>RouteRunner</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><code>MethodOverrideMiddleware</code></strong></td>
+<td style="text-align:left"><code>new MethodOverrideMiddleware()</code></td>
+<td style="text-align:left"><strong>Added 2nd</strong>: Must run <em>after</em> <code>BodyParsingMiddleware</code> (to read <code>POST</code> <code>_METHOD</code>) and <em>before</em> <code>RoutingMiddleware</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><code>BodyParsingMiddleware</code></strong></td>
+<td style="text-align:left"><code>$app-&gt;addBodyParsingMiddleware($bodyParsers)</code></td>
+<td style="text-align:left"><strong>Added 3rd</strong>: Parses JSON/XML/Form body before <code>MethodOverrideMiddleware</code> and controllers</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><code>ContentLengthMiddleware</code></strong></td>
+<td style="text-align:left"><code>new ContentLengthMiddleware()</code></td>
+<td style="text-align:left"><strong>Added 4th</strong>: Runs on outbound response after all body-mutating middlewares (<code>OutputBufferingMiddleware</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><code>OutputBufferingMiddleware</code></strong></td>
+<td style="text-align:left"><code>new OutputBufferingMiddleware($streamFactory, OutputBufferingMiddleware::APPEND)</code></td>
+<td style="text-align:left"><strong>Added 5th</strong>: Wraps handlers in <code>ob_start()</code> and appends (<code>APPEND</code>) or prepends (<code>PREPEND</code>) stray <code>echo</code> output</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><code>ErrorMiddleware</code></strong></td>
+<td style="text-align:left"><code>$app-&gt;addErrorMiddleware($displayDetails, $logErrors, $logDetails)</code></td>
+<td style="text-align:left"><strong>Added 6th (Outermost)</strong>: Catches exceptions thrown by any inner middleware or route handler</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!IMPORTANT]
+<strong>Why <code>MethodOverrideMiddleware</code> Depends on Both <code>BodyParsingMiddleware</code> and <code>RoutingMiddleware</code></strong>: <code>MethodOverrideMiddleware</code> inspects the <code>X-Http-Method-Override</code> header and, on <code>POST</code> requests, checks <code>(array) $request-&gt;getParsedBody()</code> for a <code>_METHOD</code> parameter (e.g., <code>_METHOD=DELETE</code>). Therefore, on the inbound request path, <code>BodyParsingMiddleware</code> <strong>must execute before</strong> <code>MethodOverrideMiddleware</code> (so <code>_METHOD</code> is already parsed), and <code>MethodOverrideMiddleware</code> <strong>must execute before</strong> <code>RoutingMiddleware</code> (so FastRoute matches the overridden <code>DELETE</code> method rather than <code>POST</code>).</p>
+</blockquote>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Middleware\ContentLengthMiddleware</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Middleware\MethodOverrideMiddleware</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Middleware\OutputBufferingMiddleware</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">createFromContainer</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+
+<span class="c1">// 1. Innermost: FastRoute matching (Runs 6th on inbound request)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// 2. Method override via X-Http-Method-Override or POST _METHOD (Runs 5th on inbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">MethodOverrideMiddleware</span><span class="p">());</span>
+
+<span class="c1">// 3. Parse JSON / Form / XML bodies before MethodOverride &amp; handlers (Runs 4th on inbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// 4. Compute Content-Length header on outbound response (Runs 3rd on inbound / 4th on outbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">ContentLengthMiddleware</span><span class="p">());</span>
+
+<span class="c1">// 5. Capture stray PHP echo/print buffers via ob_start() (Runs 2nd on inbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">OutputBufferingMiddleware</span><span class="p">(</span>
+    <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">getResponseFactory</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">createResponse</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span> <span class="nx">instanceof</span> <span class="nx">\Psr\Http\Message\StreamInterface</span>
+        <span class="o">?</span> <span class="k">new</span> <span class="nx">\Slim\Psr7\Factory\StreamFactory</span><span class="p">()</span>
+        <span class="o">:</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">\Psr\Http\Message\StreamFactoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">),</span>
+    <span class="nx">OutputBufferingMiddleware</span><span class="o">::</span><span class="na">APPEND</span>
+<span class="p">));</span>
+
+<span class="c1">// 6. Outermost: Global exception boundary (Added last -&gt; Runs 1st on inbound / Last on outbound)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span> <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">);</span>
+</code></pre>
+<p>With the PSR-15 concentric LIFO pipeline in place, proceed to <strong><a href="../05_security_and_errors/auth_and_cors.html">Chapter 5: JWT Auth, RBAC Guards &amp; CORS</a></strong> and <strong><a href="../05_security_and_errors/error_handling.html">ErrorMiddleware &amp; Custom Renderers</a></strong> to implement production security guards and structured error responses, or explore <code>MiddlewareDispatcher</code> internals in the <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 Internal Architecture</a></strong> and <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong> portals.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
