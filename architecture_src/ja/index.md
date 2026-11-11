@@ -1,6 +1,6 @@
 # Slim Framework v4.15.3 — 内部アーキテクチャ解説
 
-Slim Framework（`v4.15.3` · 全 `72` PHP ファイル · `3,149` LOC · `17` 契約インターフェース · 全ファイル `declare(strict_types=1)` 適用）は、単一の設計不変条件を中心に構築された PHP-FIG 標準準拠の HTTP マイクロカーネルです。すなわち、**特定の HTTP メッセージ実装や DI コンテナに一切密結合せず、PSR-7 / PSR-11 / PSR-15 / PSR-17 / PSR-3 インターフェース群と Nikic FastRoute をステートレスな同心円状 `RequestHandlerInterface` パイプラインとして合成する**という設計です。本ガイド（非公式）は、[Slim 4 ユーザーガイド](https://slim.drawlib.com/)および [Slim 4 API リファレンス](https://slim.drawlib.com/api/)の姉妹編として、`Slim\` 名前空間のソースコードを行番号レベルで解剖します。
+Slim Framework（`v4.15.3` · 全 `72` PHP ファイル · `3,149` LOC · `17` 契約インターフェース · 全ファイル `declare(strict_types=1)` 適用）は、単一の設計不変条件を中心に構築された PHP-FIG 標準準拠の HTTP マイクロカーネルです。すなわち、**特定の HTTP メッセージ実装や DI コンテナに一切密結合せず、PSR-7 / PSR-11 / PSR-15 / PSR-17 / PSR-3 インターフェース群と Nikic FastRoute をステートレスな同心円状 `RequestHandlerInterface` パイプラインとして合成する**という設計です。本ガイド（非公式）は、[Slim 4 ユーザーガイド](https://slim.drawlib.com/user_guide/)および [Slim 4 API リファレンス](https://slim.drawlib.com/api/)の姉妹編として、`Slim\` 名前空間のソースコードを行番号レベルで解剖します。
 
 ```drawlib align=center code=fold file=arch_bootstrap_vs_pipeline_ja.png caption="Slim v4.15.3 ブートストラップ時のオブジェクトグラフ構築とリクエスト毎の PSR-15 同心円実行パイプライン"
 from drawlib.canvas import save, setup
@@ -283,5 +283,5 @@ save()
 
 ## 関連ポータルと上流プロジェクトへの謝辞
 
-- **姉妹ポータル**: 実践的なアプリケーション設計、PHP-DI コンテナ統合、認証ミドルウェア、PHPUnit テスト手法については **[Slim 4 ユーザーガイド](https://slim.drawlib.com/)** および **[Slim 4 API リファレンス](https://slim.drawlib.com/api/)** を参照してください。また、PHP AST 静的解析、PCOV カバレッジ検証（`99.4%`）、サプライチェーンセキュリティ監査（総合スコア `94 / 100`・Grade `S`）については **[PNI501 診断レポート](https://slim.drawlib.com/reports/pni501/)** を参照してください。
+- **姉妹ポータル**: 実践的なアプリケーション設計、PHP-DI コンテナ統合、認証ミドルウェア、PHPUnit テスト手法については **[Slim 4 ユーザーガイド](https://slim.drawlib.com/user_guide/)** および **[Slim 4 API リファレンス](https://slim.drawlib.com/api/)** を参照してください。また、PHP AST 静的解析、PCOV カバレッジ検証（`99.4%`）、サプライチェーンセキュリティ監査（総合スコア `94 / 100`・Grade `S`）については **[PNI501 診断レポート](https://slim.drawlib.com/pni501/)** を参照してください。
 - **上流プロジェクトの帰属**: Slim Framework は **Josh Lockhart** 氏によって創設され、MIT ライセンス（`LICENSE-SLIM`）のもとで Slim Framework チームおよびコミュニティによって開発・保守されています。公式ドキュメントやリリースノートについては必ず **[https://www.slimframework.com/](https://www.slimframework.com/)** を参照してください。それでは **[第1章: 5層モジュール構造と依存関係分析](01_package_and_layers/module_hierarchy.md)** へ進み、Slim の名前空間階層とインターフェース設計を詳しく見ていきましょう。

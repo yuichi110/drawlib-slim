@@ -1,0 +1,796 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSR-7 Requests, Responses &amp; Streams — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/requests_and_responses.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/user_guide/ja/04_psr7_and_middleware/requests_and_responses.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/requests_and_responses.html">
+    
+    
+    
+    <meta name="description" content="Slim v4.15.3 is built directly on the PSR-7 HTTP Message Interface (Psr\Http\Message\ServerRequestInterface, ResponseInterface, StreamInterface…">
+    <link rel="canonical" href="https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/requests_and_responses.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="PSR-7 Requests, Responses &amp; Streams — Slim 4 User Guide">
+    <meta property="og:description" content="Slim v4.15.3 is built directly on the PSR-7 HTTP Message Interface (Psr\Http\Message\ServerRequestInterface, ResponseInterface, StreamInterface…">
+    <meta property="og:url" content="https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/requests_and_responses.html">
+    <meta property="og:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PSR-7 Requests, Responses &amp; Streams — Slim 4 User Guide">
+    <meta name="twitter:description" content="Slim v4.15.3 is built directly on the PSR-7 HTTP Message Interface (Psr\Http\Message\ServerRequestInterface, ResponseInterface, StreamInterface…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    
+    
+    
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">DRAWLIB SHOWCASE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 4</a> (v4.15.3) Documentation built with <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib</a>
+            </span>
+            <span class="demo-banner-links">
+                <a href="../../../index.html">All Portals</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../api/index.html">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../architecture/index.html">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../pni501/index.html">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../05_security_and_errors/error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">PSR-7 Requests, Responses &amp; Streams</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="requests_and_responses.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/04_psr7_and_middleware/requests_and_responses.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>PSR-7 Requests, Responses &amp; Streams</h1>
+<p>Slim v4.15.3 is built directly on the <strong>PSR-7 HTTP Message Interface</strong> (<code>Psr\Http\Message\ServerRequestInterface</code>, <code>ResponseInterface</code>, <code>StreamInterface</code>, <code>UploadedFileInterface</code>) and <strong>PSR-17 HTTP Factories</strong> (<code>ResponseFactoryInterface</code>, <code>StreamFactoryInterface</code>). Because Slim decouples HTTP message state from PHP superglobals (<code>$_GET</code>, <code>$_POST</code>, <code>$_SERVER</code>, <code>header()</code>, <code>echo</code>), every middleware and route handler operates on predictable, testable value objects—whether running under PHP-FPM, CLI PHPUnit tests, or long-lived worker runtimes.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/requests_and_responses/psr7_immutability_streams.png" alt="requests_and_responses_1" />
+  <figcaption class="drawlib-caption">PSR-7 Message Flow in Slim v4.15.3 — Immutable Clone-on-Write Envelopes and StreamInterface Buffers</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">74</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim v4.15.3 — PSR-7 ServerRequest, BodyParsing, Response &amp; ResponseEmitter"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">arrows_left_right</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">184.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">66.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.3</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. ServerRequest</span><span class="se">\n</span><span class="s2">Creation"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"PSR-17 from Globals"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. BodyParsing</span><span class="se">\n</span><span class="s2">Middleware"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"withParsedBody()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Route Handler</span><span class="se">\n</span><span class="s2">&amp; Stream Write"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"getBody()-&gt;write()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.3</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">9.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. Response</span><span class="se">\n</span><span class="s2">Clone-on-Write"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"withStatus/Header()"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. Response</span><span class="se">\n</span><span class="s2">Emitter"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Headers + 4KB Chunks"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">38.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">176.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">51.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">copy</span><span class="p">((</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"Immutable Envelope (with* Methods)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• withHeader(), withStatus(), withAttribute() clone state"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">14.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• Always reassign: $response = withStatus(201) clone"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">141.0</span><span class="p">,</span> <span class="mf">21.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">86.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">22.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">phosphor</span><span class="o">.</span><span class="n">hard_drive</span><span class="p">((</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">5.2</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">110.0</span><span class="p">,</span> <span class="mf">26.5</span><span class="p">),</span>
+    <span class="s2">"Mutable Stream Buffer (StreamInterface)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">),</span>
+    <span class="s2">"• $response-&gt;getBody()-&gt;write() appends to php://temp"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">104.0</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">),</span>
+    <span class="s2">"• ResponseEmitter streams 4096-byte chunks to client"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">halign</span><span class="o">=</span><span class="s2">"left"</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>PSR-7 Immutability &amp; the Clone-on-Write Contract</h2>
+<p>Under PSR-7, both <code>ServerRequestInterface</code> and <code>ResponseInterface</code> are <strong>immutable value objects</strong>. Every <code>with*()</code> method—such as <code>withHeader()</code>, <code>withAddedHeader()</code>, <code>withStatus()</code>, <code>withAttribute()</code>, or <code>withParsedBody()</code>—clones the message internally and returns a <strong>new instance</strong> leaving the original reference untouched. By contrast, <code>StreamInterface</code> (<code>$response-&gt;getBody()</code>) wraps an underlying I/O resource (<code>php://temp</code> or a file handle) that mutates in-place when <code>write()</code> is called:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">PSR-7 Interface &amp; Method</th>
+<th style="text-align:left">Mutability Model</th>
+<th style="text-align:left">Return Value &amp; Usage Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>$request-&gt;withAttribute(string $name, $value)</code></td>
+<td style="text-align:left"><strong>Immutable (Clone-on-Write)</strong></td>
+<td style="text-align:left">Returns new <code>ServerRequestInterface</code>; must reassign <code>$request = ...</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$request-&gt;withParsedBody($data)</code></td>
+<td style="text-align:left"><strong>Immutable (Clone-on-Write)</strong></td>
+<td style="text-align:left">Returns new <code>ServerRequestInterface</code> with decoded array/object</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withStatus(int $code, string $reason = '')</code></td>
+<td style="text-align:left"><strong>Immutable (Clone-on-Write)</strong></td>
+<td style="text-align:left">Returns new <code>ResponseInterface</code>; must reassign or <code>return</code> directly</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withHeader(string $name, $value)</code></td>
+<td style="text-align:left"><strong>Immutable (Clone-on-Write)</strong></td>
+<td style="text-align:left">Replaces existing header (case-insensitive) on returned clone</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;withAddedHeader(string $name, $value)</code></td>
+<td style="text-align:left"><strong>Immutable (Clone-on-Write)</strong></td>
+<td style="text-align:left">Appends additional header value (e.g., multiple <code>Set-Cookie</code> headers)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>$response-&gt;getBody()-&gt;write(string $string)</code></td>
+<td style="text-align:left"><strong>In-Place Stream Resource</strong></td>
+<td style="text-align:left">Returns <code>int</code> bytes written; mutates the shared <code>StreamInterface</code> resource</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!CAUTION]
+<strong>The Classic Unassigned <code>withHeader()</code> Bug</strong>: Calling <code>$response-&gt;withHeader('Content-Type', 'application/json');</code> as a standalone statement without capturing its return value silently discards the cloned object containing the new header! Always chain <code>return $response-&gt;withStatus(201)-&gt;withHeader('Content-Type', 'application/json');</code> or reassign <code>$response = $response-&gt;withHeader(...)</code>.</p>
+</blockquote>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/items'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'created'</span> <span class="o">=&gt;</span> <span class="k">true</span><span class="p">],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+    <span class="c1">// StreamInterface::write() mutates the underlying stream buffer in-place</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+
+    <span class="c1">// BUG (Discarded Clone):</span>
+    <span class="c1">// $response-&gt;withStatus(201);</span>
+    <span class="c1">// $response-&gt;withHeader('Content-Type', 'application/json');</span>
+
+    <span class="c1">// CORRECT: Capture or return the cloned ResponseInterface chain</span>
+    <span class="k">return</span> <span class="nv">$response</span>
+        <span class="o">-&gt;</span><span class="na">withStatus</span><span class="p">(</span><span class="mi">201</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withAddedHeader</span><span class="p">(</span><span class="s1">'X-Cache-Tag'</span><span class="p">,</span> <span class="s1">'items'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withAddedHeader</span><span class="p">(</span><span class="s1">'X-Cache-Tag'</span><span class="p">,</span> <span class="s1">'catalog'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2>Reading Query, Header, Cookie, Attribute &amp; Upload Data</h2>
+<p>Never read <code>$_GET</code>, <code>$_POST</code>, <code>$_COOKIE</code>, <code>$_FILES</code>, or <code>$_SERVER</code> directly inside Slim controllers or middlewares; using <code>ServerRequestInterface</code> accessors ensures your code works identically in PHPUnit in-memory tests and worker runtimes:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\UploadedFileInterface</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/documents'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="c1">// 1. Query string parameters (?page=2&amp;limit=20)</span>
+    <span class="nv">$queryParams</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getQueryParams</span><span class="p">();</span>
+    <span class="nv">$page</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="p">(</span><span class="nv">$queryParams</span><span class="p">[</span><span class="s1">'page'</span><span class="p">]</span> <span class="o">??</span> <span class="mi">1</span><span class="p">));</span>
+
+    <span class="c1">// 2. Case-insensitive HTTP headers</span>
+    <span class="nv">$requestId</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'X-Request-Id'</span><span class="p">)</span> <span class="o">?:</span> <span class="nb">bin2hex</span><span class="p">(</span><span class="nb">random_bytes</span><span class="p">(</span><span class="mi">8</span><span class="p">));</span>
+    <span class="nv">$clientIp</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getServerParams</span><span class="p">()[</span><span class="s1">'REMOTE_ADDR'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'127.0.0.1'</span><span class="p">;</span>
+
+    <span class="c1">// 3. Cookies &amp; custom attributes injected by upstream auth middleware</span>
+    <span class="nv">$sessionCookie</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getCookieParams</span><span class="p">()[</span><span class="s1">'session_id'</span><span class="p">]</span> <span class="o">??</span> <span class="k">null</span><span class="p">;</span>
+    <span class="nv">$actorId</span> <span class="o">=</span> <span class="p">(</span><span class="nx">int</span><span class="p">)</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="s1">'authenticated_user_id'</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+
+    <span class="c1">// 4. PSR-7 UploadedFileInterface handling</span>
+    <span class="nv">$uploadedFiles</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getUploadedFiles</span><span class="p">();</span>
+    <span class="sd">/** @var UploadedFileInterface|null $attachment */</span>
+    <span class="nv">$attachment</span> <span class="o">=</span> <span class="nv">$uploadedFiles</span><span class="p">[</span><span class="s1">'document'</span><span class="p">]</span> <span class="o">??</span> <span class="k">null</span><span class="p">;</span>
+    <span class="nv">$savedFilename</span> <span class="o">=</span> <span class="k">null</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$attachment</span> <span class="o">!==</span> <span class="k">null</span> <span class="o">&amp;&amp;</span> <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">getError</span><span class="p">()</span> <span class="o">===</span> <span class="nx">UPLOAD_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$extension</span> <span class="o">=</span> <span class="nb">pathinfo</span><span class="p">((</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">getClientFilename</span><span class="p">(),</span> <span class="nx">PATHINFO_EXTENSION</span><span class="p">);</span>
+        <span class="nv">$savedFilename</span> <span class="o">=</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'%s.%s'</span><span class="p">,</span> <span class="nb">bin2hex</span><span class="p">(</span><span class="nb">random_bytes</span><span class="p">(</span><span class="mi">12</span><span class="p">)),</span> <span class="nv">$extension</span> <span class="o">?:</span> <span class="s1">'bin'</span><span class="p">);</span>
+        <span class="nv">$attachment</span><span class="o">-&gt;</span><span class="na">moveTo</span><span class="p">(</span><span class="s1">'/var/data/uploads/'</span> <span class="o">.</span> <span class="nv">$savedFilename</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span>
+        <span class="s1">'page'</span> <span class="o">=&gt;</span> <span class="nv">$page</span><span class="p">,</span>
+        <span class="s1">'request_id'</span> <span class="o">=&gt;</span> <span class="nv">$requestId</span><span class="p">,</span>
+        <span class="s1">'client_ip'</span> <span class="o">=&gt;</span> <span class="nv">$clientIp</span><span class="p">,</span>
+        <span class="s1">'has_session'</span> <span class="o">=&gt;</span> <span class="nv">$sessionCookie</span> <span class="o">!==</span> <span class="k">null</span><span class="p">,</span>
+        <span class="s1">'actor_id'</span> <span class="o">=&gt;</span> <span class="nv">$actorId</span><span class="p">,</span>
+        <span class="s1">'uploaded_file'</span> <span class="o">=&gt;</span> <span class="nv">$savedFilename</span><span class="p">,</span>
+    <span class="p">],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2><code>BodyParsingMiddleware</code> &amp; Custom Media-Type Parsers</h2>
+<p>By default, PSR-7 only populates <code>$request-&gt;getParsedBody()</code> for traditional <code>POST</code> form submissions created from <code>$_POST</code>. For <code>application/json</code>, <code>PUT</code>/<code>PATCH</code> form bodies, XML payloads, or vendor-specific media types, register <strong><code>$app-&gt;addBodyParsingMiddleware()</code></strong> (<code>Slim\Middleware\BodyParsingMiddleware</code>). It inspects the <code>Content-Type</code> header (<code>getMediaType()</code>), looks up an exact media-type parser, and if none matches, automatically falls back to <strong>RFC 6839 structured syntax suffixes</strong> (<code>+json</code> and <code>+xml</code>):</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/04_psr7_and_middleware/requests_and_responses/body_parsing_media_types.png" alt="requests_and_responses_2" />
+  <figcaption class="drawlib-caption">BodyParsingMiddleware Media-Type Dispatch — Exact Match, RFC 6839 Structured Suffix Fallback (+json / +xml), and Custom Parsers</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">left_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Built-In JSON &amp; Form Body Parsers"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.2</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">left_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+<span class="n">l_xy</span><span class="p">,</span> <span class="n">l_w</span><span class="p">,</span> <span class="n">l_h</span> <span class="o">=</span> <span class="n">left_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_left</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/json"</span><span class="p">,</span>
+    <span class="s2">"json_decode($input, true) -&gt; associative array"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"JSON"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">brackets_curly</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"RFC 6839 *+json Suffix"</span><span class="p">,</span>
+    <span class="s2">"Matches application/vnd.api+json, problem+json"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"RFC"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/x-www-form-urlencoded"</span><span class="p">,</span>
+    <span class="s2">"parse_str(input, data) for PUT / PATCH / POST"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Form"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">textbox</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_left</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">l_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">l_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">l_h</span><span class="p">)</span>
+
+<span class="n">right_panel</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"XML (XXE Safe) &amp; Custom Media-Type Parsers"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.2</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">right_panel</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+<span class="n">r_xy</span><span class="p">,</span> <span class="n">r_w</span><span class="p">,</span> <span class="n">r_h</span> <span class="o">=</span> <span class="n">right_panel</span><span class="o">.</span><span class="n">get_content_box</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">90.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="mf">3.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">))</span>
+
+<span class="n">cl_right</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"vertical"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"application/xml, text/xml &amp; *+xml"</span><span class="p">,</span>
+    <span class="s2">"simplexml_load_string() with LIBXML_NONET"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"XML"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"registerBodyParser(mediaType, callable)"</span><span class="p">,</span>
+    <span class="s2">"Custom CSV, YAML, MsgPack, or Protobuf decoder"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Ext"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">plug</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Return Type Guard"</span><span class="p">,</span>
+    <span class="s2">"Parsed result must be null, array, or object"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"Type"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">check_circle</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cl_right</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="n">r_xy</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">r_w</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">r_h</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<p>You can also register custom media-type parsers via <code>$bodyParsingMiddleware-&gt;registerBodyParser(string $mediaType, callable $callable)</code> for formats such as <code>text/csv</code>, <code>application/msgpack</code>, or <code>application/x-yaml</code> (any non-null return value must be an <code>array</code> or <code>object</code>, otherwise Slim throws a <code>RuntimeException</code>):</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">create</span><span class="p">();</span>
+
+<span class="c1">// Register built-in JSON, Form, and XML parsers</span>
+<span class="nv">$bodyParsingMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+
+<span class="c1">// Register a custom CSV media-type parser returning a list of associative rows</span>
+<span class="nv">$bodyParsingMiddleware</span><span class="o">-&gt;</span><span class="na">registerBodyParser</span><span class="p">(</span><span class="s1">'text/csv'</span><span class="p">,</span> <span class="k">static</span> <span class="k">function</span> <span class="p">(</span><span class="nx">string</span> <span class="nv">$input</span><span class="p">)</span><span class="o">:</span> <span class="k">array</span> <span class="p">{</span>
+    <span class="nv">$lines</span> <span class="o">=</span> <span class="nb">array_values</span><span class="p">(</span><span class="nb">array_filter</span><span class="p">(</span> <span class="nb">preg_split</span><span class="p">(</span><span class="s1">'/\r\n|\r|\n/'</span><span class="p">,</span> <span class="nb">trim</span><span class="p">(</span><span class="nv">$input</span><span class="p">))</span> <span class="o">?:</span> <span class="p">[]</span> <span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nv">$lines</span> <span class="o">===</span> <span class="p">[])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[];</span>
+    <span class="p">}</span>
+    <span class="nv">$headers</span> <span class="o">=</span> <span class="nb">str_getcsv</span><span class="p">((</span><span class="nx">string</span><span class="p">)</span> <span class="nb">array_shift</span><span class="p">(</span><span class="nv">$lines</span><span class="p">));</span>
+    <span class="nv">$rows</span> <span class="o">=</span> <span class="p">[];</span>
+    <span class="k">foreach</span> <span class="p">(</span><span class="nv">$lines</span> <span class="k">as</span> <span class="nv">$line</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$values</span> <span class="o">=</span> <span class="nb">str_getcsv</span><span class="p">(</span><span class="nv">$line</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">count</span><span class="p">(</span><span class="nv">$values</span><span class="p">)</span> <span class="o">===</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$headers</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nv">$rows</span><span class="p">[]</span> <span class="o">=</span> <span class="nb">array_combine</span><span class="p">(</span><span class="nv">$headers</span><span class="p">,</span> <span class="nv">$values</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nv">$rows</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/api/v1/import'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span> <span class="nx">Response</span> <span class="nv">$response</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$parsed</span> <span class="o">=</span> <span class="p">(</span><span class="k">array</span><span class="p">)</span> <span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getParsedBody</span><span class="p">()</span> <span class="o">??</span> <span class="p">[]);</span>
+    <span class="nv">$payload</span> <span class="o">=</span> <span class="nb">json_encode</span><span class="p">([</span><span class="s1">'imported_count'</span> <span class="o">=&gt;</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$parsed</span><span class="p">)],</span> <span class="nx">JSON_THROW_ON_ERROR</span><span class="p">);</span>
+    <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">getBody</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">write</span><span class="p">(</span><span class="nv">$payload</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'application/json'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<h2>Building JSON Responses, Redirects, File Streams &amp; <code>ResponseEmitter</code></h2>
+<p>When returning responses from route handlers, keep memory usage bounded and leverage PSR-17 streams for large payloads:</p>
+<ul>
+<li><strong>JSON Responses</strong>: Encode with <code>json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)</code>, write to <code>$response-&gt;getBody()-&gt;write($json)</code>, and set <code>Content-Type: application/json</code>.</li>
+<li><strong>Streaming Large Files (<code>StreamFactoryInterface::createStreamFromFile()</code>)</strong>: Never load multi-megabyte exports into memory with <code>file_get_contents()</code>. Instead, attach a file stream via <code>$response-&gt;withBody($streamFactory-&gt;createStreamFromFile($path, 'rb'))</code>.</li>
+<li><strong>How <code>Slim\ResponseEmitter</code> Transmits the Response</strong>: When <code>$app-&gt;run()</code> completes, <code>ResponseEmitter::emit()</code> checks <code>headers_sent()</code>, emits all headers—explicitly preserving multiple <code>Set-Cookie</code> headers without overwriting earlier cookies—sends the <code>HTTP/1.1 200 OK</code> status line last, and streams the body in <strong>$responseChunkSize = 4096</strong> byte chunks via <code>connection_status()</code> checks so large file streams never exceed PHP's <code>memory_limit</code>.</li>
+</ul>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span> <span class="k">as</span> <span class="nx">Response</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span> <span class="k">as</span> <span class="nx">Request</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\StreamFactoryInterface</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/api/v1/exports/{filename:[a-z0-9_-]+\.csv}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">Request</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">Response</span> <span class="nv">$response</span><span class="p">,</span>
+    <span class="k">array</span> <span class="nv">$args</span>
+<span class="p">)</span> <span class="k">use</span> <span class="p">(</span><span class="nv">$container</span><span class="p">)</span><span class="o">:</span> <span class="nx">Response</span> <span class="p">{</span>
+    <span class="nv">$filePath</span> <span class="o">=</span> <span class="s1">'/var/data/exports/'</span> <span class="o">.</span> <span class="nv">$args</span><span class="p">[</span><span class="s1">'filename'</span><span class="p">];</span>
+
+    <span class="sd">/** @var StreamFactoryInterface $streamFactory */</span>
+    <span class="nv">$streamFactory</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">StreamFactoryInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+    <span class="nv">$fileStream</span> <span class="o">=</span> <span class="nv">$streamFactory</span><span class="o">-&gt;</span><span class="na">createStreamFromFile</span><span class="p">(</span><span class="nv">$filePath</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nv">$response</span>
+        <span class="o">-&gt;</span><span class="na">withStatus</span><span class="p">(</span><span class="mi">200</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Type'</span><span class="p">,</span> <span class="s1">'text/csv; charset=utf-8'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Disposition'</span><span class="p">,</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'attachment; filename="%s"'</span><span class="p">,</span> <span class="nv">$args</span><span class="p">[</span><span class="s1">'filename'</span><span class="p">]))</span>
+        <span class="o">-&gt;</span><span class="na">withBody</span><span class="p">(</span><span class="nv">$fileStream</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre>
+<p>Now that you understand PSR-7 message immutability, <code>BodyParsingMiddleware</code>, and streamed emission, continue to <strong><a href="middleware_pipeline.html">PSR-15 Concentric LIFO Pipeline</a></strong> to see how Slim wraps middlewares across application, group, and route scopes, or inspect the full <code>BodyParsingMiddleware</code> and <code>ResponseEmitter</code> specifications in the <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong> and <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 Internal Architecture</a></strong> portals.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -406,4 +406,4 @@ public function process(ServerRequestInterface $request, RequestHandlerInterface
 ## Return to Overview or Explore Companion Portals
 
 - Return to the **[Architecture Overview](../index.md)** to review the end-to-end PSR-15 pipeline.
-- Visit the **[Slim 4 User Guide](https://slim.drawlib.com/)** for production application patterns, **[Slim 4 API Reference](https://slim.drawlib.com/api/)** for searchable class signatures, or the **[PNI501 Diagnostic Report](https://slim.drawlib.com/reports/pni501/)** for the complete AST, PCOV coverage (`99.4%`), and security audit.
+- Visit the **[Slim 4 User Guide](https://slim.drawlib.com/user_guide/)** for production application patterns, **[Slim 4 API Reference](https://slim.drawlib.com/api/)** for searchable class signatures, or the **[PNI501 Diagnostic Report](https://slim.drawlib.com/pni501/)** for the complete AST, PCOV coverage (`99.4%`), and security audit.

@@ -1,7 +1,7 @@
 id: pni501
 category: audit
 name: Slim Framework 4.15.3 Engineering & Architecture Diagnostic (PNI501)
-description: Deterministic PHP AST, namespace dependency DAG, PSR-7/PSR-15/PSR-11 library hygiene, hermetic PHPUnit + PCOV container runtime, and supply-chain diagnostic of Slim Framework 4.15.3, compiled into HTML and A4 PDF under docs/reports/pni501/.
+description: Deterministic PHP AST, namespace dependency DAG, PSR-7/PSR-15/PSR-11 library hygiene, hermetic PHPUnit + PCOV container runtime, and supply-chain diagnostic of Slim Framework 4.15.3, compiled into HTML and A4 PDF under docs/pni501/.
 
 targets:
   root: "."
@@ -13,9 +13,9 @@ targets:
     - "README.md"
   exclude:
     - "reports/**"
-    - "reports_src/**"
+    - "pni501_src/**"
     - "docs/**"
-    - "docs_src/**"
+    - "user_guide_src/**"
     - "api_src/**"
     - "architecture_src/**"
 
@@ -54,8 +54,8 @@ steps:
     uses: write_drawlib_report
     with:
       target: "pni501"
-      src_dir: "reports_src"
-      output_dir: "docs/reports/pni501"
+      src_dir: "."
+      output_dir: "docs/pni501"
       formats:
         - "pdf"
         - "html"

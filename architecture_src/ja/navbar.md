@@ -21,8 +21,8 @@
 - [ResponseEmitter と OutputBuffering 内部実装](06_sapi_emission/response_emitter_internals.md)
 
 ## 関連ガイド & 公式リンク
-- [Slim 4 ユーザーガイド](https://slim.drawlib.com/)
+- [Slim 4 ユーザーガイド](https://slim.drawlib.com/user_guide/)
 - [Slim 4 API リファレンス](https://slim.drawlib.com/api/)
-- [PNI501 診断レポート](https://slim.drawlib.com/reports/pni501/)
+- [PNI501 診断レポート](https://slim.drawlib.com/pni501/)
 - [Slim Framework 公式ドキュメント](https://www.slimframework.com/)
 - [GitHub リポジトリ](https://github.com/yuichi110/drawlib-slim)

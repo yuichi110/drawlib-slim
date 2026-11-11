@@ -406,4 +406,4 @@ public function process(ServerRequestInterface $request, RequestHandlerInterface
 ## 全体概要への復帰と姉妹ポータルのご案内
 
 - **[アーキテクチャ全体像](../index.md)** に戻り、PSR-15 パイプライン全体の流れを再確認できます。
-- 実践的なアプリケーション構築パターンは **[Slim 4 ユーザーガイド](https://slim.drawlib.com/)**、全クラス・インターフェースのシグネチャ検索は **[Slim 4 API リファレンス](https://slim.drawlib.com/api/)**、また AST 静的解析・PCOV カバレッジ（`99.4%`）・セキュリティ監査の詳細は **[PNI501 診断レポート](https://slim.drawlib.com/reports/pni501/)** をぜひご活用ください。
+- 実践的なアプリケーション構築パターンは **[Slim 4 ユーザーガイド](https://slim.drawlib.com/user_guide/)**、全クラス・インターフェースのシグネチャ検索は **[Slim 4 API リファレンス](https://slim.drawlib.com/api/)**、また AST 静的解析・PCOV カバレッジ（`99.4%`）・セキュリティ監査の詳細は **[PNI501 診断レポート](https://slim.drawlib.com/pni501/)** をぜひご活用ください。

@@ -68,25 +68,32 @@
     
 </head>
 <body>
+    
+    
+    
     <div class="demo-banner" role="region" aria-label="Portal Navigation">
         <div class="demo-banner-inner">
-            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            <span class="demo-banner-badge">DRAWLIB SHOWCASE</span>
             
             <span class="demo-banner-text">
-                Unofficial Internal Architecture Guide to <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a> (v4.15.3)
+                Unofficial <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 4</a> (v4.15.3) Documentation built with <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib</a>
             </span>
             <span class="demo-banner-links">
-                <a href="https://slim.drawlib.com/">User Guide</a>
+                <a href="../index.html">All Portals</a>
                 <span class="demo-banner-sep">·</span>
-                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <a href="../user_guide/index.html">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../api/index.html">API Reference</a>
                 <span class="demo-banner-sep">·</span>
                 <strong style="color:#ffffff;">Architecture</strong>
                 <span class="demo-banner-sep">·</span>
-                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <a href="../pni501/index.html">PNI501 Audit</a>
                 <span class="demo-banner-sep">·</span>
                 <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
                 <span class="demo-banner-sep">·</span>
                 <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib ↗</a>
             </span>
             
         </div>
@@ -195,7 +202,7 @@
                         <ul class="nav-list">
                             
                             <li class="nav-item ">
-                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 User Guide<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                                <a href="https://slim.drawlib.com/user_guide/" target="_blank" rel="noopener noreferrer">Slim 4 User Guide<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
                             </li>
                             
                             <li class="nav-item ">
@@ -203,7 +210,7 @@
                             </li>
                             
                             <li class="nav-item ">
-                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Diagnostic Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                                <a href="https://slim.drawlib.com/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Diagnostic Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
                             </li>
                             
                             <li class="nav-item ">
@@ -255,7 +262,7 @@
             </header>
             <main class="main-content">
                 <h1>Slim Framework v4.15.3 — Internal Architecture Guide</h1>
-<p>Slim Framework (<code>v4.15.3</code> · <code>72</code> PHP source files · <code>3,149</code> LOC · <code>17</code> contract interfaces · <code>100%</code> <code>declare(strict_types=1)</code>) is a standards-pure PHP HTTP micro-kernel built around a single architectural invariant: <strong>compose PHP-FIG interfaces (PSR-7, PSR-11, PSR-15, PSR-17, PSR-3) and Nikic FastRoute into a stateless, concentric <code>RequestHandlerInterface</code> pipeline without coupling to any single HTTP message implementation or DI container</strong>. This unofficial source-level guide dissects how Slim's internal bootstrap factories, LIFO middleware dispatcher, regex routing engine, content-negotiated error subsystem, and SAPI response emitter work under the hood, complementing the application-focused <a href="https://slim.drawlib.com/">Slim 4 User Guide</a> and <a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a>.</p>
+<p>Slim Framework (<code>v4.15.3</code> · <code>72</code> PHP source files · <code>3,149</code> LOC · <code>17</code> contract interfaces · <code>100%</code> <code>declare(strict_types=1)</code>) is a standards-pure PHP HTTP micro-kernel built around a single architectural invariant: <strong>compose PHP-FIG interfaces (PSR-7, PSR-11, PSR-15, PSR-17, PSR-3) and Nikic FastRoute into a stateless, concentric <code>RequestHandlerInterface</code> pipeline without coupling to any single HTTP message implementation or DI container</strong>. This unofficial source-level guide dissects how Slim's internal bootstrap factories, LIFO middleware dispatcher, regex routing engine, content-negotiated error subsystem, and SAPI response emitter work under the hood, complementing the application-focused <a href="https://slim.drawlib.com/user_guide/">Slim 4 User Guide</a> and <a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a>.</p>
 <figure class="drawlib-image" style="text-align: center;">
   <img src="images/index/arch_bootstrap_vs_pipeline.png" alt="index_1" />
   <figcaption class="drawlib-caption">Slim v4.15.3 Bootstrap Graph Assembly vs Per-Request PSR-15 Concentric Execution Pipeline</figcaption>
@@ -607,7 +614,7 @@ Rather than executing the route handler immediately upon regex matching, <code>R
 </table>
 <h2>Companion Portals &amp; Upstream Attribution</h2>
 <ul>
-<li><strong>Companion Engineering Guides</strong>: For practical application architecture, PHP-DI wiring, authentication middlewares, and PHPUnit testing recipes, visit the <strong><a href="https://slim.drawlib.com/">Slim 4 User Guide</a></strong> and the <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong>. For deterministic PHP AST, PCOV line coverage (<code>99.4%</code>), and supply-chain security verification (<code>94 / 100</code>, Grade <code>S</code>), consult the <strong><a href="https://slim.drawlib.com/reports/pni501/">PNI501 Diagnostic Report</a></strong>.</li>
+<li><strong>Companion Engineering Guides</strong>: For practical application architecture, PHP-DI wiring, authentication middlewares, and PHPUnit testing recipes, visit the <strong><a href="https://slim.drawlib.com/user_guide/">Slim 4 User Guide</a></strong> and the <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong>. For deterministic PHP AST, PCOV line coverage (<code>99.4%</code>), and supply-chain security verification (<code>94 / 100</code>, Grade <code>S</code>), consult the <strong><a href="https://slim.drawlib.com/pni501/">PNI501 Diagnostic Report</a></strong>.</li>
 <li><strong>Upstream Attribution</strong>: Slim Framework was created by <strong>Josh Lockhart</strong> and is maintained by the Slim Framework team under the MIT License (<code>LICENSE-SLIM</code>). Always refer to <strong><a href="https://www.slimframework.com/">https://www.slimframework.com/</a></strong> for official documentation and release notes. Continue to <strong><a href="en/01_package_and_layers/module_hierarchy.html">Chapter 1: 5-Tier Module Hierarchy &amp; Coupling</a></strong> to trace Slim's namespace dependency graph from leaf contracts to <code>Slim\App</code>.</li>
 </ul>
 

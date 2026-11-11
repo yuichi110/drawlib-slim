@@ -4,6 +4,7 @@ type = "catalog"
 title = "Slim 4 API Reference"
 description = "Complete bilingual API reference for Slim Framework v4.15.3 — every public class, interface, factory, PSR-17 provider, router, PSR-15 middleware, invocation strategy, error renderer, and HTTP exception."
 style = "default"
+output_dir = "../docs/api"
 
 [i18n]
 default_lang = "en"

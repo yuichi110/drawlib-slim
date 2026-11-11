@@ -1,42 +1,11 @@
-# Slim 4 User Guide (Unofficial)
+# Slim Framework v4.15.3 Multi-Portal Documentation Suite (Unofficial Drawlib Showcase)
 
-> Practical user guide, PSR-7 / PSR-15 / PSR-11 application architecture patterns, and feature reference for Slim Framework v4.15.3.
+> Unofficial community documentation, PSR-7/15/11 API catalog, internal architecture walkthrough, and software diagnostic report of Slim Framework v4.15.3 (`https://slim.drawlib.com/`).
+> Official Slim Framework documentation: https://www.slimframework.com/
 
-## Overview
+## Portals
 
-- [Guide Overview](https://slim.drawlib.com/en/): Slim (v4.15.3) is a lightweight, standards-first PHP micro-framework built strictly around PHP-FIG PSR interfaces—combining PSR-7 immutable HTTP message…
-
-## 1. Introduction & Quickstart
-
-- [Why Slim 4 & PSR Standards](https://slim.drawlib.com/en/01_getting_started/overview.html): Slim Framework (v4.15.3) is a lightweight, standards-first PHP micro-framework designed around PHP-FIG PSR interfaces rather than a monolithic, vendor-locked…
-- [Quickstart & Middleware Triad](https://slim.drawlib.com/en/01_getting_started/quickstart.html): Bootstrapping a Slim 4 (v4.15.3) application requires only two Composer packages—slim/slim and a PSR-7 / PSR-17 HTTP message implementation—along with a…
-
-## 2. Enterprise Architecture & DI
-
-- [Modular Design & Action Controllers](https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html): While anonymous route closures inside public/index.php are ideal for prototypes, production Slim 4 (v4.15.3) applications scale by separating configuration…
-- [PSR-11 DI & Callable Resolution](https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html): Slim 4 (v4.15.3) does not bundle a proprietary service locator; instead, it natively accepts any PSR-11 (Psr\Container\ContainerInterface) dependency…
-
-## 3. Routing, Groups & Strategies
-
-- [FastRoute Patterns, Groups & Caching](https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html): Slim v4.15.3 delegates URL pattern parsing and regular-expression dispatching to Nikic FastRoute (nikic/fast-route), wrapping it behind PSR-7 and PSR-15…
-- [Invocation Strategies & RouteContext](https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html): Once FastRoute matches an incoming URI and HTTP verb to a Slim\Routing\Route, Slim does not hardcode a single controller method signature. Instead…
-
-## 4. PSR-7 Messages & Middleware
-
-- [PSR-7 Requests, Responses & Streams](https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html): Slim v4.15.3 is built directly on the PSR-7 HTTP Message Interface (Psr\Http\Message\ServerRequestInterface, ResponseInterface, StreamInterface…
-- [PSR-15 Concentric LIFO Pipeline](https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html): Slim v4.15.3 implements its request processing pipeline as a concentric PSR-15 middleware onion powered by Slim\MiddlewareDispatcher. Every middleware wraps…
-
-## 5. Security, CORS & Error Handling
-
-- [JWT Auth, RBAC Guards & CORS](https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html): Because Slim (v4.15.3) is built strictly around PSR-7 immutable messages and PSR-15 MiddlewareInterface pipelines, it intentionally avoids bundling a…
-- [ErrorMiddleware & Custom Renderers](https://slim.drawlib.com/en/05_security_and_errors/error_handling.html): Slim\Middleware\ErrorMiddleware is the outermost exception boundary in a Slim (v4.15.3) application. Placed last via $app->addErrorMiddleware(...) so it…
-
-## 6. Testing & Production Deployment
-
-- [In-Memory HTTP Testing with PHPUnit](https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html): Because Slim\App implements PSR-15 RequestHandlerInterface (public function handle(ServerRequestInterface $request): ResponseInterface), you can test your…
-- [Nginx, PHP-FPM & Worker Runtimes](https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html): Slim (v4.15.3) is engineered for minimal runtime overhead in both classic share-nothing Nginx + PHP-FPM deployments and long-running worker runtimes…
-
-## Locales
-
-- [English (en)](https://slim.drawlib.com/en/): Practical user guide, PSR-7 / PSR-15 / PSR-11 application architecture patterns, and feature reference for Slim Framework v4.15.3.
-- [日本語 (ja)](https://slim.drawlib.com/ja/): Slim Framework v4.15.3 の実践ユーザーガイド・PSR-7 / PSR-15 / PSR-11 アプリケーション設計ベストプラクティス・機能別リファレンス（非公式）。
+- [Slim 4 User Guide (EN/JA)](https://slim.drawlib.com/user_guide/): Practical developer guide, enterprise PSR-7 / PSR-15 / PSR-11 patterns, PHP-DI auto-wiring, FastRoute groups & caching, JWT/RBAC security, and PHPUnit/worker operations (`https://slim.drawlib.com/user_guide/llms.txt`).
+- [Slim 4 API Reference Catalog (EN/JA)](https://slim.drawlib.com/api/): Searchable symbol catalog covering `Slim\App`, `Slim\Factory\*`, `Slim\Routing\*`, `Slim\Middleware\*`, `Slim\Handlers\*`, `Slim\Error\Renderers\*`, `Slim\Exception\*`, and `Slim\Interfaces\*` (`https://slim.drawlib.com/api/llms.txt`).
+- [Slim 4 Internal Architecture Guide (EN/JA)](https://slim.drawlib.com/architecture/): Source-level walkthrough of Slim v4.15.3 internals (`https://slim.drawlib.com/architecture/llms.txt`).
+- [PNI501 Diagnostic Report (HTML & PDF)](https://slim.drawlib.com/pni501/): Deterministic 15-stage PHP AST, namespace dependency DAG, hermetic PHPUnit + PCOV runtime, and supply-chain audit (`https://slim.drawlib.com/pni501/pni501.pdf`, `https://slim.drawlib.com/pni501/llms.txt`).

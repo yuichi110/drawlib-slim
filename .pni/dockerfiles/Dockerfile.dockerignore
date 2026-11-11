@@ -11,7 +11,11 @@ __pycache__
 node_modules
 vendor
 reports
-reports_src
+pni501_src
+user_guide_src
+api_src
+architecture_src
+docs
 target
 build
 .gradle

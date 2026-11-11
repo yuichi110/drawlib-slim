@@ -70,25 +70,32 @@
     
 </head>
 <body>
+    
+    
+    
     <div class="demo-banner" role="region" aria-label="ポータルナビゲーション">
         <div class="demo-banner-inner">
-            <span class="demo-banner-badge">INTERNAL ARCHITECTURE</span>
+            <span class="demo-banner-badge">DRAWLIB SHOWCASE</span>
             
             <span class="demo-banner-text">
-                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim 4</a>（v4.15.3）内部アーキテクチャ解説（非公式）
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib</a> で構築された <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 4</a>（v4.15.3）非公式ドキュメント
             </span>
             <span class="demo-banner-links">
-                <a href="https://slim.drawlib.com/">User Guide</a>
+                <a href="../../index.html">All Portals</a>
                 <span class="demo-banner-sep">·</span>
-                <a href="https://slim.drawlib.com/api/">API Reference</a>
+                <a href="../../user_guide/ja/index.html">User Guide</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../api/ja/index.html">API Reference</a>
                 <span class="demo-banner-sep">·</span>
                 <strong style="color:#ffffff;">Architecture</strong>
                 <span class="demo-banner-sep">·</span>
-                <a href="https://slim.drawlib.com/reports/pni501/">PNI501 Audit</a>
+                <a href="../../pni501/index.html">PNI501 Audit</a>
                 <span class="demo-banner-sep">·</span>
                 <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
                 <span class="demo-banner-sep">·</span>
                 <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib ↗</a>
             </span>
             
         </div>
@@ -197,7 +204,7 @@
                         <ul class="nav-list">
                             
                             <li class="nav-item ">
-                                <a href="https://slim.drawlib.com/" target="_blank" rel="noopener noreferrer">Slim 4 ユーザーガイド<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                                <a href="https://slim.drawlib.com/user_guide/" target="_blank" rel="noopener noreferrer">Slim 4 ユーザーガイド<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
                             </li>
                             
                             <li class="nav-item ">
@@ -205,7 +212,7 @@
                             </li>
                             
                             <li class="nav-item ">
-                                <a href="https://slim.drawlib.com/reports/pni501/" target="_blank" rel="noopener noreferrer">PNI501 診断レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                                <a href="https://slim.drawlib.com/pni501/" target="_blank" rel="noopener noreferrer">PNI501 診断レポート<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
                             </li>
                             
                             <li class="nav-item ">
@@ -257,7 +264,7 @@
             </header>
             <main class="main-content">
                 <h1>Slim Framework v4.15.3 — 内部アーキテクチャ解説</h1>
-<p>Slim Framework（<code>v4.15.3</code> · 全 <code>72</code> PHP ファイル · <code>3,149</code> LOC · <code>17</code> 契約インターフェース · 全ファイル <code>declare(strict_types=1)</code> 適用）は、単一の設計不変条件を中心に構築された PHP-FIG 標準準拠の HTTP マイクロカーネルです。すなわち、<strong>特定の HTTP メッセージ実装や DI コンテナに一切密結合せず、PSR-7 / PSR-11 / PSR-15 / PSR-17 / PSR-3 インターフェース群と Nikic FastRoute をステートレスな同心円状 <code>RequestHandlerInterface</code> パイプラインとして合成する</strong>という設計です。本ガイド（非公式）は、<a href="https://slim.drawlib.com/">Slim 4 ユーザーガイド</a>および <a href="https://slim.drawlib.com/api/">Slim 4 API リファレンス</a>の姉妹編として、<code>Slim\</code> 名前空間のソースコードを行番号レベルで解剖します。</p>
+<p>Slim Framework（<code>v4.15.3</code> · 全 <code>72</code> PHP ファイル · <code>3,149</code> LOC · <code>17</code> 契約インターフェース · 全ファイル <code>declare(strict_types=1)</code> 適用）は、単一の設計不変条件を中心に構築された PHP-FIG 標準準拠の HTTP マイクロカーネルです。すなわち、<strong>特定の HTTP メッセージ実装や DI コンテナに一切密結合せず、PSR-7 / PSR-11 / PSR-15 / PSR-17 / PSR-3 インターフェース群と Nikic FastRoute をステートレスな同心円状 <code>RequestHandlerInterface</code> パイプラインとして合成する</strong>という設計です。本ガイド（非公式）は、<a href="https://slim.drawlib.com/user_guide/">Slim 4 ユーザーガイド</a>および <a href="https://slim.drawlib.com/api/">Slim 4 API リファレンス</a>の姉妹編として、<code>Slim\</code> 名前空間のソースコードを行番号レベルで解剖します。</p>
 <figure class="drawlib-image" style="text-align: center;">
   <img src="../images/index/arch_bootstrap_vs_pipeline_ja.png" alt="index_1" />
   <figcaption class="drawlib-caption">Slim v4.15.3 ブートストラップ時のオブジェクトグラフ構築とリクエスト毎の PSR-15 同心円実行パイプライン</figcaption>
@@ -609,7 +616,7 @@ URI の正規表現マッチ直後にルートハンドラを即座に実行す�
 </table>
 <h2>関連ポータルと上流プロジェクトへの謝辞</h2>
 <ul>
-<li><strong>姉妹ポータル</strong>: 実践的なアプリケーション設計、PHP-DI コンテナ統合、認証ミドルウェア、PHPUnit テスト手法については <strong><a href="https://slim.drawlib.com/">Slim 4 ユーザーガイド</a></strong> および <strong><a href="https://slim.drawlib.com/api/">Slim 4 API リファレンス</a></strong> を参照してください。また、PHP AST 静的解析、PCOV カバレッジ検証（<code>99.4%</code>）、サプライチェーンセキュリティ監査（総合スコア <code>94 / 100</code>・Grade <code>S</code>）については <strong><a href="https://slim.drawlib.com/reports/pni501/">PNI501 診断レポート</a></strong> を参照してください。</li>
+<li><strong>姉妹ポータル</strong>: 実践的なアプリケーション設計、PHP-DI コンテナ統合、認証ミドルウェア、PHPUnit テスト手法については <strong><a href="https://slim.drawlib.com/user_guide/">Slim 4 ユーザーガイド</a></strong> および <strong><a href="https://slim.drawlib.com/api/">Slim 4 API リファレンス</a></strong> を参照してください。また、PHP AST 静的解析、PCOV カバレッジ検証（<code>99.4%</code>）、サプライチェーンセキュリティ監査（総合スコア <code>94 / 100</code>・Grade <code>S</code>）については <strong><a href="https://slim.drawlib.com/pni501/">PNI501 診断レポート</a></strong> を参照してください。</li>
 <li><strong>上流プロジェクトの帰属</strong>: Slim Framework は <strong>Josh Lockhart</strong> 氏によって創設され、MIT ライセンス（<code>LICENSE-SLIM</code>）のもとで Slim Framework チームおよびコミュニティによって開発・保守されています。公式ドキュメントやリリースノートについては必ず <strong><a href="https://www.slimframework.com/">https://www.slimframework.com/</a></strong> を参照してください。それでは <strong><a href="01_package_and_layers/module_hierarchy.html">第1章: 5層モジュール構造と依存関係分析</a></strong> へ進み、Slim の名前空間階層とインターフェース設計を詳しく見ていきましょう。</li>
 </ul>
 

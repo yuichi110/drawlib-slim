@@ -1,0 +1,933 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Authentication, RBAC Guards &amp; CORS — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/auth_and_cors.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/user_guide/ja/05_security_and_errors/auth_and_cors.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/auth_and_cors.html">
+    
+    
+    
+    <meta name="description" content="Because Slim (v4.15.3) is built strictly around PSR-7 immutable messages and PSR-15 MiddlewareInterface pipelines, it intentionally avoids bundling a…">
+    <link rel="canonical" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/auth_and_cors.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="JWT Authentication, RBAC Guards &amp; CORS — Slim 4 User Guide">
+    <meta property="og:description" content="Because Slim (v4.15.3) is built strictly around PSR-7 immutable messages and PSR-15 MiddlewareInterface pipelines, it intentionally avoids bundling a…">
+    <meta property="og:url" content="https://slim.drawlib.com/user_guide/en/05_security_and_errors/auth_and_cors.html">
+    <meta property="og:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="JWT Authentication, RBAC Guards &amp; CORS — Slim 4 User Guide">
+    <meta name="twitter:description" content="Because Slim (v4.15.3) is built strictly around PSR-7 immutable messages and PSR-15 MiddlewareInterface pipelines, it intentionally avoids bundling a…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    
+    
+    
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">DRAWLIB SHOWCASE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 4</a> (v4.15.3) Documentation built with <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib</a>
+            </span>
+            <span class="demo-banner-links">
+                <a href="../../../index.html">All Portals</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../api/index.html">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../architecture/index.html">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../pni501/index.html">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item active">
+                                <a href="auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">JWT Authentication, RBAC Guards &amp; CORS</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="auth_and_cors.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/05_security_and_errors/auth_and_cors.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>JWT Authentication, RBAC Guards &amp; CORS</h1>
+<p>Because Slim (<code>v4.15.3</code>) is built strictly around <strong>PSR-7</strong> immutable messages and <strong>PSR-15</strong> <code>MiddlewareInterface</code> pipelines, it intentionally avoids bundling a monolithic session or identity engine. Instead, authentication, role-based access control (RBAC), Cross-Origin Resource Sharing (CORS), and rate limiting are composed as clean, testable PSR-15 middleware layers that enrich <code>ServerRequestInterface</code> attributes or short-circuit requests by throwing typed <code>HttpSpecializedException</code> subclasses.</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/auth_and_cors/jwt_rbac_security_pipeline.png" alt="auth_and_cors_1" />
+  <figcaption class="drawlib-caption">Slim 4 Defense-in-Depth Security Pipeline — Concentric CORS, Rate Limiting, JWT Authentication, and RouteGroup RBAC Guards</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">74</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim 4 Security &amp; Access Control Pipeline (Outer Ingress -&gt; Protected Action)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">shield_check</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">66.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. Error &amp;</span><span class="se">\n</span><span class="s2">Headers"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"HSTS &amp; CSP"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. CORS &amp;</span><span class="se">\n</span><span class="s2">Rate Limit"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Origin &amp; Quota"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Routing</span><span class="se">\n</span><span class="s2">Middleware"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"FastRoute"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. JWT Auth</span><span class="se">\n</span><span class="s2">Guard"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"auth.user"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. RBAC</span><span class="se">\n</span><span class="s2">Scope Guard"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Role Check"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"6. Action</span><span class="se">\n</span><span class="s2">Handler"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Domain Logic"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">39.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">19.5</span><span class="p">)</span>
+
+<span class="n">cards</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Missing / Expired Token"</span><span class="p">,</span>
+    <span class="s2">"HttpUnauthorizedException</span><span class="se">\n</span><span class="s2">-&gt; 401 Unauthorized"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"401"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Insufficient Role / Scope"</span><span class="p">,</span>
+    <span class="s2">"HttpForbiddenException</span><span class="se">\n</span><span class="s2">-&gt; 403 Forbidden"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"403"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">lock_key</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Quota Exceeded / Burst"</span><span class="p">,</span>
+    <span class="s2">"HttpTooManyRequestsException</span><span class="se">\n</span><span class="s2">-&gt; 429 Too Many Requests"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"429"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">gauge</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">27.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>Defense-in-Depth Security Architecture in Slim 4</h2>
+<p>In a production Slim 4 API, security checks are separated by responsibility and attached at the appropriate layer of the <a href="../04_psr7_and_middleware/middleware_pipeline.html">PSR-15 Concentric LIFO Pipeline</a>. Global concerns (error boundary, security headers, CORS headers, and IP rate limiting) wrap the entire application, whereas JWT verification and RBAC authorization are scoped to protected <code>RouteGroup</code> or <code>Route</code> instances:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Security Layer</th>
+<th style="text-align:left">Scope &amp; Attachment Point</th>
+<th style="text-align:left">Request / Response Mutation</th>
+<th style="text-align:left">Failure Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Error &amp; Security Headers</strong></td>
+<td style="text-align:left">App-wide (<code>$app-&gt;add(...)</code>, outermost)</td>
+<td style="text-align:left">Appends <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options</code>, <code>Content-Security-Policy</code></td>
+<td style="text-align:left">Catches any <code>Throwable</code> and renders a safe payload</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>CORS Preflight &amp; Headers</strong></td>
+<td style="text-align:left">App-wide (<code>$app-&gt;add(CorsMiddleware::class)</code>)</td>
+<td style="text-align:left">Appends <code>Access-Control-Allow-*</code> headers to normal and <code>OPTIONS</code> responses</td>
+<td style="text-align:left">Rejects disallowed origins or omits CORS headers</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Rate Limiting Guard</strong></td>
+<td style="text-align:left">App-wide or API <code>RouteGroup</code></td>
+<td style="text-align:left">Tracks token bucket per IP/API key; sets <code>X-RateLimit-*</code> and <code>Retry-After</code> headers</td>
+<td style="text-align:left">Throws <code>HttpTooManyRequestsException</code> (<code>429</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>JWT / Bearer Auth</strong></td>
+<td style="text-align:left">Protected <code>RouteGroup</code> (<code>/api/v1</code>)</td>
+<td style="text-align:left">Verifies JWT signature &amp; expiry; sets <code>$request-&gt;withAttribute('auth.user', $claims)</code></td>
+<td style="text-align:left">Throws <code>HttpUnauthorizedException</code> (<code>401</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>RBAC / Scope Guard</strong></td>
+<td style="text-align:left">Specific <code>RouteGroup</code> or <code>Route</code></td>
+<td style="text-align:left">Reads <code>$request-&gt;getAttribute('auth.user')</code> and verifies required role/scope</td>
+<td style="text-align:left">Throws <code>HttpForbiddenException</code> (<code>403</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2>Stateless Bearer &amp; JWT Authentication Middleware</h2>
+<p>A stateless JWT authentication middleware implements <code>Psr\Http\Server\MiddlewareInterface</code>. It inspects the <code>Authorization</code> header for a <code>Bearer &lt;token&gt;</code> credential, validates the cryptographic signature and standard claims (<code>exp</code>, <code>iss</code>, <code>aud</code>, <code>sub</code>), and passes the decoded identity downstream via <code>$request-&gt;withAttribute('auth.user', $principal)</code>. If the header is missing, malformed, or expired, throwing <code>Slim\Exception\HttpUnauthorizedException</code> immediately halts downstream execution and delegates rendering to <code>ErrorMiddleware</code>:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Middleware</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Security\AuthenticatedUser</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Security\JwtTokenVerifierInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\MiddlewareInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpUnauthorizedException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">JwtAuthenticationMiddleware</span> <span class="k">implements</span> <span class="nx">MiddlewareInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">const</span> <span class="no">AUTH_USER_ATTRIBUTE</span> <span class="o">=</span> <span class="s1">'auth.user'</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">JwtTokenVerifierInterface</span> <span class="nv">$tokenVerifier</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">process</span><span class="p">(</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">RequestHandlerInterface</span> <span class="nv">$handler</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+        <span class="c1">// Allow CORS preflight requests to pass through without a Bearer token</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">strtoupper</span><span class="p">(</span><span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getMethod</span><span class="p">())</span> <span class="o">===</span> <span class="s1">'OPTIONS'</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nv">$authHeader</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'Authorization'</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">preg_match</span><span class="p">(</span><span class="s1">'/^Bearer\s+(?&lt;token&gt;[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)$/'</span><span class="p">,</span> <span class="nv">$authHeader</span><span class="p">,</span> <span class="nv">$matches</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HttpUnauthorizedException</span><span class="p">(</span>
+                <span class="nv">$request</span><span class="p">,</span>
+                <span class="s1">'Missing or malformed Authorization: Bearer &lt;token&gt; header.'</span>
+            <span class="p">);</span>
+            <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">setDescription</span><span class="p">(</span><span class="s1">'Provide a valid Bearer JWT in the Authorization header.'</span><span class="p">);</span>
+            <span class="k">throw</span> <span class="nv">$exception</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">try</span> <span class="p">{</span>
+            <span class="nv">$claims</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">tokenVerifier</span><span class="o">-&gt;</span><span class="na">verify</span><span class="p">(</span><span class="nv">$matches</span><span class="p">[</span><span class="s1">'token'</span><span class="p">]);</span>
+        <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$e</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">HttpUnauthorizedException</span><span class="p">(</span>
+                <span class="nv">$request</span><span class="p">,</span>
+                <span class="s1">'Invalid or expired JWT access token.'</span><span class="p">,</span>
+                <span class="nv">$e</span>
+            <span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nv">$principal</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">AuthenticatedUser</span><span class="p">(</span>
+            <span class="nx">userId</span><span class="o">:</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$claims</span><span class="p">[</span><span class="s1">'sub'</span><span class="p">],</span>
+            <span class="nx">roles</span><span class="o">:</span> <span class="p">(</span><span class="k">array</span><span class="p">)</span> <span class="p">(</span><span class="nv">$claims</span><span class="p">[</span><span class="s1">'roles'</span><span class="p">]</span> <span class="o">??</span> <span class="p">[]),</span>
+            <span class="nx">scopes</span><span class="o">:</span> <span class="nb">explode</span><span class="p">(</span><span class="s1">' '</span><span class="p">,</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">(</span><span class="nv">$claims</span><span class="p">[</span><span class="s1">'scope'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">''</span><span class="p">)),</span>
+        <span class="p">);</span>
+
+        <span class="c1">// Attach immutable principal to the PSR-7 request for downstream guards &amp; controllers</span>
+        <span class="k">return</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span>
+            <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">withAttribute</span><span class="p">(</span><span class="nx">self</span><span class="o">::</span><span class="na">AUTH_USER_ATTRIBUTE</span><span class="p">,</span> <span class="nv">$principal</span><span class="p">)</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Because <code>ServerRequestInterface::withAttribute()</code> returns a new immutable request clone, downstream controllers never need to re-parse the <code>Authorization</code> header or access global state—they simply retrieve <code>$request-&gt;getAttribute(JwtAuthenticationMiddleware::AUTH_USER_ATTRIBUTE)</code>.</p>
+<h2>Role-Based Access Control (RBAC) &amp; Scope Guards</h2>
+<p>Authentication (<code>401 Unauthorized</code>) establishes <em>who</em> the caller is; authorization (<code>403 Forbidden</code>) determines <em>whether</em> that authenticated principal is allowed to perform a specific action. By separating RBAC into a parameterized middleware class, you can compose fine-grained guards onto any <code>RouteGroup</code> or individual <code>Route</code>:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Middleware</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Security\AuthenticatedUser</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\MiddlewareInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpForbiddenException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpUnauthorizedException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Routing\RouteCollectorProxy</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">RequireRoleMiddleware</span> <span class="k">implements</span> <span class="nx">MiddlewareInterface</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param list&lt;string&gt; $allowedRoles</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="k">array</span> <span class="nv">$allowedRoles</span><span class="p">,</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="o">?</span><span class="nx">string</span> <span class="nv">$requiredScope</span> <span class="o">=</span> <span class="k">null</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">process</span><span class="p">(</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">RequestHandlerInterface</span> <span class="nv">$handler</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+        <span class="nv">$user</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getAttribute</span><span class="p">(</span><span class="nx">JwtAuthenticationMiddleware</span><span class="o">::</span><span class="na">AUTH_USER_ATTRIBUTE</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$user</span> <span class="nx">instanceof</span> <span class="nx">AuthenticatedUser</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nx">HttpUnauthorizedException</span><span class="p">(</span><span class="nv">$request</span><span class="p">,</span> <span class="s1">'Authentication required before role evaluation.'</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nv">$hasRole</span> <span class="o">=</span> <span class="nb">count</span><span class="p">(</span><span class="nb">array_intersect</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">allowedRoles</span><span class="p">,</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">roles</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="nv">$hasScope</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">requiredScope</span> <span class="o">===</span> <span class="k">null</span> <span class="o">||</span> <span class="nb">in_array</span><span class="p">(</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="na">requiredScope</span><span class="p">,</span> <span class="nv">$user</span><span class="o">-&gt;</span><span class="na">scopes</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$hasRole</span> <span class="o">||</span> <span class="o">!</span><span class="nv">$hasScope</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HttpForbiddenException</span><span class="p">(</span>
+                <span class="nv">$request</span><span class="p">,</span>
+                <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'Requires one of roles [%s].'</span><span class="p">,</span> <span class="nb">implode</span><span class="p">(</span><span class="s1">', '</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">allowedRoles</span><span class="p">))</span>
+            <span class="p">);</span>
+            <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">setDescription</span><span class="p">(</span><span class="s1">'Your account does not have sufficient privileges for this resource.'</span><span class="p">);</span>
+            <span class="k">throw</span> <span class="nv">$exception</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Attaching JWT Auth to the /api/v1 group and RBAC guards to nested admin routes:</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">'/api/v1'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">RouteCollectorProxy</span> <span class="nv">$v1</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+    <span class="nv">$v1</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/profile'</span><span class="p">,</span> <span class="nx">\App\Action\Profile\GetProfileAction</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+    <span class="nv">$v1</span><span class="o">-&gt;</span><span class="na">group</span><span class="p">(</span><span class="s1">'/admin'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span><span class="nx">RouteCollectorProxy</span> <span class="nv">$admin</span><span class="p">)</span><span class="o">:</span> <span class="nx">void</span> <span class="p">{</span>
+        <span class="nv">$admin</span><span class="o">-&gt;</span><span class="na">post</span><span class="p">(</span><span class="s1">'/users'</span><span class="p">,</span> <span class="nx">\App\Action\Admin\CreateUserAction</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequireRoleMiddleware</span><span class="p">([</span><span class="s1">'admin'</span><span class="p">],</span> <span class="nx">requiredScope</span><span class="o">:</span> <span class="s1">'users:write'</span><span class="p">));</span>
+
+        <span class="nv">$admin</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/audit-logs'</span><span class="p">,</span> <span class="nx">\App\Action\Admin\ListAuditLogsAction</span><span class="o">::</span><span class="na">class</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="k">new</span> <span class="nx">RequireRoleMiddleware</span><span class="p">([</span><span class="s1">'admin'</span><span class="p">,</span> <span class="s1">'auditor'</span><span class="p">],</span> <span class="nx">requiredScope</span><span class="o">:</span> <span class="s1">'audit:read'</span><span class="p">));</span>
+    <span class="p">});</span>
+<span class="p">})</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nx">JwtAuthenticationMiddleware</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+</code></pre>
+<p>Keep two LIFO ordering rules in mind when stacking <code>JwtAuthenticationMiddleware</code> and <code>RequireRoleMiddleware</code>:</p>
+<ul>
+<li><strong>Group vs. Route Execution Order</strong>: Slim's <code>Route::prepareRouteMiddleware()</code> wraps group middlewares <em>outside</em> route-specific middlewares. Attaching <code>JwtAuthenticationMiddleware</code> to the <code>/api/v1</code> group and <code>RequireRoleMiddleware</code> to child routes guarantees that <code>JwtAuthenticationMiddleware</code> executes <em>first</em> and populates <code>auth.user</code> before <code>RequireRoleMiddleware</code> inspects it.</li>
+<li><strong>Passing <code>$request</code> to <code>HttpException</code></strong>: Always pass the most recent <code>$request</code> instance to <code>new HttpUnauthorizedException($request)</code> or <code>new HttpForbiddenException($request)</code> so <code>ErrorMiddleware</code> preserves all request attributes and headers.</li>
+</ul>
+<h2>Cross-Origin Resource Sharing (CORS) &amp; Preflight Requests</h2>
+<p>When a browser-based Single-Page Application (SPA) sends a cross-origin request with an <code>Authorization</code> header or <code>Content-Type: application/json</code>, the browser first issues an <code>OPTIONS</code> preflight request. In Slim 4, a complete CORS implementation requires three coordinated pieces:</p>
+<ol>
+<li>A <strong>catch-all <code>OPTIONS</code> route</strong> (<code>$app-&gt;options('/{routes:.+}', ...)</code>) so FastRoute does not throw <code>HttpMethodNotAllowedException</code> (<code>405</code>) on preflight requests.</li>
+<li>A <strong><code>CorsMiddleware</code></strong> placed near the outside of the pipeline so <code>Access-Control-Allow-*</code> headers are attached to both normal responses and error responses.</li>
+<li>Slim's built-in <code>ErrorHandler::determineStatusCode()</code> behavior, which explicitly checks <code>if ($this-&gt;method === 'OPTIONS') { return 200; }</code> so even unhandled <code>OPTIONS</code> requests return HTTP <code>200</code>.</li>
+</ol>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/auth_and_cors/cors_preflight_sequence.png" alt="auth_and_cors_2" />
+  <figcaption class="drawlib-caption">CORS Preflight (OPTIONS) and Authenticated Request Flow Through CorsMiddleware, RoutingMiddleware, and Catch-All Route</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.diagrams.sequence</span><span class="w"> </span><span class="kn">import</span> <span class="n">Participant</span><span class="p">,</span> <span class="n">ParticipantGroup</span><span class="p">,</span> <span class="n">PhosphorIcon</span><span class="p">,</span> <span class="n">SequenceDiagram</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">116</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">seq</span> <span class="o">=</span> <span class="n">SequenceDiagram</span><span class="p">(</span>
+    <span class="n">node_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">node_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">edge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="p">,</span>
+    <span class="n">edge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">node_card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">"Browser CORS Preflight (OPTIONS) &amp; Bearer API Request Sequence"</span><span class="p">,</span>
+    <span class="n">autonumber</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">col_width</span><span class="o">=</span><span class="mf">42.0</span><span class="p">,</span>
+    <span class="n">step_y</span><span class="o">=</span><span class="mf">6.2</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">browser</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Participant</span><span class="p">(</span>
+        <span class="s2">"Browser SPA"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mf">28.0</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mf">12.5</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">GLOBE</span><span class="p">,</span>
+        <span class="n">icon_size</span><span class="o">=</span><span class="mf">5.5</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">slim_group</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">ParticipantGroup</span><span class="p">(</span>
+        <span class="n">title</span><span class="o">=</span><span class="s2">"Slim v4.15.3 Middleware &amp; Routing Pipeline"</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">cors_mw</span> <span class="o">=</span> <span class="n">slim_group</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Participant</span><span class="p">(</span>
+        <span class="s2">"CorsMiddleware"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mf">28.0</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mf">12.5</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">SHIELD_CHECK</span><span class="p">,</span>
+        <span class="n">icon_size</span><span class="o">=</span><span class="mf">5.5</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">routing_mw</span> <span class="o">=</span> <span class="n">slim_group</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Participant</span><span class="p">(</span>
+        <span class="s2">"RoutingMiddleware"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mf">12.5</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">GIT_BRANCH</span><span class="p">,</span>
+        <span class="n">icon_size</span><span class="o">=</span><span class="mf">5.5</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+<span class="n">jwt_action</span> <span class="o">=</span> <span class="n">slim_group</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">Participant</span><span class="p">(</span>
+        <span class="s2">"JWT + Action"</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mf">28.0</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mf">12.5</span><span class="p">,</span>
+        <span class="n">icon</span><span class="o">=</span><span class="n">PhosphorIcon</span><span class="o">.</span><span class="n">LOCK_KEY</span><span class="p">,</span>
+        <span class="n">icon_size</span><span class="o">=</span><span class="mf">5.5</span><span class="p">,</span>
+        <span class="n">card_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+        <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+        <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">browser</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">cors_mw</span><span class="p">,</span> <span class="s2">"OPTIONS /api/v1/users (Origin)"</span><span class="p">)</span>
+<span class="n">cors_mw</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">routing_mw</span><span class="p">,</span> <span class="s2">"Forward OPTIONS request"</span><span class="p">)</span>
+<span class="n">routing_mw</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">cors_mw</span><span class="p">,</span> <span class="s2">"Match /{routes:.+} (204/200)"</span><span class="p">)</span>
+<span class="n">cors_mw</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="s2">"200 OK + Access-Control-Allow-*"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+
+<span class="n">browser</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">cors_mw</span><span class="p">,</span> <span class="s2">"POST /api/v1/users + Bearer JWT"</span><span class="p">)</span>
+<span class="n">cors_mw</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">routing_mw</span><span class="p">,</span> <span class="s2">"Forward POST request"</span><span class="p">)</span>
+<span class="n">routing_mw</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="n">jwt_action</span><span class="p">,</span> <span class="s2">"Dispatch matched Route"</span><span class="p">)</span>
+<span class="n">jwt_action</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">routing_mw</span><span class="p">,</span> <span class="s2">"201 Created JSON Response"</span><span class="p">)</span>
+<span class="n">routing_mw</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">cors_mw</span><span class="p">,</span> <span class="s2">"Return ResponseInterface"</span><span class="p">)</span>
+<span class="n">cors_mw</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="n">browser</span><span class="p">,</span> <span class="s2">"201 Created + CORS Headers"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">)</span>
+
+<span class="n">seq</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">6.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<p>Below is a production-ready <code>CorsMiddleware</code> paired with a strict origin allowlist and the catch-all <code>OPTIONS</code> route:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Middleware</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\MiddlewareInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Routing\RouteContext</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">CorsMiddleware</span> <span class="k">implements</span> <span class="nx">MiddlewareInterface</span>
+<span class="p">{</span>
+    <span class="sd">/**</span>
+<span class="sd">     * @param list&lt;string&gt; $allowedOrigins</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="k">array</span> <span class="nv">$allowedOrigins</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'https://app.example.com'</span><span class="p">],</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">process</span><span class="p">(</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">RequestHandlerInterface</span> <span class="nv">$handler</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+        <span class="nv">$routeContext</span> <span class="o">=</span> <span class="nx">RouteContext</span><span class="o">::</span><span class="na">fromRequest</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+        <span class="nv">$routingResults</span> <span class="o">=</span> <span class="nv">$routeContext</span><span class="o">-&gt;</span><span class="na">getRoutingResults</span><span class="p">();</span>
+        <span class="nv">$methods</span> <span class="o">=</span> <span class="nv">$routingResults</span><span class="o">-&gt;</span><span class="na">getAllowedMethods</span><span class="p">();</span>
+        <span class="nv">$requestHeaders</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'Access-Control-Request-Headers'</span><span class="p">);</span>
+
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="nv">$origin</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getHeaderLine</span><span class="p">(</span><span class="s1">'Origin'</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$origin</span> <span class="o">!==</span> <span class="s1">''</span> <span class="o">&amp;&amp;</span> <span class="nb">in_array</span><span class="p">(</span><span class="nv">$origin</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">allowedOrigins</span><span class="p">,</span> <span class="k">true</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$response</span>
+                <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Access-Control-Allow-Origin'</span><span class="p">,</span> <span class="nv">$origin</span><span class="p">)</span>
+                <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Access-Control-Allow-Credentials'</span><span class="p">,</span> <span class="s1">'true'</span><span class="p">)</span>
+                <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Vary'</span><span class="p">,</span> <span class="s1">'Origin'</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="nv">$allowedMethods</span> <span class="o">=</span> <span class="nb">count</span><span class="p">(</span><span class="nv">$methods</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="o">?</span> <span class="nb">implode</span><span class="p">(</span><span class="s1">', '</span><span class="p">,</span> <span class="nb">array_unique</span><span class="p">(</span><span class="nb">array_merge</span><span class="p">(</span><span class="nv">$methods</span><span class="p">,</span> <span class="p">[</span><span class="s1">'OPTIONS'</span><span class="p">])))</span>
+            <span class="o">:</span> <span class="s1">'GET, POST, PUT, PATCH, DELETE, OPTIONS'</span><span class="p">;</span>
+
+        <span class="k">return</span> <span class="nv">$response</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Access-Control-Allow-Methods'</span><span class="p">,</span> <span class="nv">$allowedMethods</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span>
+                <span class="s1">'Access-Control-Allow-Headers'</span><span class="p">,</span>
+                <span class="nv">$requestHeaders</span> <span class="o">!==</span> <span class="s1">''</span> <span class="o">?</span> <span class="nv">$requestHeaders</span> <span class="o">:</span> <span class="s1">'Content-Type, Authorization, X-Requested-With'</span>
+            <span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Access-Control-Max-Age'</span><span class="p">,</span> <span class="s1">'86400'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// In bootstrap/routes.php — Catch-all OPTIONS route for preflight requests:</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">options</span><span class="p">(</span><span class="s1">'/{routes:.+}'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">ResponseInterface</span> <span class="nv">$response</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nv">$response</span><span class="p">;</span>
+<span class="p">});</span>
+
+<span class="c1">// In bootstrap/middleware.php — Place RoutingMiddleware outside CorsMiddleware so getAllowedMethods() is populated,</span>
+<span class="c1">// OR place a fallback CORS header decorator outside ErrorMiddleware for 401/403/500 responses:</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">add</span><span class="p">(</span><span class="nx">CorsMiddleware</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span><span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span> <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span> <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">);</span>
+</code></pre>
+<h2>Rate Limiting &amp; Hardened HTTP Security Headers</h2>
+<p>To protect public and authenticated endpoints against credential stuffing, brute-force token guessing, and XSS/MIME-sniffing attacks, combine a Redis/APCu token-bucket rate limiter (throwing <code>Slim\Exception\HttpTooManyRequestsException</code> on quota exhaustion) with standard security headers:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Header Name</th>
+<th style="text-align:left">Recommended Production Value</th>
+<th style="text-align:left">Protection Provided</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>Strict-Transport-Security</code></td>
+<td style="text-align:left"><code>max-age=63072000; includeSubDomains; preload</code></td>
+<td style="text-align:left">Enforces HTTPS-only connections (HSTS)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>X-Content-Type-Options</code></td>
+<td style="text-align:left"><code>nosniff</code></td>
+<td style="text-align:left">Prevents browsers from MIME-sniffing JSON responses as HTML</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>X-Frame-Options</code></td>
+<td style="text-align:left"><code>DENY</code></td>
+<td style="text-align:left">Blocks clickjacking via <code>&lt;frame&gt;</code> or <code>&lt;iframe&gt;</code> embedding</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>Content-Security-Policy</code></td>
+<td style="text-align:left"><code>default-src 'none'; frame-ancestors 'none'</code></td>
+<td style="text-align:left">Locks down pure JSON API responses against script execution</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>Referrer-Policy</code></td>
+<td style="text-align:left"><code>no-referrer</code></td>
+<td style="text-align:left">Prevents leaking sensitive URL tokens in <code>Referer</code> headers</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Middleware</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">App\Security\RateLimiterInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\MiddlewareInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Server\RequestHandlerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpTooManyRequestsException</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">RateLimitAndSecurityHeadersMiddleware</span> <span class="k">implements</span> <span class="nx">MiddlewareInterface</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__construct</span><span class="p">(</span>
+        <span class="k">private</span> <span class="k">readonly</span> <span class="nx">RateLimiterInterface</span> <span class="nv">$rateLimiter</span><span class="p">,</span>
+    <span class="p">)</span> <span class="p">{</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="nf">process</span><span class="p">(</span>
+        <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+        <span class="nx">RequestHandlerInterface</span> <span class="nv">$handler</span>
+    <span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+        <span class="nv">$clientKey</span> <span class="o">=</span> <span class="nv">$request</span><span class="o">-&gt;</span><span class="na">getServerParams</span><span class="p">()[</span><span class="s1">'REMOTE_ADDR'</span><span class="p">]</span> <span class="o">??</span> <span class="s1">'unknown'</span><span class="p">;</span>
+        <span class="nv">$quota</span> <span class="o">=</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">rateLimiter</span><span class="o">-&gt;</span><span class="na">consume</span><span class="p">(</span><span class="nv">$clientKey</span><span class="p">,</span> <span class="nx">limit</span><span class="o">:</span> <span class="mi">120</span><span class="p">,</span> <span class="nx">windowSeconds</span><span class="o">:</span> <span class="mi">60</span><span class="p">);</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$quota</span><span class="o">-&gt;</span><span class="na">isAllowed</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HttpTooManyRequestsException</span><span class="p">(</span>
+                <span class="nv">$request</span><span class="p">,</span>
+                <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'Rate limit exceeded. Retry after %d seconds.'</span><span class="p">,</span> <span class="nv">$quota</span><span class="o">-&gt;</span><span class="na">retryAfterSeconds</span><span class="p">)</span>
+            <span class="p">);</span>
+            <span class="k">throw</span> <span class="nv">$exception</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nv">$response</span> <span class="o">=</span> <span class="nv">$handler</span><span class="o">-&gt;</span><span class="na">handle</span><span class="p">(</span><span class="nv">$request</span><span class="p">);</span>
+
+        <span class="k">return</span> <span class="nv">$response</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-RateLimit-Limit'</span><span class="p">,</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$quota</span><span class="o">-&gt;</span><span class="na">limit</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-RateLimit-Remaining'</span><span class="p">,</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nv">$quota</span><span class="o">-&gt;</span><span class="na">remaining</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Strict-Transport-Security'</span><span class="p">,</span> <span class="s1">'max-age=63072000; includeSubDomains; preload'</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-Content-Type-Options'</span><span class="p">,</span> <span class="s1">'nosniff'</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'X-Frame-Options'</span><span class="p">,</span> <span class="s1">'DENY'</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Content-Security-Policy'</span><span class="p">,</span> <span class="s2">"default-src 'none'; frame-ancestors 'none'"</span><span class="p">)</span>
+            <span class="o">-&gt;</span><span class="na">withHeader</span><span class="p">(</span><span class="s1">'Referrer-Policy'</span><span class="p">,</span> <span class="s1">'no-referrer'</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+<p>Next, see <strong><a href="error_handling.html">ErrorMiddleware &amp; Custom Renderers</a></strong> to learn how <code>ErrorMiddleware</code> and <code>ErrorHandler</code> turn <code>HttpUnauthorizedException</code> (<code>401</code>), <code>HttpForbiddenException</code> (<code>403</code>), and <code>HttpTooManyRequestsException</code> (<code>429</code>) into structured JSON or RFC 9457 Problem Details payloads, or explore <strong><a href="../06_testing_and_deployment/phpunit_testing.html">In-Memory HTTP Testing with PHPUnit</a></strong> and the <strong><a href="https://slim.drawlib.com/api/">Slim 4 API Reference</a></strong> to verify security middlewares in automated tests.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

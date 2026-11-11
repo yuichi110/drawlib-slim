@@ -1,165 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url>
-    <loc>https://slim.drawlib.com/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/01_getting_started/overview.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/01_getting_started/overview.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/01_getting_started/overview.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/01_getting_started/overview.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/01_getting_started/quickstart.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/01_getting_started/quickstart.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/01_getting_started/quickstart.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/01_getting_started/quickstart.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/02_enterprise_architecture/di_and_containers.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/02_enterprise_architecture/modular_design.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/03_routing_and_handlers/routing_and_groups.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/03_routing_and_handlers/strategies_and_context.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/middleware_pipeline.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/05_security_and_errors/auth_and_cors.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/05_security_and_errors/error_handling.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/06_testing_and_deployment/phpunit_testing.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/06_testing_and_deployment/production_deployment.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/01_getting_started/overview.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/01_getting_started/overview.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/01_getting_started/overview.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/01_getting_started/overview.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/01_getting_started/quickstart.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/01_getting_started/quickstart.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/01_getting_started/quickstart.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/01_getting_started/quickstart.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/02_enterprise_architecture/di_and_containers.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/02_enterprise_architecture/di_and_containers.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/02_enterprise_architecture/di_and_containers.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/02_enterprise_architecture/modular_design.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/02_enterprise_architecture/modular_design.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/02_enterprise_architecture/modular_design.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/03_routing_and_handlers/routing_and_groups.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/03_routing_and_handlers/routing_and_groups.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/03_routing_and_handlers/routing_and_groups.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/03_routing_and_handlers/strategies_and_context.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/03_routing_and_handlers/strategies_and_context.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/03_routing_and_handlers/strategies_and_context.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/04_psr7_and_middleware/middleware_pipeline.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/middleware_pipeline.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/middleware_pipeline.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/04_psr7_and_middleware/requests_and_responses.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/04_psr7_and_middleware/requests_and_responses.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/05_security_and_errors/auth_and_cors.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/05_security_and_errors/auth_and_cors.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/05_security_and_errors/auth_and_cors.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/05_security_and_errors/error_handling.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/05_security_and_errors/error_handling.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/06_testing_and_deployment/phpunit_testing.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/06_testing_and_deployment/phpunit_testing.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/06_testing_and_deployment/phpunit_testing.html" />
-  </url>
-  <url>
-    <loc>https://slim.drawlib.com/ja/06_testing_and_deployment/production_deployment.html</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html" />
-    <xhtml:link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/ja/06_testing_and_deployment/production_deployment.html" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/en/06_testing_and_deployment/production_deployment.html" />
-  </url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://slim.drawlib.com/</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/01_getting_started/overview.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/01_getting_started/quickstart.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/02_enterprise_architecture/di_and_containers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/02_enterprise_architecture/modular_design.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/03_routing_and_handlers/routing_and_groups.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/03_routing_and_handlers/strategies_and_context.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/middleware_pipeline.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/04_psr7_and_middleware/requests_and_responses.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/05_security_and_errors/auth_and_cors.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/05_security_and_errors/error_handling.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/06_testing_and_deployment/phpunit_testing.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/06_testing_and_deployment/production_deployment.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/en/</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/01_getting_started/overview.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/01_getting_started/quickstart.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/02_enterprise_architecture/di_and_containers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/02_enterprise_architecture/modular_design.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/03_routing_and_handlers/routing_and_groups.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/03_routing_and_handlers/strategies_and_context.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/04_psr7_and_middleware/middleware_pipeline.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/04_psr7_and_middleware/requests_and_responses.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/05_security_and_errors/auth_and_cors.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/05_security_and_errors/error_handling.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/06_testing_and_deployment/phpunit_testing.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/06_testing_and_deployment/production_deployment.html</loc></url>
+  <url><loc>https://slim.drawlib.com/user_guide/ja/</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/00_overview.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/01_app_and_factories.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/02_psr17_providers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/03_routing.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/04_middleware.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/05_handlers_and_strategies.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/06_error_renderers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/07_exceptions.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/08_interfaces.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/en/</loc></url>
+  <url><loc>https://slim.drawlib.com/api/</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/00_overview.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/01_app_and_factories.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/02_psr17_providers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/03_routing.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/04_middleware.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/05_handlers_and_strategies.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/06_error_renderers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/07_exceptions.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/08_interfaces.html</loc></url>
+  <url><loc>https://slim.drawlib.com/api/ja/</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/01_package_and_layers/module_hierarchy.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/02_bootstrap_and_psr17/app_factory_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/03_middleware_and_resolver/middleware_dispatcher_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/04_routing_engine/fastroute_and_runner_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/05_error_subsystem/error_middleware_and_renderers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/06_sapi_emission/response_emitter_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/en/</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/01_package_and_layers/module_hierarchy.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/02_bootstrap_and_psr17/app_factory_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/03_middleware_and_resolver/middleware_dispatcher_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/04_routing_engine/fastroute_and_runner_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/05_error_subsystem/error_middleware_and_renderers.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/06_sapi_emission/response_emitter_internals.html</loc></url>
+  <url><loc>https://slim.drawlib.com/architecture/ja/</loc></url>
+  <url><loc>https://slim.drawlib.com/pni501/en/</loc></url>
+  <url><loc>https://slim.drawlib.com/pni501/</loc></url>
 </urlset>

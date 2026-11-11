@@ -1,0 +1,845 @@
+<!--
+ Copyright (c) 2026 Yuichi Ito (yuichi@yuichi.com)
+
+ This software is licensed under the Apache License, Version 2.0.
+ For more information, please visit: https://github.com/yuichi110/drawlib
+
+ This software is provided "as is", without warranty of any kind,
+ express or implied, including but not limited to the warranties of
+ merchantability, fitness for a particular purpose and noninfringement.
+-->
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErrorMiddleware &amp; Custom Renderers — Slim 4 User Guide (Unofficial)</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-S9N5BZ1VRC"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-S9N5BZ1VRC');
+    </script>
+    <script>
+        (function() {
+            const saved = localStorage.getItem('drawlib-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
+    
+    
+    <link rel="alternate" hreflang="en" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/error_handling.html">
+    
+    <link rel="alternate" hreflang="ja" href="https://slim.drawlib.com/user_guide/ja/05_security_and_errors/error_handling.html">
+    
+    <link rel="alternate" hreflang="x-default" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/error_handling.html">
+    
+    
+    
+    <meta name="description" content="Slim\Middleware\ErrorMiddleware is the outermost exception boundary in a Slim (v4.15.3) application. Placed last via $app-&gt;addErrorMiddleware(...) so it…">
+    <link rel="canonical" href="https://slim.drawlib.com/user_guide/en/05_security_and_errors/error_handling.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Slim 4 User Guide">
+    <meta property="og:title" content="ErrorMiddleware &amp; Custom Renderers — Slim 4 User Guide">
+    <meta property="og:description" content="Slim\Middleware\ErrorMiddleware is the outermost exception boundary in a Slim (v4.15.3) application. Placed last via $app-&gt;addErrorMiddleware(...) so it…">
+    <meta property="og:url" content="https://slim.drawlib.com/user_guide/en/05_security_and_errors/error_handling.html">
+    <meta property="og:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ja_JP">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ErrorMiddleware &amp; Custom Renderers — Slim 4 User Guide">
+    <meta name="twitter:description" content="Slim\Middleware\ErrorMiddleware is the outermost exception boundary in a Slim (v4.15.3) application. Placed last via $app-&gt;addErrorMiddleware(...) so it…">
+    <meta name="twitter:image" content="https://slim.drawlib.com/user_guide/_assets/ogp.png">
+    
+    
+    <link rel="icon" type="image/png" href="../../_assets/favicon.png">
+    
+    
+    <link rel="stylesheet" href="../style.css">
+    
+    
+</head>
+<body>
+    
+    
+    
+    <div class="demo-banner" role="region" aria-label="Portal Navigation">
+        <div class="demo-banner-inner">
+            <span class="demo-banner-badge">DRAWLIB SHOWCASE</span>
+            
+            <span class="demo-banner-text">
+                Unofficial <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Slim Framework 4</a> (v4.15.3) Documentation built with <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib</a>
+            </span>
+            <span class="demo-banner-links">
+                <a href="../../../index.html">All Portals</a>
+                <span class="demo-banner-sep">·</span>
+                <strong style="color:#ffffff;">User Guide</strong>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../api/index.html">API Reference</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../architecture/index.html">Architecture</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="../../../pni501/index.html">PNI501 Audit</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">Official Docs ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                <span class="demo-banner-sep">·</span>
+                <a href="https://www.drawlib.com/" target="_blank" rel="noopener noreferrer">Drawlib ↗</a>
+            </span>
+            
+        </div>
+    </div>
+    
+    <div class="doc-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="sidebar-brand" aria-label="Slim 4 User Guide">
+                    
+                    Slim 4 User Guide
+                    
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle theme">
+                        <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
+                    <button type="button" id="menu-toggle" class="menu-toggle-btn" aria-label="Toggle navigation" aria-expanded="false">
+                        <svg class="icon-hamburger" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        <svg class="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                
+                    
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../index.html" >Guide Overview</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">1. Introduction &amp; Quickstart</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/overview.html" >Why Slim 4 &amp; PSR Standards</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../01_getting_started/quickstart.html" >Quickstart &amp; Middleware Triad</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">2. Enterprise Architecture &amp; DI</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/modular_design.html" >Modular Design &amp; Action Controllers</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../02_enterprise_architecture/di_and_containers.html" >PSR-11 DI &amp; Callable Resolution</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">3. Routing, Groups &amp; Strategies</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/routing_and_groups.html" >FastRoute Patterns, Groups &amp; Caching</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../03_routing_and_handlers/strategies_and_context.html" >Invocation Strategies &amp; RouteContext</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">4. PSR-7 Messages &amp; Middleware</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/requests_and_responses.html" >PSR-7 Requests, Responses &amp; Streams</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../04_psr7_and_middleware/middleware_pipeline.html" >PSR-15 Concentric LIFO Pipeline</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">5. Security, CORS &amp; Error Handling</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="auth_and_cors.html" >JWT Auth, RBAC Guards &amp; CORS</a>
+                            </li>
+                            
+                            <li class="nav-item active">
+                                <a href="error_handling.html" >ErrorMiddleware &amp; Custom Renderers</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">6. Testing &amp; Production Deployment</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/phpunit_testing.html" >In-Memory HTTP Testing with PHPUnit</a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="../06_testing_and_deployment/production_deployment.html" >Nginx, PHP-FPM &amp; Worker Runtimes</a>
+                            </li>
+                            
+                        </ul>
+                    
+                        
+                        <div class="sidebar-heading">Companion Guides &amp; Links</div>
+                        
+                        <ul class="nav-list">
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/api/" target="_blank" rel="noopener noreferrer">Slim 4 API Reference<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/architecture/" target="_blank" rel="noopener noreferrer">Slim 4 Internal Architecture<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://slim.drawlib.com/pni501/" target="_blank" rel="noopener noreferrer">PNI501 Audit Report<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://www.slimframework.com/docs/v4/" target="_blank" rel="noopener noreferrer">Official Slim 4 Docs<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                            <li class="nav-item ">
+                                <a href="https://github.com/yuichi110/drawlib-slim" target="_blank" rel="noopener noreferrer">GitHub Repository<svg class="nav-external-icon" viewBox="0 0 24 24" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+                            </li>
+                            
+                        </ul>
+                    
+                
+            </div>
+        </aside>
+        <div class="content-wrapper">
+            <header class="top-bar">
+                <div class="breadcrumbs">
+                    <span class="crumb">Docs</span>
+                    <span class="crumb-separator">&raquo;</span>
+                    <span class="crumb active">ErrorMiddleware &amp; Custom Renderers</span>
+                </div>
+                
+                <div class="lang-switcher">
+                    <details class="lang-dropdown">
+                        <summary class="lang-dropdown-btn" aria-label="Select language">
+                            <svg class="lang-globe-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                            <span class="lang-current-label">English</span>
+                            <svg class="lang-caret-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </summary>
+                        <div class="lang-dropdown-menu" role="menu">
+                            
+                            <a href="error_handling.html" class="lang-option active" lang="en" hreflang="en" aria-current="page">
+                                <span>English</span>
+                                
+                                <svg class="lang-check-icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                
+                            </a>
+                            
+                            <a href="../../ja/05_security_and_errors/error_handling.html" class="lang-option" lang="ja" hreflang="ja" >
+                                <span>日本語</span>
+                                
+                            </a>
+                            
+                        </div>
+                    </details>
+                </div>
+                
+            </header>
+            <main class="main-content">
+                <h1>ErrorMiddleware &amp; Custom Renderers</h1>
+<p><code>Slim\Middleware\ErrorMiddleware</code> is the outermost exception boundary in a Slim (<code>v4.15.3</code>) application. Placed last via <code>$app-&gt;addErrorMiddleware(...)</code> so it executes first in the LIFO middleware stack, it wraps downstream execution in a <code>try / catch (Throwable $e)</code> block, extracts the most recent <code>ServerRequestInterface</code> from <code>HttpException</code> instances, resolves a matching <code>ErrorHandlerInterface</code>, logs diagnostic traces through a <strong>PSR-3</strong> <code>LoggerInterface</code>, and renders content-negotiated responses (<code>JSON</code>, <code>XML</code>, <code>HTML</code>, or <code>PlainText</code>).</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/error_handling/error_middleware_dispatch.png" alt="error_handling_1" />
+  <figcaption class="drawlib-caption">Slim 4 ErrorMiddleware & ErrorHandler Pipeline — Exception Resolution, Accept Negotiation, and PSR-3 Logging</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">ChevronProcess</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">76</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim v4.15.3 ErrorMiddleware -&gt; ErrorHandler -&gt; ErrorRendererInterface Pipeline"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">warning_octagon</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">68.0</span><span class="p">)</span>
+
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ChevronProcess</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">corner_angle</span><span class="o">=</span><span class="mf">62.0</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span>
+    <span class="n">flat_left_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"1. catch (Throwable)"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"ErrorMiddleware"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"2. getErrorHandler()"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"Exact / Subclass / Default"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"3. Status &amp; Accept"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"HttpException / +json"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"4. writeToErrorLog()"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"PSR-3 LoggerInterface"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"5. ErrorRenderer"</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">"JSON / XML / HTML / Text"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">proc</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">41.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">19.5</span><span class="p">)</span>
+
+<span class="n">cards</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.5</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Handler Resolution Order"</span><span class="p">,</span>
+    <span class="s2">"1. Exact class match</span><span class="se">\n</span><span class="s2">2. Subclass -&gt; 3. Default"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S2"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">git_branch</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Accept Negotiation"</span><span class="p">,</span>
+    <span class="s2">"application/json, +(json|xml)</span><span class="se">\n</span><span class="s2">xml, html, text/plain"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S3"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">sliders_horizontal</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"Dual Renderer Output"</span><span class="p">,</span>
+    <span class="s2">"HTTP response renderer</span><span class="se">\n</span><span class="s2">+ logErrorRenderer (PSR-3)"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"S4"</span><span class="p">,</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">file_code</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cards</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">29.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<h2>How ErrorMiddleware Catches &amp; Dispatches Exceptions</h2>
+<p>When <code>ErrorMiddleware::process()</code> catches a <code>Throwable</code>, it delegates to <code>handleException(ServerRequestInterface $request, Throwable $exception)</code>. If the caught exception is an instance of <code>Slim\Exception\HttpException</code>, <code>ErrorMiddleware</code> replaces <code>$request</code> with <code>$exception-&gt;getRequest()</code> so any attributes added by inner middlewares prior to the throw remain intact. It then looks up the handler callable via <code>getErrorHandler(string $type)</code> in four steps:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Resolution Priority</th>
+<th style="text-align:left">Internal Lookup Mechanism</th>
+<th style="text-align:left">Registration Method</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>1. Exact Class Match</strong></td>
+<td style="text-align:left"><code>isset($this-&gt;handlers[$type])</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler($class, $handler, false)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>2. Direct Subclass Entry</strong></td>
+<td style="text-align:left"><code>isset($this-&gt;subClassHandlers[$type])</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler($baseClass, $handler, true)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>3. Parent Hierarchy Scan</strong></td>
+<td style="text-align:left"><code>foreach ($this-&gt;subClassHandlers) { is_subclass_of($type, $class) }</code></td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setErrorHandler(DomainException::class, $handler, true)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>4. Default Fallback</strong></td>
+<td style="text-align:left"><code>$this-&gt;getDefaultErrorHandler()</code> (lazy-instantiates <code>Slim\Handlers\ErrorHandler</code>)</td>
+<td style="text-align:left"><code>$errorMiddleware-&gt;setDefaultErrorHandler($customDefaultHandler)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every registered error handler—whether a closure, a PSR-11 container service ID string, or an <code>ErrorHandlerInterface</code> implementation—is resolved through <code>CallableResolverInterface</code> and invoked with the five-argument signature <code>(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails): ResponseInterface</code>:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">App\Domain\Exception\DomainValidationException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">App\Http\Error\ValidationErrorHandler</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Log\LoggerInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Factory\AppFactory</span><span class="p">;</span>
+
+<span class="nv">$app</span> <span class="o">=</span> <span class="nx">AppFactory</span><span class="o">::</span><span class="na">createFromContainer</span><span class="p">(</span><span class="nv">$container</span><span class="p">);</span>
+
+<span class="c1">// Parse body and resolve routes BEFORE ErrorMiddleware is added (so ErrorMiddleware wraps both)</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addBodyParsingMiddleware</span><span class="p">();</span>
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addRoutingMiddleware</span><span class="p">();</span>
+
+<span class="sd">/** @var LoggerInterface $logger */</span>
+<span class="nv">$logger</span> <span class="o">=</span> <span class="nv">$container</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="nx">LoggerInterface</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span>
+    <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span> <span class="c1">// Never leak stack traces to HTTP clients in production</span>
+    <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>            <span class="c1">// Emit errors to PSR-3 LoggerInterface</span>
+    <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>      <span class="c1">// Include file, line, and previous exception chain in logs</span>
+    <span class="nx">logger</span><span class="o">:</span> <span class="nv">$logger</span>
+<span class="p">);</span>
+
+<span class="c1">// Route DomainValidationException (and all its subclasses) to a dedicated handler:</span>
+<span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">setErrorHandler</span><span class="p">(</span>
+    <span class="nx">DomainValidationException</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+    <span class="nx">ValidationErrorHandler</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+    <span class="nx">handleSubclasses</span><span class="o">:</span> <span class="k">true</span>
+<span class="p">);</span>
+</code></pre>
+<h2>The HttpException &amp; HttpSpecializedException Hierarchy</h2>
+<p>Slim 4 models HTTP status errors through an explicit exception hierarchy rooted at <code>Slim\Exception\HttpException</code> (which extends PHP's <code>RuntimeException</code>) and <code>Slim\Exception\HttpSpecializedException</code>. While <code>HttpException::__construct(ServerRequestInterface $request, string $message = '', int $code = 0, ?Throwable $previous = null)</code> accepts an arbitrary status code, the <strong>9 concrete <code>HttpSpecializedException</code> subclasses</strong> pre-populate standard HTTP status codes (<code>400</code>–<code>501</code>), human-readable titles (<code>getTitle()</code>), and user-safe descriptions (<code>getDescription()</code>):</p>
+<figure class="drawlib-image" style="text-align: center;">
+  <img src="../../images/05_security_and_errors/error_handling/http_exception_hierarchy.png" alt="error_handling_2" />
+  <figcaption class="drawlib-caption">Slim 4 HttpException & HttpSpecializedException Class Hierarchy — 9 Built-in HTTP Status Exceptions (400–501)</figcaption>
+</figure>
+<details class="drawlib-code-details">
+<summary>Source Code</summary>
+<pre><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.canvas</span><span class="w"> </span><span class="kn">import</span> <span class="n">save</span><span class="p">,</span> <span class="n">setup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.icons</span><span class="w"> </span><span class="kn">import</span> <span class="n">phosphor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.shapes</span><span class="w"> </span><span class="kn">import</span> <span class="n">rectangle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.smartarts</span><span class="w"> </span><span class="kn">import</span> <span class="n">CardList</span><span class="p">,</span> <span class="n">Panel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">Styles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">drawlib.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">text</span>
+
+<span class="n">setup</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">196</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">outer</span> <span class="o">=</span> <span class="n">Panel</span><span class="p">(</span>
+    <span class="s2">"Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpException -&gt; HttpSpecializedException Hierarchy (v4.15.3)"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Neutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">header_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_line_width</span><span class="o">=</span><span class="mf">1.2</span><span class="p">),</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">11.5</span><span class="p">),</span>
+    <span class="n">icon</span><span class="o">=</span><span class="n">phosphor</span><span class="o">.</span><span class="n">tree_structure</span><span class="p">,</span>
+    <span class="n">icon_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="p">,</span>
+    <span class="n">header_variant</span><span class="o">=</span><span class="s2">"filled"</span><span class="p">,</span>
+    <span class="n">header_height</span><span class="o">=</span><span class="mf">8.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">outer</span><span class="o">.</span><span class="n">draw</span><span class="p">((</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">188.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">82.0</span><span class="p">)</span>
+
+<span class="n">rectangle</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">68.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">11.0</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">shape_r</span><span class="o">=</span><span class="mf">1.8</span><span class="p">))</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">70.0</span><span class="p">),</span>
+    <span class="s2">"RuntimeException  --&gt;  Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpException  --&gt;  Slim</span><span class="se">\\</span><span class="s2">Exception</span><span class="se">\\</span><span class="s2">HttpSpecializedException"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.8</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">text</span><span class="p">(</span>
+    <span class="p">(</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">65.0</span><span class="p">),</span>
+    <span class="s2">"Holds ServerRequestInterface $request, int $code, string $message, string $title, string $description"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">row1</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpBadRequest</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"400 Bad Request"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"400"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpUnauthorized</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"401 Unauthorized"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"401"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpForbidden</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"403 Forbidden"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"403"</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"HttpNotFound</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span>
+    <span class="s2">"404 Not Found"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"404"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">PrimaryFlat</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">WhiteBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpMethodNotAllowed</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"405 + Allow Header"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"405"</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">)</span>
+<span class="n">row1</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">36.0</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">23.5</span><span class="p">)</span>
+
+<span class="n">row2</span> <span class="o">=</span> <span class="n">CardList</span><span class="p">(</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">White</span><span class="p">,</span>
+    <span class="n">text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.2</span><span class="p">),</span>
+    <span class="n">description_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">Dark</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">badge_shape</span><span class="o">=</span><span class="s2">"rounded_rect"</span><span class="p">,</span>
+    <span class="n">badge_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+    <span class="n">badge_text_style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">DarkBold</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">text_size</span><span class="o">=</span><span class="mf">10.0</span><span class="p">),</span>
+    <span class="n">direction</span><span class="o">=</span><span class="s2">"horizontal"</span><span class="p">,</span>
+    <span class="n">spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpGone</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"410 Gone Resource"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"410"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpTooManyRequests</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"429 Rate Limit"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"429"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="s2">"HttpInternalServerError</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span>
+    <span class="s2">"500 Server Error"</span><span class="p">,</span>
+    <span class="n">badge_text</span><span class="o">=</span><span class="s2">"500"</span><span class="p">,</span>
+    <span class="n">style</span><span class="o">=</span><span class="n">Styles</span><span class="o">.</span><span class="n">SecondaryNeutral</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"HttpNotImplemented</span><span class="se">\n</span><span class="s2">Exception"</span><span class="p">,</span> <span class="s2">"501 Not Implemented"</span><span class="p">,</span> <span class="n">badge_text</span><span class="o">=</span><span class="s2">"501"</span><span class="p">)</span>
+<span class="n">row2</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">xy</span><span class="o">=</span><span class="p">(</span><span class="mf">8.0</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">),</span> <span class="n">width</span><span class="o">=</span><span class="mf">180.0</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mf">23.5</span><span class="p">)</span>
+
+<span class="n">save</span><span class="p">()</span>
+</code></pre>
+</details>
+<p>The table below lists all 9 concrete classes in <code>Slim\Exception\</code>, their status codes, default <code>$message</code>, default <code>$title</code>, and special behavior:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Exception Class (<code>Slim\Exception\*</code>)</th>
+<th style="text-align:left">Code</th>
+<th style="text-align:left">Default <code>$message</code></th>
+<th style="text-align:left">Default <code>$title</code></th>
+<th style="text-align:left">Special Methods / Framework Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>HttpBadRequestException</code></td>
+<td style="text-align:left"><code>400</code></td>
+<td style="text-align:left"><code>'Bad request.'</code></td>
+<td style="text-align:left"><code>'400 Bad Request'</code></td>
+<td style="text-align:left">Thrown on malformed query/header/body input</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpUnauthorizedException</code></td>
+<td style="text-align:left"><code>401</code></td>
+<td style="text-align:left"><code>'Unauthorized.'</code></td>
+<td style="text-align:left"><code>'401 Unauthorized'</code></td>
+<td style="text-align:left">Thrown when authentication credentials are missing or invalid</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpForbiddenException</code></td>
+<td style="text-align:left"><code>403</code></td>
+<td style="text-align:left"><code>'Forbidden.'</code></td>
+<td style="text-align:left"><code>'403 Forbidden'</code></td>
+<td style="text-align:left">Thrown when an authenticated principal lacks role/scope permissions</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpNotFoundException</code></td>
+<td style="text-align:left"><code>404</code></td>
+<td style="text-align:left"><code>'Not found.'</code></td>
+<td style="text-align:left"><code>'404 Not Found'</code></td>
+<td style="text-align:left">Thrown automatically by <code>RoutingMiddleware</code> on <code>RoutingResults::NOT_FOUND</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpMethodNotAllowedException</code></td>
+<td style="text-align:left"><code>405</code></td>
+<td style="text-align:left"><code>'Method not allowed.'</code></td>
+<td style="text-align:left"><code>'405 Method Not Allowed'</code></td>
+<td style="text-align:left">Thrown by <code>RoutingMiddleware</code>; <code>setAllowedMethods(string[])</code> populates the HTTP <code>Allow</code> response header in <code>ErrorHandler::respond()</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpGoneException</code></td>
+<td style="text-align:left"><code>410</code></td>
+<td style="text-align:left"><code>'Gone.'</code></td>
+<td style="text-align:left"><code>'410 Gone'</code></td>
+<td style="text-align:left">Thrown when a deprecated endpoint or deleted entity is permanently gone</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpTooManyRequestsException</code></td>
+<td style="text-align:left"><code>429</code></td>
+<td style="text-align:left"><code>'Too many requests.'</code></td>
+<td style="text-align:left"><code>'429 Too Many Requests'</code></td>
+<td style="text-align:left">Thrown by rate-limiting middlewares when client quota is exceeded</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpInternalServerErrorException</code></td>
+<td style="text-align:left"><code>500</code></td>
+<td style="text-align:left"><code>'Internal server error.'</code></td>
+<td style="text-align:left"><code>'500 Internal Server Error'</code></td>
+<td style="text-align:left">Explicit <code>500</code> HTTP exception (non-<code>HttpException</code> throwables also map to <code>500</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>HttpNotImplementedException</code></td>
+<td style="text-align:left"><code>501</code></td>
+<td style="text-align:left"><code>'Not implemented.'</code></td>
+<td style="text-align:left"><code>'501 Not Implemented'</code></td>
+<td style="text-align:left">Thrown when an endpoint or HTTP verb is not yet supported</td>
+</tr>
+</tbody>
+</table>
+<p>You can customize the user-facing title and description on any <code>HttpException</code> before throwing it:</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ResponseInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Psr\Http\Message\ServerRequestInterface</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpGoneException</span><span class="p">;</span>
+
+<span class="nv">$app</span><span class="o">-&gt;</span><span class="na">get</span><span class="p">(</span><span class="s1">'/api/v1/legacy-export'</span><span class="p">,</span> <span class="k">function</span> <span class="p">(</span>
+    <span class="nx">ServerRequestInterface</span> <span class="nv">$request</span><span class="p">,</span>
+    <span class="nx">ResponseInterface</span> <span class="nv">$response</span>
+<span class="p">)</span><span class="o">:</span> <span class="nx">ResponseInterface</span> <span class="p">{</span>
+    <span class="nv">$exception</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">HttpGoneException</span><span class="p">(</span>
+        <span class="nv">$request</span><span class="p">,</span>
+        <span class="s1">'The /api/v1/legacy-export endpoint was decommissioned on 2026-01-01.'</span>
+    <span class="p">);</span>
+    <span class="nv">$exception</span>
+        <span class="o">-&gt;</span><span class="na">setTitle</span><span class="p">(</span><span class="s1">'410 Endpoint Decommissioned'</span><span class="p">)</span>
+        <span class="o">-&gt;</span><span class="na">setDescription</span><span class="p">(</span><span class="s1">'Migrate to POST /api/v2/exports for asynchronous CSV/Parquet exports.'</span><span class="p">);</span>
+
+    <span class="k">throw</span> <span class="nv">$exception</span><span class="p">;</span>
+<span class="p">});</span>
+</code></pre>
+<h2>Content Negotiation &amp; Built-In Error Renderers</h2>
+<p><code>Slim\Handlers\ErrorHandler</code> (the default <code>ErrorHandlerInterface</code> implementation) inspects the incoming <code>Accept</code> request header in <code>determineContentType()</code> and selects a matching <code>ErrorRendererInterface</code> from <code>$this-&gt;errorRenderers</code>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Matched <code>Accept</code> Header / Suffix</th>
+<th style="text-align:left">Built-In Renderer (<code>Slim\Error\Renderers\*</code>)</th>
+<th style="text-align:left">Output Structure (<code>displayErrorDetails: false</code> vs <code>true</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>application/json</code> or <code>+*json</code> (e.g. <code>application/problem+json</code>, <code>application/vnd.api+json</code>)</td>
+<td style="text-align:left"><code>JsonErrorRenderer</code></td>
+<td style="text-align:left"><code>{ &quot;message&quot;: &quot;&lt;title&gt;&quot; }</code> (+ <code>&quot;exception&quot;: [{ &quot;type&quot;, &quot;code&quot;, &quot;message&quot;, &quot;file&quot;, &quot;line&quot; }]</code> when <code>true</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>application/xml</code>, <code>text/xml</code>, or <code>+*xml</code></td>
+<td style="text-align:left"><code>XmlErrorRenderer</code></td>
+<td style="text-align:left"><code>&lt;error&gt;&lt;message&gt;...&lt;/message&gt;&lt;exception&gt;...&lt;/exception&gt;&lt;/error&gt;</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>text/html</code> <em>(also the default fallback)</em></td>
+<td style="text-align:left"><code>HtmlErrorRenderer</code></td>
+<td style="text-align:left">Minimal HTML document with <code>&lt;title&gt;</code>, description, and stack trace blocks</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>text/plain</code> <em>(also default <code>$logErrorRenderer</code>)</em></td>
+<td style="text-align:left"><code>PlainTextErrorRenderer</code></td>
+<td style="text-align:left">Plain-text error summary and full previous-exception trace for logs</td>
+</tr>
+</tbody>
+</table>
+<p>Two subtle details in <code>ErrorHandler</code> are especially helpful when building JSON APIs:</p>
+<ul>
+<li><strong>Structured Syntax Suffix Matching (<code>/\+(json|xml)/</code>)</strong>: If a client sends <code>Accept: application/problem+json</code> or <code>Accept: application/vnd.api+json</code> and no exact key exists in <code>$errorRenderers</code>, <code>ErrorHandler::determineContentType()</code> falls back to the regex <code>/\+(json|xml)/</code> and maps the request to <code>application/json</code> (or <code>application/xml</code>).</li>
+<li><strong>Forcing JSON for Pure API Services (<code>forceContentType()</code>)</strong>: Browser navigation or <code>curl</code> requests often send <code>Accept: */*</code> or <code>Accept: text/html</code>, which would otherwise fall back to <code>HtmlErrorRenderer</code>. Call <code>$errorHandler-&gt;forceContentType('application/json')</code> or <code>$errorHandler-&gt;setDefaultErrorRenderer('application/json', JsonErrorRenderer::class)</code> so every error response is guaranteed to be JSON.</li>
+</ul>
+<h2>RFC 9457 Problem Details Renderer &amp; PSR-3 Monolog Integration</h2>
+<p>For modern REST APIs, <strong>RFC 9457 Problem Details for HTTP APIs</strong> (<code>application/problem+json</code>) provides a standardized JSON schema (<code>type</code>, <code>title</code>, <code>status</code>, <code>detail</code>, <code>instance</code>). Implementing a custom renderer requires only <code>Slim\Interfaces\ErrorRendererInterface</code> (<code>__invoke(Throwable $exception, bool $displayErrorDetails): string</code>):</p>
+<pre><code class="language-php"><span class="cp">&lt;?php</span>
+
+<span class="k">declare</span><span class="p">(</span><span class="nx">strict_types</span><span class="o">=</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="nx">App\Http\Error</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Slim\Error\AbstractErrorRenderer</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Slim\Exception\HttpException</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">Throwable</span><span class="p">;</span>
+
+<span class="k">final</span> <span class="k">class</span> <span class="nc">ProblemDetailsErrorRenderer</span> <span class="k">extends</span> <span class="nx">AbstractErrorRenderer</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="fm">__invoke</span><span class="p">(</span><span class="nx">Throwable</span> <span class="nv">$exception</span><span class="p">,</span> <span class="nx">bool</span> <span class="nv">$displayErrorDetails</span><span class="p">)</span><span class="o">:</span> <span class="nx">string</span>
+    <span class="p">{</span>
+        <span class="nv">$status</span> <span class="o">=</span> <span class="nv">$exception</span> <span class="nx">instanceof</span> <span class="nx">HttpException</span> <span class="o">?</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getCode</span><span class="p">()</span> <span class="o">:</span> <span class="mi">500</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$status</span> <span class="o">&lt;</span> <span class="mi">400</span> <span class="o">||</span> <span class="nv">$status</span> <span class="o">&gt;</span> <span class="mi">599</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$status</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span>
+        <span class="p">}</span>
+
+        <span class="nv">$problem</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">'type'</span> <span class="o">=&gt;</span> <span class="nb">sprintf</span><span class="p">(</span><span class="s1">'https://httpstatuses.io/%d'</span><span class="p">,</span> <span class="nv">$status</span><span class="p">),</span>
+            <span class="s1">'title'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorTitle</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+            <span class="s1">'status'</span> <span class="o">=&gt;</span> <span class="nv">$status</span><span class="p">,</span>
+            <span class="s1">'detail'</span> <span class="o">=&gt;</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">getErrorDescription</span><span class="p">(</span><span class="nv">$exception</span><span class="p">),</span>
+        <span class="p">];</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$exception</span> <span class="nx">instanceof</span> <span class="nx">HttpException</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$problem</span><span class="p">[</span><span class="s1">'instance'</span><span class="p">]</span> <span class="o">=</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getRequest</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getUri</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">getPath</span><span class="p">();</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nv">$displayErrorDetails</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nv">$problem</span><span class="p">[</span><span class="s1">'debug'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">'exception'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">::</span><span class="na">class</span><span class="p">,</span>
+                <span class="s1">'message'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getMessage</span><span class="p">(),</span>
+                <span class="s1">'file'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getFile</span><span class="p">(),</span>
+                <span class="s1">'line'</span> <span class="o">=&gt;</span> <span class="nv">$exception</span><span class="o">-&gt;</span><span class="na">getLine</span><span class="p">(),</span>
+            <span class="p">];</span>
+        <span class="p">}</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="nb">json_encode</span><span class="p">(</span>
+            <span class="nv">$problem</span><span class="p">,</span>
+            <span class="nx">JSON_PRETTY_PRINT</span> <span class="o">|</span> <span class="nx">JSON_UNESCAPED_SLASHES</span> <span class="o">|</span> <span class="nx">JSON_INVALID_UTF8_SUBSTITUTE</span>
+        <span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// Registering ProblemDetailsErrorRenderer as the default renderer on ErrorHandler:</span>
+<span class="nv">$errorMiddleware</span> <span class="o">=</span> <span class="nv">$app</span><span class="o">-&gt;</span><span class="na">addErrorMiddleware</span><span class="p">(</span>
+    <span class="nx">displayErrorDetails</span><span class="o">:</span> <span class="k">false</span><span class="p">,</span>
+    <span class="nx">logErrors</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+    <span class="nx">logErrorDetails</span><span class="o">:</span> <span class="k">true</span><span class="p">,</span>
+    <span class="nx">logger</span><span class="o">:</span> <span class="nv">$monologLogger</span>
+<span class="p">);</span>
+
+<span class="sd">/** @var \Slim\Handlers\ErrorHandler $errorHandler */</span>
+<span class="nv">$errorHandler</span> <span class="o">=</span> <span class="nv">$errorMiddleware</span><span class="o">-&gt;</span><span class="na">getDefaultErrorHandler</span><span class="p">();</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">registerErrorRenderer</span><span class="p">(</span><span class="s1">'application/problem+json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">registerErrorRenderer</span><span class="p">(</span><span class="s1">'application/json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+<span class="nv">$errorHandler</span><span class="o">-&gt;</span><span class="na">setDefaultErrorRenderer</span><span class="p">(</span><span class="s1">'application/problem+json'</span><span class="p">,</span> <span class="nx">ProblemDetailsErrorRenderer</span><span class="o">::</span><span class="na">class</span><span class="p">);</span>
+</code></pre>
+<p>With authentication, RBAC, CORS, and structured error rendering in place, proceed to <strong><a href="../06_testing_and_deployment/phpunit_testing.html">Chapter 6: In-Memory HTTP Testing with PHPUnit</a></strong> to test happy paths and <code>HttpSpecializedException</code> error responses in sub-millisecond memory tests, or review <strong><a href="../06_testing_and_deployment/production_deployment.html">Nginx, PHP-FPM &amp; Worker Runtimes</a></strong> and the <strong><a href="https://slim.drawlib.com/architecture/">Slim 4 Internal Architecture Portal</a></strong> for production error logging and runtime configuration.</p>
+
+            </main>
+            <footer class="footer">
+                
+                Slim Framework is created and maintained by Josh Lockhart and the Slim Framework team (<a href="https://github.com/slimphp/Slim" target="_blank" rel="noopener noreferrer">slimphp/Slim</a>, MIT License). Unofficial guide — not affiliated with or endorsed by the official Slim 4 project (<a href="https://www.slimframework.com/" target="_blank" rel="noopener noreferrer">www.slimframework.com</a>).
+                
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function() {
+                    const current = document.documentElement.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('drawlib-theme', next);
+                });
+            }
+
+            // Language dropdown outside-click & Escape close
+            const langDropdowns = document.querySelectorAll('.lang-dropdown');
+            if (langDropdowns.length > 0) {
+                document.addEventListener('click', function(e) {
+                    langDropdowns.forEach(function(dd) {
+                        if (dd.hasAttribute('open') && !dd.contains(e.target)) {
+                            dd.removeAttribute('open');
+                        }
+                    });
+                });
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        langDropdowns.forEach(function(dd) {
+                            dd.removeAttribute('open');
+                        });
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.querySelector('.sidebar');
+            if (menuBtn && sidebar) {
+                function setMenuOpen(open) {
+                    sidebar.classList.toggle('is-open', open);
+                    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    document.body.classList.toggle('menu-open', open);
+                    if (open) {
+                        const menu = sidebar.querySelector('.sidebar-menu');
+                        if (menu) {
+                            menu.scrollTop = 0;
+                        }
+                    }
+                }
+
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const willOpen = !sidebar.classList.contains('is-open');
+                    setMenuOpen(willOpen);
+                });
+
+                // Close menu when clicking outside sidebar
+                document.addEventListener('click', function(e) {
+                    if (sidebar.classList.contains('is-open') && !sidebar.contains(e.target)) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Close menu when a navigation link is clicked
+                const navLinks = sidebar.querySelectorAll('.nav-item a');
+                navLinks.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        setMenuOpen(false);
+                    });
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+
+                // Reset menu state when resized above mobile breakpoint
+                window.addEventListener('resize', function() {
+                    if (window.innerWidth > 768 && sidebar.classList.contains('is-open')) {
+                        setMenuOpen(false);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
